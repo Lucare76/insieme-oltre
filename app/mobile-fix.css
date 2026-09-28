@@ -1,0 +1,282 @@
+/* Mobile refinement layer: keeps the emotional desktop layout, but makes the site feel designed for phones. */
+@media (max-width: 760px) {
+  body {
+    background: #fffdf9;
+  }
+
+  .site-header {
+    top: 8px !important;
+    width: calc(100% - 18px) !important;
+    height: 54px !important;
+    padding: 0 8px 0 12px !important;
+    grid-template-columns: 1fr auto !important;
+    border-radius: 28px !important;
+  }
+
+  .brand {
+    gap: 8px !important;
+    font-size: 16px !important;
+    white-space: nowrap !important;
+  }
+
+  .brand-dot {
+    width: 27px !important;
+    height: 27px !important;
+    font-size: 12px !important;
+  }
+
+  .site-header nav {
+    display: none !important;
+  }
+
+  .header-cta {
+    padding: 10px 13px !important;
+    font-size: 11px !important;
+    min-width: auto !important;
+  }
+
+  .hero {
+    min-height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 28px !important;
+    padding: 96px 20px 70px !important;
+    text-align: left !important;
+  }
+
+  .hero-copy {
+    order: 1 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .hero-art {
+    order: 2 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 6px 0 0 !important;
+  }
+
+  .eyebrow,
+  .section-kicker {
+    font-size: 10px !important;
+    letter-spacing: 0.16em !important;
+  }
+
+  .hero h1 {
+    margin: 16px 0 18px !important;
+    font-size: clamp(54px, 17vw, 78px) !important;
+    line-height: 0.92 !important;
+    letter-spacing: -0.062em !important;
+  }
+
+  .hero-lead {
+    max-width: 100% !important;
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+  }
+
+  .hero-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 25px !important;
+    width: 100% !important;
+  }
+
+  .button {
+    width: 100% !important;
+    min-height: 52px !important;
+    font-size: 14px !important;
+  }
+
+  .hand-note {
+    margin-top: 26px !important;
+    font-size: 15px !important;
+  }
+
+  .logo-frame {
+    width: min(350px, 92vw) !important;
+    margin: 0 auto !important;
+  }
+
+  .hero-logo-img {
+    max-width: min(350px, 92vw) !important;
+  }
+
+  .hero-whisper {
+    top: 10px !important;
+    right: 4px !important;
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+
+  .orbit-one {
+    width: 310px !important;
+    height: 310px !important;
+    right: -120px !important;
+    top: -28px !important;
+  }
+
+  .orbit-two {
+    width: 245px !important;
+    height: 245px !important;
+    right: -72px !important;
+    bottom: -42px !important;
+  }
+
+  .section {
+    padding: 82px 20px !important;
+  }
+
+  .manifesto-grid,
+  .section-heading,
+  .numbers-inner,
+  .join {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+  }
+
+  .manifesto h2,
+  .section-heading h2,
+  .stories h2,
+  .promise h2,
+  .join h2 {
+    font-size: clamp(42px, 12vw, 58px) !important;
+    line-height: 1.02 !important;
+  }
+
+  .manifesto-text p {
+    font-size: 18px !important;
+    line-height: 1.55 !important;
+  }
+
+  .pillar-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .pillar-card {
+    min-height: auto !important;
+    padding: 24px !important;
+  }
+
+  .pillar-card h3 {
+    margin: 44px 0 10px !important;
+    font-size: 30px !important;
+  }
+
+  .aurora-section {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: auto !important;
+  }
+
+  .aurora-visual {
+    min-height: 340px !important;
+  }
+
+  .aurora-a {
+    font-size: clamp(190px, 50vw, 280px) !important;
+  }
+
+  .aurora-story {
+    padding: 66px 20px 76px !important;
+  }
+
+  .aurora-story h2 {
+    font-size: clamp(70px, 18vw, 96px) !important;
+  }
+
+  .aurora-subtitle {
+    font-size: 23px !important;
+  }
+
+  .aurora-story > p {
+    font-size: 16px !important;
+    line-height: 1.68 !important;
+  }
+
+  .aurora-story blockquote {
+    margin: 32px 0 !important;
+    padding: 22px 0 22px 20px !important;
+    font-size: clamp(26px, 8vw, 38px) !important;
+  }
+
+  .story-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .story-card {
+    min-height: 300px !important;
+    padding: 24px !important;
+  }
+
+  .numbers {
+    padding: 86px 20px !important;
+  }
+
+  .numbers-big {
+    justify-content: flex-start !important;
+  }
+
+  .numbers-big span {
+    font-size: clamp(96px, 32vw, 150px) !important;
+  }
+
+  .numbers-copy h2 {
+    font-size: clamp(42px, 12vw, 58px) !important;
+  }
+
+  .promise {
+    text-align: left !important;
+  }
+
+  .promise-note {
+    margin: 28px 0 0 !important;
+    font-size: 16px !important;
+  }
+
+  .join {
+    padding: 82px 20px !important;
+  }
+
+  .join-symbol {
+    min-height: auto !important;
+    order: 2 !important;
+  }
+
+  .join-copy {
+    order: 1 !important;
+  }
+
+  .official-logo {
+    max-width: min(380px, 92vw) !important;
+  }
+
+  footer {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+    padding: 30px 20px !important;
+  }
+
+  footer > a {
+    justify-self: start !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero h1 {
+    font-size: clamp(48px, 16vw, 64px) !important;
+  }
+
+  .header-cta {
+    padding: 9px 10px !important;
+  }
+
+  .brand {
+    font-size: 15px !important;
+  }
+}

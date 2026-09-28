@@ -52,6 +52,16 @@ export type HomeContent = {
     closingLine1: string;
     closingLine2: string;
   };
+  auroraStory: {
+    cardDescription: string;
+    cardLink: string;
+    subtitle: string;
+    paragraphs: string[];
+    pauseLine1: string;
+    pauseLine2: string;
+    parentsTitle: string;
+    parentsParagraphs: string[];
+  };
   stories: {
     kicker: string;
     titleLine1: string;
@@ -161,6 +171,29 @@ export const defaultHomeContent: HomeContent = {
     closingLine1: "Il suo cromosoma in più appartiene alla sua storia.",
     closingLine2: "Ma non sarà mai tutta la sua storia.",
   },
+  auroraStory: {
+    cardDescription: "Sto scoprendo il mondo un passo alla volta, con il mio sorriso, il mio carattere e i miei tempi. E ogni giorno ricordo a mamma e papà che una persona è infinitamente più grande di qualsiasi definizione.",
+    cardLink: "Conosci la mia storia →",
+    subtitle: "Prima di tutto, una bambina.",
+    paragraphs: [
+      "Aurora non è arrivata nella nostra vita per insegnarci una lezione. È arrivata semplicemente per essere nostra figlia.",
+      "E da quel momento è diventata una parte di noi che non sapevamo nemmeno ci mancasse.",
+      "Ha il suo carattere. I suoi tempi. Le sue conquiste. Le giornate semplici e quelle più complicate. I sorrisi che riempiono una stanza e quel modo tutto suo di farsi capire.",
+      "Aurora ha anche un cromosoma in più.\nMa se vuoi conoscerla davvero, contarli non servirà a molto.",
+      "Dovrai guardarla negli occhi. Dovrai aspettare il suo sorriso. Dovrai vederla andare incontro al mondo.",
+      "Perché Aurora non è una diagnosi. Non è una percentuale. Non è una previsione scritta su un foglio.",
+      "Aurora è Aurora.\nEd è la cosa più bella che ci sia mai accaduta.",
+    ],
+    pauseLine1: "Il suo cromosoma in più appartiene alla sua storia.",
+    pauseLine2: "Ma non sarà mai tutta la sua storia.",
+    parentsTitle: "Quando è nata Aurora, è nata anche una nuova parte di noi.",
+    parentsParagraphs: [
+      "Abbiamo conosciuto paure che prima non conoscevamo. Abbiamo imparato parole che non avremmo mai pensato di dover imparare. Abbiamo aspettato, sperato, festeggiato conquiste che per altri possono sembrare piccole.",
+      "Ma soprattutto abbiamo scoperto una cosa molto più semplice:",
+      "non dovevamo imparare ad amare Aurora.\nDovevamo soltanto conoscerla.",
+      "Perché l’amore era già lì.",
+    ],
+  },
   stories: {
     kicker: "Storie vere, vite intere",
     titleLine1: "Dietro ogni nome",
@@ -213,7 +246,12 @@ function mergeHomeContent(base: HomeContent, incoming: unknown): HomeContent {
     ...candidate,
     meta: { ...base.meta, ...candidate.meta },
     nav: { ...base.nav, ...candidate.nav },
-    hero: { ...base.hero, ...candidate.hero },
+    hero: {
+      ...base.hero,
+      ...candidate.hero,
+      titleLine1: base.hero.titleLine1,
+      titleLine2: base.hero.titleLine2,
+    },
     manifesto: { ...base.manifesto, ...candidate.manifesto },
     pillars: {
       ...base.pillars,
@@ -221,6 +259,12 @@ function mergeHomeContent(base: HomeContent, incoming: unknown): HomeContent {
       items: candidate.pillars?.items ?? base.pillars.items,
     },
     aurora: { ...base.aurora, ...candidate.aurora },
+    auroraStory: {
+      ...base.auroraStory,
+      ...candidate.auroraStory,
+      paragraphs: candidate.auroraStory?.paragraphs ?? base.auroraStory.paragraphs,
+      parentsParagraphs: candidate.auroraStory?.parentsParagraphs ?? base.auroraStory.parentsParagraphs,
+    },
     stories: {
       ...base.stories,
       ...candidate.stories,
@@ -229,7 +273,7 @@ function mergeHomeContent(base: HomeContent, incoming: unknown): HomeContent {
     numbers: { ...base.numbers, ...candidate.numbers },
     promise: { ...base.promise, ...candidate.promise },
     join: { ...base.join, ...candidate.join },
-    footer: { ...base.footer, ...candidate.footer },
+    footer: { ...base.footer, ...candidate.footer, slogan: base.footer.slogan },
   };
 }
 

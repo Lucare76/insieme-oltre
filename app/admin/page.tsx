@@ -116,7 +116,7 @@ export default function AdminPage() {
   }, [token]);
 
   async function sendMagicLink() {
-    if (!isConfigured) {
+    if (!isConfigured || !supabaseUrl) {
       setStatus("Prima vanno configurate le variabili Supabase su Vercel.");
       return;
     }
@@ -129,7 +129,8 @@ export default function AdminPage() {
     setLoading(true);
     setStatus("Invio link di accesso…");
 
-    const response = await fetch(`${supabaseUrl}/auth/v1/otp`, {
+    const redirectTo = `${window.location.origin}/admin`;
+    const response = await fetch(`${supabaseUrl}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, {
       method: "POST",
       headers: {
         apikey: anonKey ?? "",
@@ -139,7 +140,7 @@ export default function AdminPage() {
         email,
         create_user: true,
         options: {
-          email_redirect_to: `${window.location.origin}/admin`,
+          email_redirect_to: redirectTo,
         },
       }),
     });

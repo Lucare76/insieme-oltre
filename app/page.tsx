@@ -29,45 +29,11 @@ const stories = [
   { name: "Sofia", line: "Rido forte. E non chiedo permesso.", accent: "gold" },
 ];
 
-const correctedLogoSlogan = "L’amore non si misura in cromosomi.";
-
 function HeartLine() {
   return (
     <svg className="heart-line" viewBox="0 0 160 70" aria-hidden="true">
       <path d="M4 42C31 47 46 43 61 31c9-8 12-22 4-26-9-5-19 3-16 13 4 13 25 21 44 20 21-1 37-9 63-29" />
     </svg>
-  );
-}
-
-function CorrectedLogo({ priority = false }: { priority?: boolean }) {
-  return (
-    <div style={{ width: "100%", maxWidth: 900, display: "grid", justifyItems: "center" }}>
-      <div style={{ width: "100%", overflow: "hidden", aspectRatio: "1448 / 910" }}>
-        <Image
-          className="hero-logo-img"
-          src="/insieme-oltre-logo.png"
-          alt="Insieme Oltre"
-          width={1448}
-          height={1086}
-          priority={priority}
-          style={{ display: "block", width: "100%", height: "auto" }}
-        />
-      </div>
-      <p
-        aria-label={correctedLogoSlogan}
-        style={{
-          margin: "clamp(8px, 1.3vw, 14px) 0 0",
-          color: "#435245",
-          fontSize: "clamp(17px, 2.1vw, 31px)",
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          lineHeight: 1.1,
-          textAlign: "center",
-        }}
-      >
-        {correctedLogoSlogan}
-      </p>
-    </div>
   );
 }
 
@@ -111,7 +77,14 @@ export default function Home() {
           <div className="sun-orbit orbit-one" />
           <div className="sun-orbit orbit-two" />
           <div className="portrait-halo logo-frame">
-            <CorrectedLogo priority />
+            <Image
+              className="hero-logo-img"
+              src="/insieme-oltre-logo.png"
+              alt=""
+              width={1448}
+              height={1086}
+              priority
+            />
           </div>
           <div className="hero-whisper">più ascolto<br/>più possibilità<br/><strong>più futuro</strong></div>
         </div>
@@ -237,7 +210,13 @@ export default function Home() {
 
       <section className="join section" id="unisciti">
         <div className="join-symbol logo-frame-end">
-          <CorrectedLogo />
+          <Image
+            className="official-logo"
+            src="/insieme-oltre-logo.png"
+            alt="Insieme Oltre — L’amore non si misura in cromosomi"
+            width={1448}
+            height={1086}
+          />
         </div>
         <div className="join-copy">
           <p className="section-kicker">Insieme, oltre</p>
@@ -253,7 +232,7 @@ export default function Home() {
       <footer>
         <div className="footer-brand">
           <span>Insieme <em>Oltre</em></span>
-          <small>{correctedLogoSlogan}</small>
+          <small>L’amore non si misura in cromosomi.</small>
         </div>
         <p>Un progetto di famiglie, persone e possibilità.</p>
         <a href="#top">Torna su ↑</a>

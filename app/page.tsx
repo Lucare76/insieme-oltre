@@ -1,31 +1,4 @@
-const pillars = [
-  {
-    number: "01",
-    title: "Famiglie",
-    text: "Nessuno dovrebbe sentirsi solo davanti a una diagnosi, a una domanda o a un futuro da immaginare.",
-  },
-  {
-    number: "02",
-    title: "Bambini",
-    text: "Prima di tutto persone: caratteri, desideri, talenti, capricci, risate e una vita intera da scrivere.",
-  },
-  {
-    number: "03",
-    title: "Autonomia",
-    text: "Accompagnare senza sostituirsi. Dare strumenti, tempo e fiducia perché ogni possibilità possa diventare scelta.",
-  },
-  {
-    number: "04",
-    title: "Inclusione",
-    text: "Una società è davvero inclusiva quando non chiede a qualcuno di dimostrare ogni giorno di meritare il proprio posto.",
-  },
-];
-
-const stories = [
-  { name: "Aurora", line: "Ho una luce tutta mia.", accent: "coral" },
-  { name: "Lorenzo", line: "Mi piace scoprire come funzionano le cose.", accent: "sage" },
-  { name: "Sofia", line: "Rido forte. E non chiedo permesso.", accent: "gold" },
-];
+import { getHomeContent } from "../lib/siteContent";
 
 const logoTopSrc = "/insieme-oltre-logo-top.png?v=top-logo-20260928";
 const logoFullSrc = "/insieme-oltre-logo.png?v=full-logo-20260928";
@@ -38,7 +11,21 @@ function HeartLine() {
   );
 }
 
-export default function Home() {
+function splitStrong(text: string) {
+  const parts = text.split(" È arrivata semplicemente per essere nostra figlia.");
+
+  if (parts.length === 1) return text;
+
+  return (
+    <>
+      {parts[0]} <strong>È arrivata semplicemente per essere nostra figlia.</strong>
+    </>
+  );
+}
+
+export default async function Home() {
+  const content = await getHomeContent();
+
   return (
     <main>
       <header className="site-header">
@@ -52,26 +39,23 @@ export default function Home() {
           <a href="#storie">Storie</a>
           <a href="#futuro">Il futuro</a>
         </nav>
-        <a className="header-cta" href="#unisciti">Unisciti a noi</a>
+        <a className="header-cta" href="#unisciti">{content.nav.cta}</a>
       </header>
 
       <section className="hero" id="top">
         <div className="hero-noise" aria-hidden="true" />
         <div className="hero-copy">
-          <p className="eyebrow">Famiglie. Persone. Possibilità.</p>
+          <p className="eyebrow">{content.hero.eyebrow}</p>
           <h1>
-            L’amore non si misura
-            <span>in cromosomi.</span>
+            {content.hero.titleLine1}
+            <span>{content.hero.titleLine2}</span>
           </h1>
-          <p className="hero-lead">
-            Una comunità che mette al centro i bambini, le loro possibilità e il loro futuro.
-            Senza etichette. Senza pietismo. Insieme.
-          </p>
+          <p className="hero-lead">{content.hero.lead}</p>
           <div className="hero-actions">
-            <a className="button button-primary" href="#manifesto">Scopri chi siamo <span>→</span></a>
-            <a className="button button-ghost" href="#storie">Conosci le storie</a>
+            <a className="button button-primary" href="#manifesto">{content.hero.primaryCta} <span>→</span></a>
+            <a className="button button-ghost" href="#storie">{content.hero.secondaryCta}</a>
           </div>
-          <div className="hand-note">Prima le persone. Sempre.</div>
+          <div className="hand-note">{content.hero.note}</div>
         </div>
 
         <div className="hero-art" aria-hidden="true">
@@ -86,7 +70,9 @@ export default function Home() {
               height="1086"
             />
           </div>
-          <div className="hero-whisper">più ascolto<br/>più possibilità<br/><strong>più futuro</strong></div>
+          <div className="hero-whisper">
+            {content.hero.whisperLine1}<br/>{content.hero.whisperLine2}<br/><strong>{content.hero.whisperStrong}</strong>
+          </div>
         </div>
 
         <a className="scroll-cue" href="#manifesto" aria-label="Scorri alla sezione successiva">
@@ -95,18 +81,13 @@ export default function Home() {
       </section>
 
       <section className="manifesto section" id="manifesto">
-        <div className="section-kicker">Il nostro punto di partenza</div>
+        <div className="section-kicker">{content.manifesto.kicker}</div>
         <div className="manifesto-grid">
-          <h2>Prima vengono<br/><em>i bambini.</em></h2>
+          <h2>{content.manifesto.titleLine1}<br/><em>{content.manifesto.titleLine2}</em></h2>
           <div className="manifesto-text">
-            <p>
-              Non “bambini speciali”. Non una diagnosi prima del nome. Bambini.
-              Con passioni, capricci, sorrisi, paure, talenti e un futuro ancora tutto da scrivere.
-            </p>
-            <p>
-              Crediamo in una comunità che non misuri una persona da ciò che le manca,
-              ma dalle possibilità che insieme possiamo aprire.
-            </p>
+            {content.manifesto.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
             <HeartLine />
           </div>
         </div>
@@ -115,15 +96,13 @@ export default function Home() {
       <section className="pillars section" id="cosa-facciamo">
         <div className="section-heading">
           <div>
-            <p className="section-kicker">Quello che vogliamo costruire</p>
-            <h2>Un posto dove<br/>sentirsi parte.</h2>
+            <p className="section-kicker">{content.pillars.kicker}</p>
+            <h2>{content.pillars.titleLine1}<br/>{content.pillars.titleLine2}</h2>
           </div>
-          <p className="section-intro">
-            Ascolto, strumenti concreti e occasioni vere. Per i bambini, per chi li accompagna e per il territorio che cresce con loro.
-          </p>
+          <p className="section-intro">{content.pillars.intro}</p>
         </div>
         <div className="pillar-grid">
-          {pillars.map((pillar) => (
+          {content.pillars.items.map((pillar) => (
             <article className="pillar-card" key={pillar.title}>
               <span className="pillar-number">{pillar.number}</span>
               <h3>{pillar.title}</h3>
@@ -142,40 +121,33 @@ export default function Home() {
           <span className="aurora-star">✦</span>
         </div>
         <div className="aurora-story">
-          <p className="section-kicker light">Conosciamoci per nome</p>
-          <h2>Aurora.</h2>
-          <p className="aurora-subtitle">Prima di tutto, una bambina.</p>
-          <p>
-            Aurora non è arrivata nella nostra vita per insegnarci una lezione.
-            <strong> È arrivata semplicemente per essere nostra figlia.</strong>
-          </p>
-          <p>
-            Ha il suo carattere. I suoi tempi. Le sue conquiste. I sorrisi che riempiono una stanza
-            e quel modo tutto suo di farsi capire.
-          </p>
-          <blockquote>
-            “Se vuoi conoscere Aurora, contarle i cromosomi non servirà a molto.”
-          </blockquote>
+          <p className="section-kicker light">{content.aurora.kicker}</p>
+          <h2>{content.aurora.title}</h2>
+          <p className="aurora-subtitle">{content.aurora.subtitle}</p>
+          {content.aurora.paragraphs.map((paragraph, index) => (
+            <p key={paragraph}>{index === 0 ? splitStrong(paragraph) : paragraph}</p>
+          ))}
+          <blockquote>“{content.aurora.quote}”</blockquote>
           <p className="aurora-closing">
-            Il suo cromosoma in più appartiene alla sua storia.<br/>
-            <strong>Ma non sarà mai tutta la sua storia.</strong>
+            {content.aurora.closingLine1}<br/>
+            <strong>{content.aurora.closingLine2}</strong>
           </p>
         </div>
       </section>
 
       <section className="stories section" aria-labelledby="stories-title">
         <div className="stories-title-wrap">
-          <p className="section-kicker">Storie vere, vite intere</p>
-          <h2 id="stories-title">Dietro ogni nome<br/>c’è un mondo.</h2>
+          <p className="section-kicker">{content.stories.kicker}</p>
+          <h2 id="stories-title">{content.stories.titleLine1}<br/>{content.stories.titleLine2}</h2>
         </div>
         <div className="story-grid">
-          {stories.map((story, index) => (
+          {content.stories.items.map((story, index) => (
             <article className={["story-card", story.accent].join(" ")} key={story.name}>
               <div className="story-number">0{index + 1}</div>
               <div className="story-avatar" aria-hidden="true">{story.name.charAt(0)}</div>
               <h3>{story.name}</h3>
               <p>“{story.line}”</p>
-              <span>La sua storia arriverà qui →</span>
+              <span>{content.stories.comingSoon}</span>
             </article>
           ))}
         </div>
@@ -183,29 +155,23 @@ export default function Home() {
 
       <section className="numbers" id="futuro">
         <div className="numbers-inner">
-          <div className="numbers-big" aria-label="46 oppure 47 cromosomi">
+          <div className="numbers-big" aria-label={content.numbers.label}>
             <span>46</span><i>o</i><span>47</span>
           </div>
           <div className="numbers-copy">
-            <h2>Cambia un numero.<br/><em>Non il valore.</em></h2>
-            <p>
-              Una persona non è una statistica, una previsione o una definizione.
-              È relazioni, sogni, desideri, voce. È il proprio posto nel mondo.
-            </p>
+            <h2>{content.numbers.titleLine1}<br/><em>{content.numbers.titleLine2}</em></h2>
+            <p>{content.numbers.text}</p>
           </div>
         </div>
       </section>
 
       <section className="promise section">
-        <p className="section-kicker">Il nostro impegno</p>
+        <p className="section-kicker">{content.promise.kicker}</p>
         <h2>
-          Non vogliamo raccontare<br/>una diagnosi.
-          <span>Vogliamo raccontare delle vite.</span>
+          {content.promise.titleLine1}<br/>{content.promise.titleLine2}
+          <span>{content.promise.accent}</span>
         </h2>
-        <p className="promise-note">
-          Crescere. Sbagliare. Imparare. Fare amicizia. Sognare. Scegliere.
-          Avere un posto nel mondo senza doverlo continuamente conquistare.
-        </p>
+        <p className="promise-note">{content.promise.note}</p>
       </section>
 
       <section className="join section" id="unisciti">
@@ -219,23 +185,20 @@ export default function Home() {
           />
         </div>
         <div className="join-copy">
-          <p className="section-kicker">Insieme, oltre</p>
-          <h2>Il futuro non si aspetta.<br/><em>Si costruisce insieme.</em></h2>
-          <p>
-            Questo progetto nasce dalle famiglie e crescerà con le famiglie.
-            Se condividi questa idea di futuro, c’è un posto anche per te.
-          </p>
-          <a className="button button-primary" href="#top">Cominciamo da qui <span>↑</span></a>
+          <p className="section-kicker">{content.join.kicker}</p>
+          <h2>{content.join.titleLine1}<br/><em>{content.join.titleLine2}</em></h2>
+          <p>{content.join.text}</p>
+          <a className="button button-primary" href="#top">{content.join.cta} <span>↑</span></a>
         </div>
       </section>
 
       <footer>
         <div className="footer-brand">
           <span>Insieme <em>Oltre</em></span>
-          <small>L’amore non si misura in cromosomi.</small>
+          <small>{content.footer.slogan}</small>
         </div>
-        <p>Un progetto di famiglie, persone e possibilità.</p>
-        <a href="#top">Torna su ↑</a>
+        <p>{content.footer.note}</p>
+        <a href="#top">{content.footer.backTop}</a>
       </footer>
     </main>
   );

@@ -134,8 +134,8 @@ export default async function Home() {
               {index === 0 ? (
                 <>
                   <p>{story.line}</p>
-                  <p className="story-description">Sto scoprendo il mondo un passo alla volta, con il mio sorriso, il mio carattere e i miei tempi. E ogni giorno ricordo a mamma e papà che una persona è infinitamente più grande di qualsiasi definizione.</p>
-                  <a className="story-link" href="/storie/aurora">Conosci la mia storia →</a>
+                  <p className="story-description">{content.auroraStory.cardDescription}</p>
+                  <a className="story-link" href="/storie/aurora">{content.auroraStory.cardLink}</a>
                 </>
               ) : (
                 <p>{story.line || content.stories.comingSoon}</p>

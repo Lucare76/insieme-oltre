@@ -79,10 +79,10 @@ export default function Home() {
           <div className="portrait-halo logo-frame">
             <Image
               className="hero-logo-img"
-              src="/insieme-oltre-logo-approved.webp"
+              src="/insieme-oltre-logo.png"
               alt=""
-              width={900}
-              height={714}
+              width={1200}
+              height={900}
               priority
             />
           </div>
@@ -212,10 +212,10 @@ export default function Home() {
         <div className="join-symbol logo-frame-end">
           <Image
             className="official-logo"
-            src="/insieme-oltre-logo-approved.webp"
+            src="/insieme-oltre-logo.png"
             alt="Insieme Oltre — L’amore non si misura in cromosomi"
-            width={900}
-            height={714}
+            width={1200}
+            height={900}
           />
         </div>
         <div className="join-copy">

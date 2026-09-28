@@ -15,6 +15,10 @@ type Field = {
 };
 
 const fields: Field[] = [
+  { label: "SEO — titolo pagina", path: "meta.title" },
+  { label: "SEO — descrizione", path: "meta.description", multiline: true },
+  { label: "Menu — CTA", path: "nav.cta" },
+
   { label: "Hero — occhiello", path: "hero.eyebrow" },
   { label: "Hero — titolo riga 1", path: "hero.titleLine1" },
   { label: "Hero — titolo riga 2", path: "hero.titleLine2" },
@@ -22,26 +26,83 @@ const fields: Field[] = [
   { label: "Hero — CTA principale", path: "hero.primaryCta" },
   { label: "Hero — CTA secondaria", path: "hero.secondaryCta" },
   { label: "Hero — nota scritta a mano", path: "hero.note" },
+  { label: "Hero — frase logo riga 1", path: "hero.whisperLine1" },
+  { label: "Hero — frase logo riga 2", path: "hero.whisperLine2" },
+  { label: "Hero — frase logo evidenziata", path: "hero.whisperStrong" },
+
   { label: "Manifesto — occhiello", path: "manifesto.kicker" },
   { label: "Manifesto — titolo riga 1", path: "manifesto.titleLine1" },
   { label: "Manifesto — titolo riga 2", path: "manifesto.titleLine2" },
+  { label: "Manifesto — paragrafo 1", path: "manifesto.paragraphs.0", multiline: true },
+  { label: "Manifesto — paragrafo 2", path: "manifesto.paragraphs.1", multiline: true },
+
+  { label: "Cosa facciamo — occhiello", path: "pillars.kicker" },
+  { label: "Cosa facciamo — titolo riga 1", path: "pillars.titleLine1" },
+  { label: "Cosa facciamo — titolo riga 2", path: "pillars.titleLine2" },
+  { label: "Cosa facciamo — introduzione", path: "pillars.intro", multiline: true },
+  { label: "Card 1 — numero", path: "pillars.items.0.number" },
+  { label: "Card 1 — titolo", path: "pillars.items.0.title" },
+  { label: "Card 1 — testo", path: "pillars.items.0.text", multiline: true },
+  { label: "Card 2 — numero", path: "pillars.items.1.number" },
+  { label: "Card 2 — titolo", path: "pillars.items.1.title" },
+  { label: "Card 2 — testo", path: "pillars.items.1.text", multiline: true },
+  { label: "Card 3 — numero", path: "pillars.items.2.number" },
+  { label: "Card 3 — titolo", path: "pillars.items.2.title" },
+  { label: "Card 3 — testo", path: "pillars.items.2.text", multiline: true },
+  { label: "Card 4 — numero", path: "pillars.items.3.number" },
+  { label: "Card 4 — titolo", path: "pillars.items.3.title" },
+  { label: "Card 4 — testo", path: "pillars.items.3.text", multiline: true },
+
+  { label: "Aurora — occhiello", path: "aurora.kicker" },
   { label: "Aurora — titolo", path: "aurora.title" },
   { label: "Aurora — sottotitolo", path: "aurora.subtitle" },
+  { label: "Aurora — paragrafo 1", path: "aurora.paragraphs.0", multiline: true },
+  { label: "Aurora — paragrafo 2", path: "aurora.paragraphs.1", multiline: true },
   { label: "Aurora — frase", path: "aurora.quote", multiline: true },
+  { label: "Aurora — chiusura riga 1", path: "aurora.closingLine1" },
+  { label: "Aurora — chiusura riga 2", path: "aurora.closingLine2" },
+
+  { label: "Storie — occhiello", path: "stories.kicker" },
+  { label: "Storie — titolo riga 1", path: "stories.titleLine1" },
+  { label: "Storie — titolo riga 2", path: "stories.titleLine2" },
+  { label: "Storie — scheda 1 nome", path: "stories.items.0.name" },
+  { label: "Storie — scheda 1 frase", path: "stories.items.0.line" },
+  { label: "Storie — scheda 2 nome", path: "stories.items.1.name" },
+  { label: "Storie — scheda 2 frase", path: "stories.items.1.line" },
+  { label: "Storie — scheda 3 nome", path: "stories.items.2.name" },
+  { label: "Storie — scheda 3 frase", path: "stories.items.2.line" },
+  { label: "Storie — testo in arrivo", path: "stories.comingSoon" },
+
+  { label: "Numeri — etichetta", path: "numbers.label" },
+  { label: "Numeri — titolo riga 1", path: "numbers.titleLine1" },
+  { label: "Numeri — titolo riga 2", path: "numbers.titleLine2" },
+  { label: "Numeri — testo", path: "numbers.text", multiline: true },
+
+  { label: "Promise — occhiello", path: "promise.kicker" },
   { label: "Promise — titolo riga 1", path: "promise.titleLine1" },
   { label: "Promise — titolo riga 2", path: "promise.titleLine2" },
   { label: "Promise — frase evidenziata", path: "promise.accent" },
+  { label: "Promise — nota", path: "promise.note", multiline: true },
+
+  { label: "Finale — occhiello", path: "join.kicker" },
   { label: "Finale — titolo riga 1", path: "join.titleLine1" },
   { label: "Finale — titolo riga 2", path: "join.titleLine2" },
   { label: "Finale — testo", path: "join.text", multiline: true },
+  { label: "Finale — CTA", path: "join.cta" },
+
+  { label: "Footer — brand", path: "footer.brand" },
   { label: "Footer — slogan", path: "footer.slogan" },
+  { label: "Footer — nota", path: "footer.note" },
+  { label: "Footer — torna su", path: "footer.backTop" },
 ];
 
 function getValue(obj: unknown, path: string): string {
-  return path.split(".").reduce<unknown>((acc, key) => {
+  const value = path.split(".").reduce<unknown>((acc, key) => {
     if (!acc || typeof acc !== "object") return "";
     return (acc as Record<string, unknown>)[key];
-  }, obj) as string;
+  }, obj);
+
+  return typeof value === "string" ? value : "";
 }
 
 function setValue<T extends Record<string, unknown>>(obj: T, path: string, value: string): T {
@@ -49,8 +110,9 @@ function setValue<T extends Record<string, unknown>>(obj: T, path: string, value
   const keys = path.split(".");
   let current: Record<string, unknown> = clone;
 
-  keys.slice(0, -1).forEach((key) => {
-    current[key] = current[key] ?? {};
+  keys.slice(0, -1).forEach((key, index) => {
+    const nextKey = keys[index + 1];
+    current[key] = current[key] ?? (/^\d+$/.test(nextKey) ? [] : {});
     current = current[key] as Record<string, unknown>;
   });
 

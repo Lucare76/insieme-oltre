@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 720" role="img" aria-labelledby="title desc">
+  <title id="title">Insieme Oltre</title>
+  <desc id="desc">Logo Insieme Oltre con lo slogan L’amore non si misura in cromosomi.</desc>
+  <g fill="none" fill-rule="evenodd">
+    <circle cx="315" cy="145" r="55" fill="#E6685E"/>
+    <circle cx="605" cy="133" r="61" fill="#70876C"/>
+    <path d="M200 226c41-76 119-93 183-34 34 30 51 74 72 110-43-31-81-55-122-61-32-5-57 18-67 52-16 54 4 120 59 202-104-58-159-140-149-221 2-18 10-34 24-48z" fill="#E6685E"/>
+    <path d="M723 217c-39-76-117-95-182-37-35 30-53 73-75 109 45-30 83-54 123-60 33-5 57 19 66 54 15 53-5 119-62 200 106-56 162-138 154-219-2-18-10-34-24-47z" fill="#70876C"/>
+    <circle cx="458" cy="338" r="47" fill="#E0A757"/>
+    <path d="M356 372c42 5 68 32 104 70 36-39 62-65 105-69-27 67-56 124-105 180-50-55-78-112-104-181z" fill="#E0A757"/>
+    <path d="M438 235c11-20 43-16 43 9 0 18-24 34-24 34s-26-15-26-34c0-4 3-8 7-9z" fill="#E0A757"/>
+    <path d="M165 537c191 58 389 58 588 0-166 74-393 75-588 0z" fill="#E0A757"/>
+    <text x="460" y="628" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="102" font-weight="500">
+      <tspan fill="#E6685E">Insieme</tspan><tspan fill="#70876C"> Oltre</tspan>
+    </text>
+    <text x="460" y="684" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="29" letter-spacing="1.1" fill="#435245">
+      L’amore non si misura in cromosomi.
+    </text>
+  </g>
+</svg>

@@ -101,21 +101,22 @@ export const defaultHomeContent: HomeContent = {
     titleLine1: "L’amore non si misura",
     titleLine2: "in cromosomi.",
     lead:
-      "Una comunità che mette al centro i bambini, le loro possibilità e il loro futuro. Senza etichette. Senza pietismo. Insieme.",
+      "Una comunità di famiglie che guarda oltre la diagnosi: verso i bambini, le possibilità, il futuro. Con amore, con coraggio, insieme.",
     primaryCta: "Scopri chi siamo",
     secondaryCta: "Conosci le storie",
-    note: "Prima le persone. Sempre.",
-    whisperLine1: "più ascolto",
-    whisperLine2: "più possibilità",
-    whisperStrong: "più futuro",
+    note: "Ogni bambino è una storia intera.",
+    whisperLine1: "non una diagnosi",
+    whisperLine2: "non un limite",
+    whisperStrong: "un futuro",
   },
   manifesto: {
     kicker: "Il nostro punto di partenza",
     titleLine1: "Prima vengono",
     titleLine2: "i bambini.",
     paragraphs: [
+      "Quando arriva una diagnosi, spesso il mondo sembra parlare solo di numeri, limiti e previsioni. Noi vogliamo rimettere al centro la cosa più importante: il bambino.",
       "Non “bambini speciali”. Non una diagnosi prima del nome. Bambini. Con passioni, capricci, sorrisi, paure, talenti e un futuro ancora tutto da scrivere.",
-      "Crediamo in una comunità che non misuri una persona da ciò che le manca, ma dalle possibilità che insieme possiamo aprire.",
+      "Insieme Oltre nasce per questo: sostenere le famiglie, creare ascolto e aprire possibilità concrete. Senza pietismo. Senza etichette. Con lo sguardo rivolto avanti.",
     ],
   },
   pillars: {
@@ -153,7 +154,8 @@ export const defaultHomeContent: HomeContent = {
     subtitle: "Prima di tutto, una bambina.",
     paragraphs: [
       "Aurora non è arrivata nella nostra vita per insegnarci una lezione. È arrivata semplicemente per essere nostra figlia.",
-      "Ha il suo carattere. I suoi tempi. Le sue conquiste. I sorrisi che riempiono una stanza e quel modo tutto suo di farsi capire.",
+      "Ci sono stati giorni di paura, domande senza risposta e parole difficili da ascoltare. Poi, piano piano, abbiamo imparato a guardarla davvero: il suo carattere, i suoi tempi, le sue conquiste.",
+      "Ha sorrisi che riempiono una stanza e quel modo tutto suo di farsi capire. Prima di qualunque parola clinica, c’è lei.",
     ],
     quote: "Se vuoi conoscere Aurora, contarle i cromosomi non servirà a molto.",
     closingLine1: "Il suo cromosoma in più appartiene alla sua storia.",

@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import Image from "next/image";
 import Link from "next/link";
 import "./story.css";
+
+const photoPath = "/aurora-storia.jpg";
 
 export const metadata: Metadata = {
   title: "Aurora | Insieme Oltre",
@@ -8,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default function AuroraStoryPage() {
+  const hasPhoto = existsSync(join(process.cwd(), "public", "aurora-storia.jpg"));
+
   return (
     <main className="aurora-page">
       <header className="aurora-page-header">
@@ -16,6 +23,11 @@ export default function AuroraStoryPage() {
       </header>
 
       <article>
+        {hasPhoto && (
+          <div className="aurora-page-photo aurora-page-photo-opening">
+            <Image src={photoPath} alt="Aurora" fill sizes="100vw" priority />
+          </div>
+        )}
         <section className="aurora-page-intro">
           <h1>Aurora</h1>
           <p>Prima di tutto, una bambina.</p>
@@ -32,6 +44,11 @@ export default function AuroraStoryPage() {
         </section>
 
         <section className="aurora-page-pause" aria-label="Una parte della sua storia">
+          {hasPhoto && (
+            <div className="aurora-page-photo aurora-page-photo-pause">
+              <Image src={photoPath} alt="Aurora" fill sizes="(max-width: 620px) 100vw, 1000px" />
+            </div>
+          )}
           <p>Il suo cromosoma in più appartiene alla sua storia.<br/>Ma non sarà mai tutta la sua storia.</p>
         </section>
 

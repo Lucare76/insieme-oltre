@@ -1,55 +1,47 @@
-/* Logo layout override: in hero/finale usiamo solo il simbolo del logo.
-   Il PNG completo contiene già nome e slogan, quindi qui tagliamo la parte testuale
-   per non ripetere il titolo della hero e non creare confusione in fondo pagina. */
+/* Logo layout: usa direttamente il PNG in public, senza tagli e senza testi aggiunti. */
 .logo-frame {
   position: relative !important;
   inset: auto !important;
-  width: min(500px, 100%) !important;
-  height: 350px !important;
+  width: min(620px, 100%) !important;
+  height: auto !important;
   min-height: 0 !important;
-  aspect-ratio: auto !important;
   display: flex !important;
-  align-items: flex-start !important;
+  align-items: center !important;
   justify-content: center !important;
   background: transparent !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   animation: none !important;
   z-index: 2 !important;
 }
 
-.logo-frame-end {
-  position: relative !important;
-  width: min(520px, 100%) !important;
-  height: 370px !important;
-  min-height: 0 !important;
-  display: flex !important;
-  align-items: flex-start !important;
-  justify-content: center !important;
+.logo-frame-end,
+.join-symbol {
   background: transparent !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
-.hero-logo-img,
-.official-logo {
+.hero-logo-img {
   width: 100% !important;
-  max-width: 520px !important;
+  max-width: 620px !important;
   height: auto !important;
   object-fit: contain !important;
-  object-position: top center !important;
+  object-position: center !important;
   display: block !important;
   filter: drop-shadow(0 18px 36px rgba(55, 43, 32, 0.08));
 }
 
-.logo-frame .hero-logo-img {
-  max-width: 500px !important;
-}
-
-.logo-frame-end .official-logo {
-  max-width: 520px !important;
+.official-logo {
+  width: 100% !important;
+  max-width: 680px !important;
+  height: auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  display: block !important;
+  filter: drop-shadow(0 18px 36px rgba(55, 43, 32, 0.08));
 }
 
 .hero-art {
@@ -61,17 +53,12 @@
 }
 
 .join-symbol {
-  background: transparent !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  overflow: visible !important;
   min-height: 420px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 }
 
-/* Gli anelli restano decorativi dietro al logo e non devono alterare il layout. */
 .hero-art .sun-orbit,
 .hero-art .hero-whisper {
   pointer-events: none !important;
@@ -79,48 +66,35 @@
 
 @media (max-width: 1180px) {
   .logo-frame {
-    width: min(440px, 100%) !important;
-    height: 310px !important;
+    width: min(520px, 100%) !important;
   }
 
-  .logo-frame .hero-logo-img {
-    max-width: 440px !important;
+  .hero-logo-img {
+    max-width: 520px !important;
   }
 }
 
 @media (max-width: 980px) {
   .logo-frame {
-    width: min(520px, 100%) !important;
-    height: 365px !important;
+    width: min(560px, 100%) !important;
   }
 
-  .logo-frame .hero-logo-img {
-    max-width: 520px !important;
+  .hero-logo-img {
+    max-width: 560px !important;
   }
 
-  .logo-frame-end {
-    width: min(520px, 100%) !important;
-    height: 365px !important;
+  .official-logo {
+    max-width: 620px !important;
   }
 }
 
 @media (max-width: 620px) {
   .logo-frame {
-    width: min(330px, 100%) !important;
-    height: 235px !important;
+    width: min(360px, 100%) !important;
   }
 
-  .logo-frame .hero-logo-img,
-  .logo-frame-end .official-logo {
-    max-width: 330px !important;
-  }
-
-  .logo-frame-end {
-    width: min(330px, 100%) !important;
-    height: 235px !important;
-  }
-
-  .join-symbol {
-    min-height: 260px !important;
+  .hero-logo-img,
+  .official-logo {
+    max-width: 360px !important;
   }
 }

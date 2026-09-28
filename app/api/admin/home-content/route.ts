@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { defaultHomeContent } from "../../../../lib/siteContent";
+import { defaultHomeContent, getHomeContent } from "../../../../lib/siteContent";
 
 const allowedEmail = (process.env.ADMIN_ALLOWED_EMAIL ?? "luca_renna@hotmail.com").toLowerCase();
 
@@ -33,28 +33,7 @@ async function requireAdmin(request: Request) {
 async function readContent() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !serviceKey) {
-    return { content: defaultHomeContent, configured: false };
-  }
-
-  const response = await fetch(
-    `${supabaseUrl}/rest/v1/site_content?key=eq.home&select=value&limit=1`,
-    {
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-      },
-      cache: "no-store",
-    },
-  );
-
-  if (!response.ok) {
-    return { content: defaultHomeContent, configured: true };
-  }
-
-  const rows = (await response.json()) as { value?: unknown }[];
-  return { content: rows[0]?.value ?? defaultHomeContent, configured: true };
+  return { content: await getHomeContent(), configured: Boolean(supabaseUrl && serviceKey) };
 }
 
 export async function GET(request: Request) {
@@ -87,6 +66,14 @@ export async function PUT(request: Request) {
 
   const body = await request.json();
   const value = body?.value;
+
+  if (!value || typeof value !== "object" || !value.hero || !value.footer) {
+    return NextResponse.json({ error: "Contenuto non valido" }, { status: 400 });
+  }
+
+  value.hero.titleLine1 = defaultHomeContent.hero.titleLine1;
+  value.hero.titleLine2 = defaultHomeContent.hero.titleLine2;
+  value.footer.slogan = defaultHomeContent.footer.slogan;
 
   const response = await fetch(`${supabaseUrl}/rest/v1/site_content`, {
     method: "POST",

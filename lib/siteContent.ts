@@ -91,7 +91,7 @@ export const defaultHomeContent: HomeContent = {
   meta: {
     title: "Insieme Oltre | L’amore non si misura in cromosomi",
     description:
-      "Insieme Oltre è una comunità di famiglie che mette al centro bambini, persone, autonomia, inclusione e possibilità.",
+      "Insieme Oltre è una comunità di famiglie e persone di ogni età. Ascolto, autonomia, inclusione e possibilità, dall’infanzia alla vita adulta.",
   },
   nav: {
     cta: "Unisciti a noi",
@@ -101,10 +101,10 @@ export const defaultHomeContent: HomeContent = {
     titleLine1: "L’amore non si misura",
     titleLine2: "in cromosomi.",
     lead:
-      "Ci sono giorni in cui vorresti solo parlare con qualcuno che capisca. Insieme Oltre nasce per incontrarci, ascoltarci e fare spazio al futuro dei nostri bambini.",
+      "Ci sono giorni in cui vorresti solo parlare con qualcuno che capisca. Insieme Oltre nasce per incontrarci, ascoltarci e stare accanto ai nostri figli, piccoli e grandi, mentre trovano la propria strada.",
     primaryCta: "Scopri chi siamo",
     secondaryCta: "Conosci le storie",
-    note: "Ogni bambino è una storia intera.",
+    note: "Ogni persona è una storia intera.",
     whisperLine1: "non una diagnosi",
     whisperLine2: "non un limite",
     whisperStrong: "un futuro",
@@ -112,10 +112,10 @@ export const defaultHomeContent: HomeContent = {
   manifesto: {
     kicker: "Il nostro punto di partenza",
     titleLine1: "Prima vengono",
-    titleLine2: "i bambini.",
+    titleLine2: "le persone.",
     paragraphs: [
-      "Quando arriva una diagnosi, spesso il mondo sembra parlare solo di numeri, limiti e previsioni. Noi vogliamo rimettere al centro la cosa più importante: il bambino.",
-      "Non “bambini speciali”. Non una diagnosi prima del nome. Bambini. Con passioni, capricci, sorrisi, paure, talenti e un futuro ancora tutto da scrivere.",
+      "Quando arriva una diagnosi, spesso il mondo sembra parlare solo di numeri, limiti e previsioni. Noi vogliamo rimettere al centro chi abbiamo davanti, a qualunque età.",
+      "A tre anni come a venti, nessuno è una diagnosi prima del nome. Ci sono caratteri, passioni, amicizie, desideri e una vita che continua a cambiare.",
       "Insieme Oltre nasce per questo: sostenere le famiglie, creare ascolto e aprire possibilità concrete. Senza pietismo. Senza etichette. Con lo sguardo rivolto avanti.",
     ],
   },
@@ -124,7 +124,7 @@ export const defaultHomeContent: HomeContent = {
     titleLine1: "Un posto dove",
     titleLine2: "sentirsi parte.",
     intro:
-      "Vorremmo che ogni famiglia trovasse qualcuno con cui parlare e che ogni bambino avesse il tempo e lo spazio per essere sé stesso.",
+      "Vorremmo che ogni famiglia trovasse qualcuno con cui parlare e che ogni persona avesse spazio per essere sé stessa, da bambina e da adulta.",
     items: [
       {
         number: "01",
@@ -133,18 +133,18 @@ export const defaultHomeContent: HomeContent = {
       },
       {
         number: "02",
-        title: "Bambini",
-        text: "Hanno gusti, capricci, giochi preferiti e modi tutti loro di farsi capire. Vogliamo partire da ciò che sono.",
+        title: "Persone",
+        text: "Un gioco preferito, un’amicizia, un sogno per domani: ogni età ha la sua voce. Vogliamo ascoltarla davvero.",
       },
       {
         number: "03",
         title: "Autonomia",
-        text: "Un passo fatto da soli, anche piccolo, può voler dire moltissimo. Servono tempo, fiducia e persone che ci credano.",
+        text: "Un passo fatto da soli, una scelta propria, un lavoro desiderato: l’autonomia cambia forma crescendo. Servono tempo, fiducia e opportunità.",
       },
       {
         number: "04",
         title: "Inclusione",
-        text: "Una scuola, un gioco, una festa: esserci insieme dovrebbe essere normale. È da questi momenti che si comincia.",
+        text: "A scuola, tra amici, al lavoro, nelle proprie città: esserci insieme dovrebbe essere normale, a ogni età.",
       },
     ],
   },

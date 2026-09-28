@@ -165,8 +165,7 @@ export default async function Home() {
               <div className="story-number">0{index + 1}</div>
               <div className="story-avatar" aria-hidden="true">{story.name.charAt(0)}</div>
               <h3>{story.name}</h3>
-              <p>“{story.line}”</p>
-              <span>{content.stories.comingSoon}</span>
+              {story.line ? <p>“{story.line}”</p> : <p>{content.stories.comingSoon}</p>}
             </article>
           ))}
         </div>

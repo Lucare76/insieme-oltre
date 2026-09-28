@@ -1,0 +1,68 @@
+/* Logo layout override: il PNG completo deve restare visibile, senza tagli. */
+.logo-frame {
+  position: relative !important;
+  inset: auto !important;
+  width: min(760px, 100%) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: 4 / 3 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  animation: none !important;
+}
+
+.logo-frame-end {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.hero-logo-img,
+.official-logo {
+  width: 100% !important;
+  max-width: 760px !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  filter: drop-shadow(0 24px 45px rgba(55, 43, 32, 0.1));
+}
+
+.hero-art {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
+}
+
+.join-symbol {
+  overflow: visible !important;
+}
+
+@media (max-width: 980px) {
+  .logo-frame {
+    width: min(680px, 100%) !important;
+    aspect-ratio: 4 / 3 !important;
+  }
+
+  .hero-logo-img,
+  .official-logo {
+    max-width: 680px !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .logo-frame {
+    width: min(420px, 100%) !important;
+  }
+
+  .hero-logo-img,
+  .official-logo {
+    max-width: 420px !important;
+  }
+}

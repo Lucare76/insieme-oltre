@@ -101,7 +101,7 @@ export const defaultHomeContent: HomeContent = {
     titleLine1: "L’amore non si misura",
     titleLine2: "in cromosomi.",
     lead:
-      "Una comunità di famiglie che guarda oltre la diagnosi: verso i bambini, le possibilità, il futuro. Con amore, con coraggio, insieme.",
+      "Ci sono giorni in cui vorresti solo parlare con qualcuno che capisca. Insieme Oltre nasce per incontrarci, ascoltarci e fare spazio al futuro dei nostri bambini.",
     primaryCta: "Scopri chi siamo",
     secondaryCta: "Conosci le storie",
     note: "Ogni bambino è una storia intera.",
@@ -124,27 +124,27 @@ export const defaultHomeContent: HomeContent = {
     titleLine1: "Un posto dove",
     titleLine2: "sentirsi parte.",
     intro:
-      "Ascolto, strumenti concreti e occasioni vere. Per i bambini, per chi li accompagna e per il territorio che cresce con loro.",
+      "Vorremmo che ogni famiglia trovasse qualcuno con cui parlare e che ogni bambino avesse il tempo e lo spazio per essere sé stesso.",
     items: [
       {
         number: "01",
         title: "Famiglie",
-        text: "Nessuno dovrebbe sentirsi solo davanti a una diagnosi, a una domanda o a un futuro da immaginare.",
+        text: "A volte basta potersi dire: è successo anche a noi. Da lì possiamo cominciare a conoscerci e ad aiutarci.",
       },
       {
         number: "02",
         title: "Bambini",
-        text: "Prima di tutto persone: caratteri, desideri, talenti, capricci, risate e una vita intera da scrivere.",
+        text: "Hanno gusti, capricci, giochi preferiti e modi tutti loro di farsi capire. Vogliamo partire da ciò che sono.",
       },
       {
         number: "03",
         title: "Autonomia",
-        text: "Accompagnare senza sostituirsi. Dare strumenti, tempo e fiducia perché ogni possibilità possa diventare scelta.",
+        text: "Un passo fatto da soli, anche piccolo, può voler dire moltissimo. Servono tempo, fiducia e persone che ci credano.",
       },
       {
         number: "04",
         title: "Inclusione",
-        text: "Una società è davvero inclusiva quando non chiede a qualcuno di dimostrare ogni giorno di meritare il proprio posto.",
+        text: "Una scuola, un gioco, una festa: esserci insieme dovrebbe essere normale. È da questi momenti che si comincia.",
       },
     ],
   },
@@ -167,10 +167,10 @@ export const defaultHomeContent: HomeContent = {
     titleLine2: "c’è un mondo.",
     items: [
       { name: "Aurora", line: "Ho una luce tutta mia.", accent: "coral" },
-      { name: "Alessandro", line: "Mi piace scoprire come funzionano le cose.", accent: "sage" },
-      { name: "Emanuele", line: "Rido forte. E non chiedo permesso.", accent: "gold" },
+      { name: "Alessandro", line: "", accent: "sage" },
+      { name: "Emanuele", line: "", accent: "gold" },
     ],
-    comingSoon: "La sua storia arriverà qui →",
+    comingSoon: "Presto, raccontato dalla sua famiglia.",
   },
   numbers: {
     label: "46 oppure 47 cromosomi",
@@ -192,7 +192,7 @@ export const defaultHomeContent: HomeContent = {
     titleLine1: "Il futuro non si aspetta.",
     titleLine2: "Si costruisce insieme.",
     text:
-      "Questo progetto nasce dalle famiglie e crescerà con le famiglie. Se condividi questa idea di futuro, c’è un posto anche per te.",
+      "Siamo all’inizio. Vorremmo costruire questo posto insieme alle famiglie, ascoltando anche ciò di cui hanno davvero bisogno.",
     cta: "Cominciamo da qui",
   },
   footer: {

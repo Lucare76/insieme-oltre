@@ -1,5 +1,6 @@
 import AuthHashRedirect from "./AuthHashRedirect";
 import { getHomeContent } from "../lib/siteContent";
+import Image from "next/image";
 
 const logoTopSrc = "/insieme-oltre-logo-top.png?v=top-logo-20260928";
 const logoFullSrc = "/insieme-oltre-logo.png?v=full-logo-20260928";
@@ -64,12 +65,13 @@ export default async function Home() {
           <div className="sun-orbit orbit-one" />
           <div className="sun-orbit orbit-two" />
           <div className="portrait-halo logo-frame">
-            <img
+            <Image
               className="hero-logo-img"
               src={logoTopSrc}
               alt=""
               width="1448"
               height="1086"
+              priority
             />
           </div>
           <div className="hero-whisper">
@@ -80,6 +82,21 @@ export default async function Home() {
         <a className="scroll-cue" href="#manifesto" aria-label="Scorri alla sezione successiva">
           <span>scorri</span><i>↓</i>
         </a>
+      </section>
+
+      <section className="emotional-opening section" aria-label="Il senso di Insieme Oltre">
+        <div className="emotional-opening-inner">
+          <p className="section-kicker">Da dove nasce</p>
+          <h2>Quando ti dicono un numero,<br/><em>tu cerchi un volto.</em></h2>
+          <div className="emotional-opening-copy">
+            <p>
+              All’inizio arrivano parole grandi, fredde, difficili. Poi guardi tuo figlio, tua figlia, e capisci che nessuna parola potrà mai contenerli davvero.
+            </p>
+            <p>
+              Insieme Oltre nasce qui: dal bisogno di non sentirsi soli, di trovare famiglie che capiscono, di immaginare un futuro senza abbassare lo sguardo.
+            </p>
+          </div>
+        </div>
       </section>
 
       <section className="manifesto section" id="manifesto">
@@ -178,7 +195,7 @@ export default async function Home() {
 
       <section className="join section" id="unisciti">
         <div className="join-symbol logo-frame-end">
-          <img
+          <Image
             className="official-logo"
             src={logoFullSrc}
             alt="Insieme Oltre — L’amore non si misura in cromosomi"

@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 const pillars = [
   {
     number: "01",
@@ -28,6 +26,8 @@ const stories = [
   { name: "Lorenzo", line: "Mi piace scoprire come funzionano le cose.", accent: "sage" },
   { name: "Sofia", line: "Rido forte. E non chiedo permesso.", accent: "gold" },
 ];
+
+const logoSrc = "/insieme-oltre-logo.png?v=logo-public-20260928";
 
 function HeartLine() {
   return (
@@ -77,13 +77,12 @@ export default function Home() {
           <div className="sun-orbit orbit-one" />
           <div className="sun-orbit orbit-two" />
           <div className="portrait-halo logo-frame">
-            <Image
+            <img
               className="hero-logo-img"
-              src="/insieme-oltre-logo.png"
+              src={logoSrc}
               alt=""
-              width={1448}
-              height={1086}
-              priority
+              width="1448"
+              height="1086"
             />
           </div>
           <div className="hero-whisper">più ascolto<br/>più possibilità<br/><strong>più futuro</strong></div>
@@ -210,12 +209,12 @@ export default function Home() {
 
       <section className="join section" id="unisciti">
         <div className="join-symbol logo-frame-end">
-          <Image
+          <img
             className="official-logo"
-            src="/insieme-oltre-logo.png"
+            src={logoSrc}
             alt="Insieme Oltre — L’amore non si misura in cromosomi"
-            width={1448}
-            height={1086}
+            width="1448"
+            height="1086"
           />
         </div>
         <div className="join-copy">

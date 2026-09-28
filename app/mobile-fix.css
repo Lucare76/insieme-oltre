@@ -130,6 +130,28 @@
     padding: 82px 20px !important;
   }
 
+  .emotional-opening::before {
+    left: 20px !important;
+    height: 52px !important;
+  }
+
+  .emotional-opening h2 {
+    margin: 16px 0 30px !important;
+    font-size: clamp(41px, 12vw, 58px) !important;
+    line-height: 1.02 !important;
+  }
+
+  .emotional-opening-copy {
+    grid-template-columns: 1fr !important;
+    gap: 22px !important;
+    margin-left: 0 !important;
+  }
+
+  .emotional-opening-copy p {
+    font-size: 19px !important;
+    line-height: 1.5 !important;
+  }
+
   .manifesto-grid,
   .section-heading,
   .numbers-inner,

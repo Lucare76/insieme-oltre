@@ -37,20 +37,6 @@ function HeartLine() {
   );
 }
 
-function FamilyMark() {
-  return (
-    <svg className="family-mark" viewBox="0 0 520 520" role="img" aria-label="Simbolo di Insieme Oltre">
-      <circle cx="174" cy="116" r="43" className="mark-coral" />
-      <circle cx="347" cy="104" r="47" className="mark-sage" />
-      <path className="mark-coral" d="M97 181c30-57 88-71 137-26 26 23 38 55 54 82-33-23-61-41-91-46-24-4-42 13-50 39-12 40 3 89 44 150-78-43-119-104-112-164 1-13 7-25 18-35z" />
-      <path className="mark-sage" d="M431 174c-29-57-87-72-136-28-26 23-39 54-56 81 34-22 62-40 92-45 24-4 42 14 49 40 11 40-4 89-46 149 79-42 121-102 115-163-2-13-8-25-18-34z" />
-      <circle cx="263" cy="249" r="34" className="mark-gold" />
-      <path className="mark-gold" d="M186 274c31 4 50 24 77 52 27-29 46-48 78-51-20 50-42 92-78 133-37-41-58-83-77-134z" />
-      <path className="mark-gold" d="M249 176c8-15 32-12 32 7 0 13-18 25-18 25s-19-11-19-25c0-3 2-6 5-7z" />
-    </svg>
-  );
-}
-
 export default function Home() {
   return (
     <main>
@@ -90,7 +76,16 @@ export default function Home() {
         <div className="hero-art" aria-hidden="true">
           <div className="sun-orbit orbit-one" />
           <div className="sun-orbit orbit-two" />
-          <div className="portrait-halo"><FamilyMark /></div>
+          <div className="portrait-halo logo-frame">
+            <Image
+              className="hero-logo-img"
+              src="/insieme-oltre-logo-approved.webp"
+              alt=""
+              width={900}
+              height={714}
+              priority
+            />
+          </div>
           <div className="hero-whisper">più ascolto<br/>più possibilità<br/><strong>più futuro</strong></div>
         </div>
 
@@ -214,8 +209,14 @@ export default function Home() {
       </section>
 
       <section className="join section" id="unisciti">
-        <div className="join-symbol">
-          <Image className="official-logo" src="/insieme-oltre-logo.svg" alt="Insieme Oltre — L’amore non si misura in cromosomi" width={620} height={620} />
+        <div className="join-symbol logo-frame-end">
+          <Image
+            className="official-logo"
+            src="/insieme-oltre-logo-approved.webp"
+            alt="Insieme Oltre — L’amore non si misura in cromosomi"
+            width={900}
+            height={714}
+          />
         </div>
         <div className="join-copy">
           <p className="section-kicker">Insieme, oltre</p>

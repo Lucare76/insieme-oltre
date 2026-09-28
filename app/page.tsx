@@ -13,18 +13,6 @@ function HeartLine() {
   );
 }
 
-function splitStrong(text: string) {
-  const parts = text.split(" È arrivata semplicemente per essere nostra figlia.");
-
-  if (parts.length === 1) return text;
-
-  return (
-    <>
-      {parts[0]} <strong>È arrivata semplicemente per essere nostra figlia.</strong>
-    </>
-  );
-}
-
 export default async function Home() {
   const content = await getHomeContent();
 
@@ -132,29 +120,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="aurora-section section" id="storie">
-        <div className="aurora-visual" aria-hidden="true">
-          <div className="aurora-a">A</div>
-          <span className="aurora-orbit aurora-orbit-one" />
-          <span className="aurora-orbit aurora-orbit-two" />
-          <span className="aurora-star">✦</span>
-        </div>
-        <div className="aurora-story">
-          <p className="section-kicker light">{content.aurora.kicker}</p>
-          <h2>{content.aurora.title}</h2>
-          <p className="aurora-subtitle">{content.aurora.subtitle}</p>
-          {content.aurora.paragraphs.map((paragraph, index) => (
-            <p key={paragraph}>{index === 0 ? splitStrong(paragraph) : paragraph}</p>
-          ))}
-          <blockquote>“{content.aurora.quote}”</blockquote>
-          <p className="aurora-closing">
-            {content.aurora.closingLine1}<br/>
-            <strong>{content.aurora.closingLine2}</strong>
-          </p>
-        </div>
-      </section>
-
-      <section className="stories section" aria-labelledby="stories-title">
+      <section className="stories section" id="storie" aria-labelledby="stories-title">
         <div className="stories-title-wrap">
           <p className="section-kicker">{content.stories.kicker}</p>
           <h2 id="stories-title">{content.stories.titleLine1}<br/>{content.stories.titleLine2}</h2>
@@ -164,8 +130,16 @@ export default async function Home() {
             <article className={["story-card", story.accent].join(" ")} key={story.name}>
               <div className="story-number">0{index + 1}</div>
               <div className="story-avatar" aria-hidden="true">{story.name.charAt(0)}</div>
-              <h3>{story.name}</h3>
-              {story.line ? <p>“{story.line}”</p> : <p>{content.stories.comingSoon}</p>}
+              <h3>{index === 0 ? `Io sono ${story.name}.` : story.name}</h3>
+              {index === 0 ? (
+                <>
+                  <p>{story.line}</p>
+                  <p className="story-description">Sto scoprendo il mondo un passo alla volta, con il mio sorriso, il mio carattere e i miei tempi. E ogni giorno ricordo a mamma e papà che una persona è infinitamente più grande di qualsiasi definizione.</p>
+                  <a className="story-link" href="/storie/aurora">Conosci la mia storia →</a>
+                </>
+              ) : (
+                <p>{story.line || content.stories.comingSoon}</p>
+              )}
             </article>
           ))}
         </div>

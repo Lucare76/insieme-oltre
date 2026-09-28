@@ -167,8 +167,8 @@ export const defaultHomeContent: HomeContent = {
     titleLine2: "c’è un mondo.",
     items: [
       { name: "Aurora", line: "Ho una luce tutta mia.", accent: "coral" },
-      { name: "Lorenzo", line: "Mi piace scoprire come funzionano le cose.", accent: "sage" },
-      { name: "Sofia", line: "Rido forte. E non chiedo permesso.", accent: "gold" },
+      { name: "Alessandro", line: "Mi piace scoprire come funzionano le cose.", accent: "sage" },
+      { name: "Emanuele", line: "Rido forte. E non chiedo permesso.", accent: "gold" },
     ],
     comingSoon: "La sua storia arriverà qui →",
   },

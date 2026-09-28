@@ -12,6 +12,7 @@
 .aurora-page-intro p { margin: 18px 0 0; font: italic clamp(23px, 3vw, 38px)/1.3 Georgia, serif; }
 .aurora-page-prose, .aurora-page-parents { max-width: 760px; margin: 0 auto; padding: 0 32px; }
 .aurora-page-prose p, .aurora-page-parents p { margin: 0 0 32px; font-size: clamp(19px, 2vw, 24px); line-height: 1.7; }
+.aurora-page-prose p, .aurora-page-parents p { white-space: pre-line; }
 .aurora-page-prose .aurora-page-declaration, .aurora-page-parents .aurora-page-declaration { margin: 80px 0; font: 400 clamp(30px, 4vw, 52px)/1.25 Georgia, serif; }
 .aurora-page-pause { min-height: 65vh; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 32px; padding: 100px 32px 72px; text-align: center; }
 .aurora-page-photo-pause { width: min(100%, 1000px); aspect-ratio: 4 / 3; }

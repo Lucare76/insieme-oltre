@@ -20,8 +20,6 @@ const fields: Field[] = [
   { label: "Menu — CTA", path: "nav.cta" },
 
   { label: "Hero — occhiello", path: "hero.eyebrow" },
-  { label: "Hero — titolo riga 1", path: "hero.titleLine1" },
-  { label: "Hero — titolo riga 2", path: "hero.titleLine2" },
   { label: "Hero — testo", path: "hero.lead", multiline: true },
   { label: "Hero — CTA principale", path: "hero.primaryCta" },
   { label: "Hero — CTA secondaria", path: "hero.secondaryCta" },
@@ -53,20 +51,29 @@ const fields: Field[] = [
   { label: "Card 4 — titolo", path: "pillars.items.3.title" },
   { label: "Card 4 — testo", path: "pillars.items.3.text", multiline: true },
 
-  { label: "Aurora — occhiello", path: "aurora.kicker" },
-  { label: "Aurora — titolo", path: "aurora.title" },
-  { label: "Aurora — sottotitolo", path: "aurora.subtitle" },
-  { label: "Aurora — paragrafo 1", path: "aurora.paragraphs.0", multiline: true },
-  { label: "Aurora — paragrafo 2", path: "aurora.paragraphs.1", multiline: true },
-  { label: "Aurora — frase", path: "aurora.quote", multiline: true },
-  { label: "Aurora — chiusura riga 1", path: "aurora.closingLine1" },
-  { label: "Aurora — chiusura riga 2", path: "aurora.closingLine2" },
+  { label: "Aurora — testo nella scheda", path: "stories.items.0.line" },
+  { label: "Aurora — presentazione nella scheda", path: "auroraStory.cardDescription", multiline: true },
+  { label: "Aurora — testo del link", path: "auroraStory.cardLink" },
+  { label: "Aurora — sottotitolo della storia", path: "auroraStory.subtitle" },
+  { label: "Storia di Aurora — paragrafo 1", path: "auroraStory.paragraphs.0", multiline: true },
+  { label: "Storia di Aurora — paragrafo 2", path: "auroraStory.paragraphs.1", multiline: true },
+  { label: "Storia di Aurora — paragrafo 3", path: "auroraStory.paragraphs.2", multiline: true },
+  { label: "Storia di Aurora — paragrafo 4", path: "auroraStory.paragraphs.3", multiline: true },
+  { label: "Storia di Aurora — paragrafo 5", path: "auroraStory.paragraphs.4", multiline: true },
+  { label: "Storia di Aurora — paragrafo 6", path: "auroraStory.paragraphs.5", multiline: true },
+  { label: "Storia di Aurora — chiusura", path: "auroraStory.paragraphs.6", multiline: true },
+  { label: "Aurora — frase sotto la foto, riga 1", path: "auroraStory.pauseLine1" },
+  { label: "Aurora — frase sotto la foto, riga 2", path: "auroraStory.pauseLine2" },
+  { label: "Genitori — titolo", path: "auroraStory.parentsTitle", multiline: true },
+  { label: "Genitori — paragrafo 1", path: "auroraStory.parentsParagraphs.0", multiline: true },
+  { label: "Genitori — paragrafo 2", path: "auroraStory.parentsParagraphs.1", multiline: true },
+  { label: "Genitori — frase in evidenza", path: "auroraStory.parentsParagraphs.2", multiline: true },
+  { label: "Genitori — chiusura", path: "auroraStory.parentsParagraphs.3", multiline: true },
 
   { label: "Storie — occhiello", path: "stories.kicker" },
   { label: "Storie — titolo riga 1", path: "stories.titleLine1" },
   { label: "Storie — titolo riga 2", path: "stories.titleLine2" },
   { label: "Storie — scheda 1 nome", path: "stories.items.0.name" },
-  { label: "Storie — scheda 1 frase", path: "stories.items.0.line" },
   { label: "Storie — scheda 2 nome", path: "stories.items.1.name" },
   { label: "Storie — scheda 2 frase", path: "stories.items.1.line" },
   { label: "Storie — scheda 3 nome", path: "stories.items.2.name" },
@@ -91,7 +98,6 @@ const fields: Field[] = [
   { label: "Finale — CTA", path: "join.cta" },
 
   { label: "Footer — brand", path: "footer.brand" },
-  { label: "Footer — slogan", path: "footer.slogan" },
   { label: "Footer — nota", path: "footer.note" },
   { label: "Footer — torna su", path: "footer.backTop" },
 ];
@@ -147,7 +153,7 @@ export default function AdminPage() {
       window.history.replaceState(null, "", "/admin");
     }
 
-    setToken(nextToken);
+    queueMicrotask(() => setToken(nextToken));
   }, []);
 
   useEffect(() => {

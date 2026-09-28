@@ -27,7 +27,8 @@ const stories = [
   { name: "Sofia", line: "Rido forte. E non chiedo permesso.", accent: "gold" },
 ];
 
-const logoSrc = "/insieme-oltre-logo.png?v=logo-public-20260928";
+const logoTopSrc = "/insieme-oltre-logo-top.png?v=top-logo-20260928";
+const logoFullSrc = "/insieme-oltre-logo.png?v=full-logo-20260928";
 
 function HeartLine() {
   return (
@@ -79,7 +80,7 @@ export default function Home() {
           <div className="portrait-halo logo-frame">
             <img
               className="hero-logo-img"
-              src={logoSrc}
+              src={logoTopSrc}
               alt=""
               width="1448"
               height="1086"
@@ -211,7 +212,7 @@ export default function Home() {
         <div className="join-symbol logo-frame-end">
           <img
             className="official-logo"
-            src={logoSrc}
+            src={logoFullSrc}
             alt="Insieme Oltre — L’amore non si misura in cromosomi"
             width="1448"
             height="1086"

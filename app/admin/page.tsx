@@ -137,7 +137,7 @@ export default function AdminPage() {
       },
       body: JSON.stringify({
         email,
-        create_user: false,
+        create_user: true,
         options: {
           email_redirect_to: `${window.location.origin}/admin`,
         },
@@ -145,7 +145,14 @@ export default function AdminPage() {
     });
 
     setLoading(false);
-    setStatus(response.ok ? "Link inviato. Controlla Hotmail." : "Invio link non riuscito: controlla Supabase Auth.");
+
+    if (response.ok) {
+      setStatus("Link inviato. Controlla Hotmail.");
+      return;
+    }
+
+    const detail = await response.text().catch(() => "");
+    setStatus(`Invio link non riuscito: ${detail || "controlla Supabase Auth."}`);
   }
 
   async function saveContent() {

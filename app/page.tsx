@@ -90,7 +90,7 @@ export default async function Home() {
           <h2>Quando ti dicono un numero,<br/><em>tu cerchi un volto.</em></h2>
           <div className="emotional-opening-copy">
             <p>
-              All’inizio arrivano parole grandi, fredde, difficili. Poi guardi tuo figlio, tua figlia, e capisci che nessuna parola potrà mai contenerli davvero.
+              All’inizio arrivano parole grandi, fredde, difficili. Poi guardi tuo figlio o tua figlia e capisci che nessuna parola potrà mai contenerli davvero. E continui a scoprirlo mentre crescono.
             </p>
             <p>
               Insieme Oltre nasce qui: dal bisogno di non sentirsi soli, di trovare famiglie che capiscono, di immaginare un futuro senza abbassare lo sguardo.

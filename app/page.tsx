@@ -1,3 +1,4 @@
+import AuthHashRedirect from "./AuthHashRedirect";
 import { getHomeContent } from "../lib/siteContent";
 
 const logoTopSrc = "/insieme-oltre-logo-top.png?v=top-logo-20260928";
@@ -28,6 +29,7 @@ export default async function Home() {
 
   return (
     <main>
+      <AuthHashRedirect />
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Insieme Oltre, torna all'inizio">
           <span className="brand-dot" aria-hidden="true">♥</span>

@@ -30,7 +30,7 @@ function StoryCard({ story, index, comingSoon, description, linkLabel, duplicate
         <>
           <p>{story.line}</p>
           <p className="story-description">{description}</p>
-          {duplicate ? <span className="story-link">{linkLabel}</span> : <a className="story-link" href="/storie/aurora">{linkLabel}</a>}
+          <a className="story-link" href="/storie/aurora" tabIndex={duplicate ? -1 : undefined}>{linkLabel}</a>
         </>
       ) : <p>{story.line || comingSoon}</p>}
     </article>

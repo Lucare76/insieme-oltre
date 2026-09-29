@@ -74,15 +74,12 @@ export default async function Home() {
 
       <section className="emotional-opening section" aria-label="Il senso di Insieme Oltre">
         <div className="emotional-opening-inner">
-          <p className="section-kicker">Da dove nasce</p>
-          <h2>Quando ti dicono un numero,<br/><em>tu cerchi un volto.</em></h2>
+          <p className="section-kicker">{content.emotionalOpening.kicker}</p>
+          <h2>{content.emotionalOpening.titleLine1}<br/><em>{content.emotionalOpening.titleLine2}</em></h2>
           <div className="emotional-opening-copy">
-            <p>
-              All’inizio arrivano parole grandi, fredde, difficili. Poi guardi tuo figlio o tua figlia e capisci che nessuna parola potrà mai contenerli davvero. E continui a scoprirlo mentre crescono.
-            </p>
-            <p>
-              Insieme Oltre nasce qui: dal bisogno di non sentirsi soli, di trovare famiglie che capiscono, di immaginare un futuro senza abbassare lo sguardo.
-            </p>
+            {content.emotionalOpening.paragraphs.map((paragraph, index) => (
+              <p key={index}>{paragraph}</p>
+            ))}
           </div>
         </div>
       </section>

@@ -30,6 +30,12 @@ export type HomeContent = {
     whisperLine2: string;
     whisperStrong: string;
   };
+  emotionalOpening: {
+    kicker: string;
+    titleLine1: string;
+    titleLine2: string;
+    paragraphs: string[];
+  };
   manifesto: {
     kicker: string;
     titleLine1: string;
@@ -119,14 +125,23 @@ export const defaultHomeContent: HomeContent = {
     whisperLine2: "non un limite",
     whisperStrong: "un futuro",
   },
-  manifesto: {
-    kicker: "Il nostro punto di partenza",
-    titleLine1: "Prima vengono",
-    titleLine2: "le persone.",
+  emotionalOpening: {
+    kicker: "Da dove nasce",
+    titleLine1: "Quando ti dicono un numero,",
+    titleLine2: "tu cerchi un volto.",
     paragraphs: [
-      "Quando arriva una diagnosi, spesso il mondo sembra parlare solo di numeri, limiti e previsioni. Noi vogliamo rimettere al centro chi abbiamo davanti, a qualunque età.",
-      "A tre anni come a venti, nessuno è una diagnosi prima del nome. Ci sono caratteri, passioni, amicizie, desideri e una vita che continua a cambiare.",
-      "Insieme Oltre nasce per questo: sostenere le famiglie, creare ascolto e aprire possibilità concrete. Senza pietismo. Senza etichette. Con lo sguardo rivolto avanti.",
+      "All’inizio arrivano parole grandi, fredde, difficili. Poi guardi tuo figlio o tua figlia e capisci che nessuna parola potrà mai contenerli davvero. E continui a scoprirlo mentre crescono.",
+      "Insieme Oltre nasce qui: dal bisogno di non sentirsi soli, di trovare famiglie che capiscono, di immaginare un futuro senza abbassare lo sguardo.",
+    ],
+  },
+  manifesto: {
+    kicker: "Quello che scegliamo di fare",
+    titleLine1: "Nessuno cresce",
+    titleLine2: "da solo.",
+    paragraphs: [
+      "Vogliamo creare occasioni per incontrarci, scambiarci domande ed esperienze. A volte qualcuno ha una risposta. Altre volte basta sapere che c’è chi ascolta davvero.",
+      "Per un bambino può essere il primo giorno a scuola. Per un ragazzo, un’amicizia, una scelta, il desiderio di lavorare. Le possibilità cambiano con l’età; il diritto di cercarle no.",
+      "Vorremmo che famiglie, scuole e persone del territorio facessero spazio a percorsi diversi. Perché ciascuno possa trovare il proprio posto, con i propri tempi e la propria voce.",
     ],
   },
   pillars: {
@@ -252,6 +267,7 @@ function mergeHomeContent(base: HomeContent, incoming: unknown): HomeContent {
       titleLine1: base.hero.titleLine1,
       titleLine2: base.hero.titleLine2,
     },
+    emotionalOpening: { ...base.emotionalOpening, ...candidate.emotionalOpening },
     manifesto: { ...base.manifesto, ...candidate.manifesto },
     pillars: {
       ...base.pillars,

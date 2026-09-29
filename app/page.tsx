@@ -1,5 +1,5 @@
 import AuthHashRedirect from "./AuthHashRedirect";
-import { getHomeContent } from "../lib/siteContent";
+import { getHomeContent, type StoryContent } from "../lib/siteContent";
 import Image from "next/image";
 
 const logoTopSrc = "/insieme-oltre-logo-top.png";
@@ -13,8 +13,33 @@ function HeartLine() {
   );
 }
 
+function StoryCard({ story, index, comingSoon, description, linkLabel, duplicate = false }: {
+  story: StoryContent;
+  index: number;
+  comingSoon: string;
+  description: string;
+  linkLabel: string;
+  duplicate?: boolean;
+}) {
+  return (
+    <article className={["story-card", story.accent, index === 0 ? "story-featured" : ""].join(" ")} aria-hidden={duplicate || undefined}>
+      <div className="story-number">{String(index + 1).padStart(2, "0")}</div>
+      <div className="story-avatar" aria-hidden="true">{story.name.charAt(0)}</div>
+      <h3>{index === 0 ? `Io sono ${story.name}.` : story.name}</h3>
+      {index === 0 ? (
+        <>
+          <p>{story.line}</p>
+          <p className="story-description">{description}</p>
+          {duplicate ? <span className="story-link">{linkLabel}</span> : <a className="story-link" href="/storie/aurora">{linkLabel}</a>}
+        </>
+      ) : <p>{story.line || comingSoon}</p>}
+    </article>
+  );
+}
+
 export default async function Home() {
   const content = await getHomeContent();
+  const stories = content.stories.items.filter((story) => story.name.trim());
 
   return (
     <main>
@@ -122,23 +147,18 @@ export default async function Home() {
           <p className="section-kicker">{content.stories.kicker}</p>
           <h2 id="stories-title">{content.stories.titleLine1}<br/>{content.stories.titleLine2}</h2>
         </div>
-        <div className="story-grid">
-          {content.stories.items.map((story, index) => (
-            <article className={["story-card", story.accent].join(" ")} key={story.name}>
-              <div className="story-number">0{index + 1}</div>
-              <div className="story-avatar" aria-hidden="true">{story.name.charAt(0)}</div>
-              <h3>{index === 0 ? `Io sono ${story.name}.` : story.name}</h3>
-              {index === 0 ? (
-                <>
-                  <p>{story.line}</p>
-                  <p className="story-description">{content.auroraStory.cardDescription}</p>
-                  <a className="story-link" href="/storie/aurora">{content.auroraStory.cardLink}</a>
-                </>
-              ) : (
-                <p>{story.line || content.stories.comingSoon}</p>
-              )}
-            </article>
-          ))}
+        <div className="story-window" aria-label="Storie delle persone dell’associazione">
+          <div className="story-track" style={{ animationDuration: `${Math.max(45, stories.length * 8)}s` }}>
+            {[false, true].map((duplicate) => (
+              <div className="story-row" key={String(duplicate)} aria-hidden={duplicate || undefined}>
+                {stories.map((story, index) => (
+                  <StoryCard key={`${story.name}-${index}`} story={story} index={index} duplicate={duplicate}
+                    comingSoon={content.stories.comingSoon} description={content.auroraStory.cardDescription}
+                    linkLabel={content.auroraStory.cardLink} />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

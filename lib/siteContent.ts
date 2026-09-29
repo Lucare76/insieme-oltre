@@ -141,7 +141,7 @@ export const defaultHomeContent: HomeContent = {
     titleLine2: "insieme.",
     paragraphs: [
       "Insieme Oltre nasce dal desiderio di creare sull’isola d’Ischia un punto di riferimento per chi cerca ascolto, relazioni e nuove possibilità. Nessuna famiglia dovrebbe affrontare da sola ogni domanda sul futuro.",
-      "Il nostro progetto è rivolto alle persone con trisomia 21 e altre disabilità intellettive o relazionali, dall’infanzia alla vita adulta, e alle loro famiglie. A tre anni come a venti, vogliamo partire dalla persona, dai suoi interessi e dalle sue scelte.",
+      "Il nostro progetto è rivolto alle persone con trisomia 21 e altre disabilità intellettive o relazionali e alle loro famiglie, in ogni fase della vita. Vogliamo partire dalla persona, dai suoi interessi e dalle sue scelte, oggi e negli anni che verranno.",
       "Immaginiamo luoghi e attività condivisi con amici, scuole e comunità locale. Perché conoscersi davvero rende più facile trovare il proprio posto, con i propri tempi e la propria voce.",
     ],
   },

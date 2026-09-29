@@ -15,7 +15,8 @@
 .aurora-page-prose p, .aurora-page-parents p { white-space: pre-line; }
 .aurora-page-prose .aurora-page-declaration, .aurora-page-parents .aurora-page-declaration { margin: 80px 0; font: 400 clamp(30px, 4vw, 52px)/1.25 Georgia, serif; }
 .aurora-page-pause { min-height: 65vh; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 32px; padding: 100px 32px 72px; text-align: center; }
-.aurora-page-photo-pause { width: min(100%, 1000px); aspect-ratio: 4 / 3; }
+.aurora-page-gallery { width: min(100%, 1100px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.aurora-page-photo-pause { width: 100%; aspect-ratio: 4 / 3; }
 .aurora-page-pause p { margin: 0; font-size: 13px; line-height: 1.7; color: #556158; }
 .aurora-page-parents { padding-top: 130px; padding-bottom: 150px; }
 .aurora-page-parents h2 { margin: 0 0 55px; font: 400 clamp(36px, 5vw, 62px)/1.15 Georgia, serif; }

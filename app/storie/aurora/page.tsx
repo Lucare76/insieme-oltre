@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getHomeContent } from "../../../lib/siteContent";
 import "./story.css";
 
-const photoPath = "/aurora-storia.jpg";
+const photoNames = ["aurora-storia.jpg", "aurora-storia-2.jpg", "aurora-storia-3.jpg"];
 
 export const metadata: Metadata = {
   title: "Aurora | Insieme Oltre",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AuroraStoryPage() {
-  const hasPhoto = existsSync(join(process.cwd(), "public", "aurora-storia.jpg"));
+  const photos = photoNames.filter((name) => existsSync(join(process.cwd(), "public", name)));
   const { auroraStory: story } = await getHomeContent();
 
   return (
@@ -25,9 +25,9 @@ export default async function AuroraStoryPage() {
       </header>
 
       <article>
-        {hasPhoto && (
+        {photos[0] && (
           <div className="aurora-page-photo aurora-page-photo-opening">
-            <Image src={photoPath} alt="Aurora" fill sizes="100vw" priority />
+            <Image src={`/${photos[0]}`} alt="Aurora" fill sizes="100vw" priority />
           </div>
         )}
         <section className="aurora-page-intro">
@@ -42,9 +42,13 @@ export default async function AuroraStoryPage() {
         </section>
 
         <section className="aurora-page-pause" aria-label="Una parte della sua storia">
-          {hasPhoto && (
-            <div className="aurora-page-photo aurora-page-photo-pause">
-              <Image src={photoPath} alt="Aurora" fill sizes="(max-width: 620px) 100vw, 1000px" />
+          {photos.length > 1 && (
+            <div className="aurora-page-gallery">
+              {photos.slice(1).map((name, index) => (
+                <div className="aurora-page-photo aurora-page-photo-pause" key={name}>
+                  <Image src={`/${name}`} alt={`Aurora, fotografia ${index + 2}`} fill sizes="(max-width: 620px) 100vw, 500px" />
+                </div>
+              ))}
             </div>
           )}
           <p>{story.pauseLine1}<br/>{story.pauseLine2}</p>

@@ -28,11 +28,18 @@ const fields: Field[] = [
   { label: "Hero — frase logo riga 2", path: "hero.whisperLine2" },
   { label: "Hero — frase logo evidenziata", path: "hero.whisperStrong" },
 
+  { label: "Da dove nasce — occhiello", path: "emotionalOpening.kicker" },
+  { label: "Da dove nasce — titolo riga 1", path: "emotionalOpening.titleLine1" },
+  { label: "Da dove nasce — titolo riga 2", path: "emotionalOpening.titleLine2" },
+  { label: "Da dove nasce — paragrafo 1", path: "emotionalOpening.paragraphs.0", multiline: true },
+  { label: "Da dove nasce — paragrafo 2", path: "emotionalOpening.paragraphs.1", multiline: true },
+
   { label: "Manifesto — occhiello", path: "manifesto.kicker" },
   { label: "Manifesto — titolo riga 1", path: "manifesto.titleLine1" },
   { label: "Manifesto — titolo riga 2", path: "manifesto.titleLine2" },
   { label: "Manifesto — paragrafo 1", path: "manifesto.paragraphs.0", multiline: true },
   { label: "Manifesto — paragrafo 2", path: "manifesto.paragraphs.1", multiline: true },
+  { label: "Manifesto — paragrafo 3", path: "manifesto.paragraphs.2", multiline: true },
 
   { label: "Cosa facciamo — occhiello", path: "pillars.kicker" },
   { label: "Cosa facciamo — titolo riga 1", path: "pillars.titleLine1" },

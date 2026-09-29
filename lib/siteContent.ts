@@ -7,6 +7,7 @@ export type PillarContent = {
 export type StoryContent = {
   name: string;
   line: string;
+  photo?: string;
   accent: "coral" | "sage" | "gold";
 };
 
@@ -214,7 +215,7 @@ export const defaultHomeContent: HomeContent = {
     titleLine1: "Dietro ogni nome",
     titleLine2: "c’è un mondo.",
     items: [
-      { name: "Aurora", line: "Ho una luce tutta mia.", accent: "coral" },
+      { name: "Aurora", line: "Ho una luce tutta mia.", photo: "/aurora-storia.jpg", accent: "coral" },
       { name: "Alessandro", line: "", accent: "sage" },
       { name: "Emanuele", line: "", accent: "gold" },
       { name: "Celeste", line: "", accent: "coral" },

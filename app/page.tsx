@@ -2,8 +2,8 @@ import AuthHashRedirect from "./AuthHashRedirect";
 import { getHomeContent } from "../lib/siteContent";
 import Image from "next/image";
 
-const logoTopSrc = "/insieme-oltre-logo-top.png?v=top-logo-20260928";
-const logoFullSrc = "/insieme-oltre-logo.png?v=full-logo-20260928";
+const logoTopSrc = "/insieme-oltre-logo-top.png";
+const logoFullSrc = "/insieme-oltre-logo.png";
 
 function HeartLine() {
   return (

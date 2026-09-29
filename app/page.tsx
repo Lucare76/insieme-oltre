@@ -1,4 +1,6 @@
 import AuthHashRedirect from "./AuthHashRedirect";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { getHomeContent, type StoryContent } from "../lib/siteContent";
 import Image from "next/image";
 
@@ -21,10 +23,15 @@ function StoryCard({ story, index, comingSoon, description, linkLabel, duplicate
   linkLabel: string;
   duplicate?: boolean;
 }) {
+  const photo = story.photo && /^\/(?:storie\/)?[a-z0-9-]+\.(?:jpg|jpeg|png|webp)$/i.test(story.photo)
+    && existsSync(join(process.cwd(), "public", story.photo.slice(1))) ? story.photo : null;
+
   return (
     <article className={["story-card", story.accent, index === 0 ? "story-featured" : ""].join(" ")} aria-hidden={duplicate || undefined}>
       <div className="story-number">{String(index + 1).padStart(2, "0")}</div>
-      <div className="story-avatar" aria-hidden="true">{story.name.charAt(0)}</div>
+      <div className="story-avatar" aria-hidden="true">
+        {photo ? <Image src={photo} alt="" fill sizes="94px" /> : story.name.charAt(0)}
+      </div>
       <h3>{index === 0 ? `Io sono ${story.name}.` : story.name}</h3>
       {index === 0 ? (
         <>

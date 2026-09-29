@@ -11,6 +11,14 @@ const photoNames = ["aurora-storia.jpg", "aurora-storia-2.jpg", "aurora-storia-3
 export const metadata: Metadata = {
   title: "Aurora | Insieme Oltre",
   description: "Aurora è Aurora. La sua storia raccontata da mamma e papà.",
+  alternates: { canonical: "/storie/aurora" },
+  openGraph: {
+    title: "La storia di Aurora | Insieme Oltre",
+    description: "Aurora è Aurora. La sua storia raccontata da mamma e papà.",
+    url: "/storie/aurora",
+    type: "article",
+    locale: "it_IT",
+  },
 };
 
 export default async function AuroraStoryPage() {

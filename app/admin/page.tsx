@@ -80,11 +80,6 @@ const fields: Field[] = [
   { label: "Storie — occhiello", path: "stories.kicker" },
   { label: "Storie — titolo riga 1", path: "stories.titleLine1" },
   { label: "Storie — titolo riga 2", path: "stories.titleLine2" },
-  { label: "Storie — scheda 1 nome", path: "stories.items.0.name" },
-  { label: "Storie — scheda 2 nome", path: "stories.items.1.name" },
-  { label: "Storie — scheda 2 frase", path: "stories.items.1.line" },
-  { label: "Storie — scheda 3 nome", path: "stories.items.2.name" },
-  { label: "Storie — scheda 3 frase", path: "stories.items.2.line" },
   { label: "Storie — testo in arrivo", path: "stories.comingSoon" },
 
   { label: "Numeri — etichetta", path: "numbers.label" },
@@ -139,6 +134,8 @@ function tokenFromHash() {
   return hash.get("access_token");
 }
 
+const storyAccents = ["coral", "sage", "gold"] as const;
+
 export default function AdminPage() {
   const [email, setEmail] = useState(allowedEmail);
   const [token, setToken] = useState<string | null>(null);
@@ -149,6 +146,24 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
 
   const isConfigured = useMemo(() => Boolean(supabaseUrl && anonKey), []);
+
+  function addStory() {
+    setContent((previous) => ({
+      ...previous,
+      stories: {
+        ...previous.stories,
+        items: [...previous.stories.items, { name: "", line: "", accent: storyAccents[previous.stories.items.length % 3] }],
+      },
+    }));
+  }
+
+  function removeStory(index: number) {
+    if (index === 0) return;
+    setContent((previous) => ({
+      ...previous,
+      stories: { ...previous.stories, items: previous.stories.items.filter((_, itemIndex) => itemIndex !== index) },
+    }));
+  }
 
   useEffect(() => {
     const hashToken = tokenFromHash();
@@ -337,6 +352,29 @@ export default function AdminPage() {
                     )}
                   </label>
                 ))}
+                <section className="admin-stories" aria-labelledby="admin-stories-title">
+                  <div className="admin-stories-heading">
+                    <h2 id="admin-stories-title">Persone e storie</h2>
+                    <button type="button" onClick={addStory}>Aggiungi un nome</button>
+                  </div>
+                  <div className="admin-stories-list">
+                    {content.stories.items.map((story, index) => (
+                      <div className="admin-story" key={index}>
+                        <label>
+                          Nome {index + 1}
+                          <input value={story.name} disabled={index === 0}
+                            onChange={(event) => setContent(setValue(content, `stories.items.${index}.name`, event.target.value))} />
+                        </label>
+                        <label>
+                          {index === 0 ? "Frase di Aurora" : "Breve presentazione (facoltativa)"}
+                          <textarea value={story.line}
+                            onChange={(event) => setContent(setValue(content, `stories.items.${index}.line`, event.target.value))} />
+                        </label>
+                        {index > 0 && <button type="button" className="secondary" onClick={() => removeStory(index)}>Rimuovi</button>}
+                      </div>
+                    ))}
+                  </div>
+                </section>
               </div>
             )}
           </div>

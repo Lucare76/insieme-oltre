@@ -226,15 +226,19 @@
     font-size: clamp(26px, 8vw, 38px) !important;
   }
 
-  .story-grid {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
+  .story-row { gap: 12px; padding-right: 12px; }
+  .story-card {
+    flex-basis: 230px;
+    min-height: 320px !important;
+    padding: 22px !important;
   }
 
-  .story-card {
-    min-height: 300px !important;
-    padding: 24px !important;
-  }
+  .story-card h3 { font-size: 26px !important; }
+  .story-card p { font-size: 15px !important; }
+  .story-featured { flex-basis: min(84vw, 360px); padding: 24px !important; }
+  .story-featured h3 { font-size: 34px !important; }
+  .story-featured > p:not(.story-description) { font-size: 20px !important; }
+  .story-featured .story-description { font-size: 15px !important; }
 
   .numbers {
     padding: 86px 20px !important;

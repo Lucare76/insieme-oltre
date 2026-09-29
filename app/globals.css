@@ -359,7 +359,8 @@ a { color: inherit; text-decoration: none; }
 .story-card.gold::before { background: radial-gradient(circle at 64% 24%, #f0cf95, transparent 32%), linear-gradient(145deg,#fff7e8,#f2e2bd); }
 .story-card > * { position: relative; z-index: 1; }
 .story-number { position: absolute; top: 18px; left: 24px; font-size: 11px; opacity: .5; }
-.story-avatar { width: 58px; height: 58px; display: grid; place-items: center; margin-bottom: auto; border-radius: 50%; background: rgba(255,255,255,.7); font-family: Georgia, serif; font-size: 28px; color: var(--ink); }
+.story-avatar { position: relative; width: 58px; height: 58px; display: grid; place-items: center; margin-bottom: auto; border-radius: 50%; overflow: hidden; background: rgba(255,255,255,.7); font-family: Georgia, serif; font-size: 28px; color: var(--ink); }
+.story-avatar img { object-fit: cover; }
 .story-card h3 { margin: 24px 0 6px; overflow-wrap: anywhere; font-family: Georgia, serif; font-size: clamp(24px, 2.2vw, 32px); font-weight: 500; }
 .story-card p { margin: 0; font-family: Georgia, serif; font-size: 16px; line-height: 1.4; }
 .story-card span { font-size: 12px; font-weight: 750; color: var(--coral-deep); }

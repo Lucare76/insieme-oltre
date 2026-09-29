@@ -370,6 +370,11 @@ export default function AdminPage() {
                           <textarea value={story.line}
                             onChange={(event) => setContent(setValue(content, `stories.items.${index}.line`, event.target.value))} />
                         </label>
+                        <label>
+                          Foto (facoltativa, percorso nella cartella public)
+                          <input value={story.photo ?? ""} placeholder="/storie/nome.jpg"
+                            onChange={(event) => setContent(setValue(content, `stories.items.${index}.photo`, event.target.value))} />
+                        </label>
                         {index > 0 && <button type="button" className="secondary" onClick={() => removeStory(index)}>Rimuovi</button>}
                       </div>
                     ))}

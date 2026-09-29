@@ -344,9 +344,12 @@ a { color: inherit; text-decoration: none; }
 .stories { background: var(--paper); }
 .stories-title-wrap { max-width: 1320px; margin: 0 auto 50px; }
 .stories-title-wrap h2 { margin-top: 12px; font-size: clamp(46px, 5vw, 78px); }
-.story-grid { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.story-window { overflow-x: auto; scrollbar-width: thin; }
+.story-track { display: flex; width: max-content; animation: story-scroll linear infinite; }
+.story-window:hover .story-track, .story-window:focus-within .story-track, .story-window:active .story-track { animation-play-state: paused; }
+.story-row { display: flex; gap: 16px; padding-right: 16px; }
 .story-card {
-  position: relative; padding: 30px; min-height: 420px; border-radius: 30px; overflow: hidden;
+  position: relative; flex: 0 0 270px; padding: 24px; min-height: 310px; border-radius: 8px; overflow: hidden;
   display: flex; flex-direction: column; justify-content: flex-end;
   border: 1px solid rgba(36,49,42,.08);
 }
@@ -355,13 +358,19 @@ a { color: inherit; text-decoration: none; }
 .story-card.sage::before { background: radial-gradient(circle at 60% 24%, #bac8b5, transparent 31%), linear-gradient(145deg,#eff3ec,#dce5d9); }
 .story-card.gold::before { background: radial-gradient(circle at 64% 24%, #f0cf95, transparent 32%), linear-gradient(145deg,#fff7e8,#f2e2bd); }
 .story-card > * { position: relative; z-index: 1; }
-.story-number { position: absolute; top: 28px; left: 30px; font-size: 11px; letter-spacing: .15em; opacity: .5; }
-.story-avatar { width: 106px; height: 106px; display: grid; place-items: center; margin-bottom: auto; border-radius: 50%; background: rgba(255,255,255,.7); font-family: Georgia, serif; font-size: 50px; color: var(--ink); box-shadow: 0 14px 35px rgba(39,34,28,.08); }
-.story-card h3 { margin: 30px 0 6px; font-family: Georgia, serif; font-size: 36px; font-weight: 500; }
-.story-card p { margin: 0 0 18px; font-family: Georgia, serif; font-size: 22px; line-height: 1.35; }
+.story-number { position: absolute; top: 18px; left: 24px; font-size: 11px; opacity: .5; }
+.story-avatar { width: 58px; height: 58px; display: grid; place-items: center; margin-bottom: auto; border-radius: 50%; background: rgba(255,255,255,.7); font-family: Georgia, serif; font-size: 28px; color: var(--ink); }
+.story-card h3 { margin: 24px 0 6px; overflow-wrap: anywhere; font-family: Georgia, serif; font-size: clamp(24px, 2.2vw, 32px); font-weight: 500; }
+.story-card p { margin: 0; font-family: Georgia, serif; font-size: 16px; line-height: 1.4; }
 .story-card span { font-size: 12px; font-weight: 750; color: var(--coral-deep); }
+.story-featured { flex-basis: 440px; padding: 32px; }
+.story-featured .story-avatar { width: 94px; height: 94px; font-size: 46px; }
+.story-featured h3 { font-size: clamp(34px, 3.4vw, 48px); }
+.story-featured > p:not(.story-description) { font-size: 22px; margin-bottom: 16px; }
 .story-card .story-description { font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.55; }
-.story-link { width: fit-content; font-size: 14px; font-weight: 750; color: var(--coral-deep); border-bottom: 1px solid currentColor; padding-bottom: 4px; }
+.story-link { width: fit-content; margin-top: 20px; font-size: 14px; font-weight: 750; color: var(--coral-deep); border-bottom: 1px solid currentColor; padding-bottom: 4px; }
+@keyframes story-scroll { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .story-track { animation: none; } .story-row[aria-hidden="true"] { display: none; } }
 
 .numbers { padding: 130px max(6vw, 48px); background: #27372d; color: white; }
 .numbers-inner { max-width: 1320px; margin: 0 auto; display: grid; grid-template-columns: .9fr 1.1fr; gap: 90px; align-items: center; }
@@ -416,8 +425,6 @@ footer > a { justify-self: end; font-weight: 750; }
   .pillar-grid { grid-template-columns: repeat(2, 1fr); }
   .aurora-visual { min-height: 580px; }
   .aurora-story { padding: 80px max(7vw, 38px) 100px; }
-  .story-grid { grid-template-columns: 1fr; }
-  .story-card { min-height: 330px; }
   .numbers-inner { gap: 65px; }
   .join-symbol { min-height: 440px; }
   footer { grid-template-columns: 1fr auto; }

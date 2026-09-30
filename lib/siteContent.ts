@@ -71,6 +71,7 @@ export type HomeContent = {
   };
   emanueleStory: {
     title: string;
+    cardLine: string;
     cardDescription: string;
     cardLink: string;
     paragraphs: string[];
@@ -83,6 +84,8 @@ export type HomeContent = {
     titleLine2: string;
     items: StoryContent[];
     comingSoon: string;
+    comingSoonLine: string;
+    comingSoonLabel: string;
   };
   numbers: {
     label: string;
@@ -220,6 +223,7 @@ export const defaultHomeContent: HomeContent = {
   },
   emanueleStory: {
     title: "Il suo volo verso la vita e la scoperta del mondo",
+    cardLine: "Il suo volo verso la vita.",
     cardDescription: "Il suo viaggio è cominciato con un volo, nelle prime ore di vita. Poi piccoli passi, ma costanti. Oggi Emanuele vola a modo suo: con un sorriso che illumina una stanza e uno sguardo curioso che scopre il mondo senza fretta.",
     cardLink: "Conosci la sua storia →",
     paragraphs: [
@@ -255,6 +259,8 @@ export const defaultHomeContent: HomeContent = {
       { name: "Biagio", line: "", accent: "coral" },
     ],
     comingSoon: "Presto, raccontato dalla sua famiglia.",
+    comingSoonLine: "La mia storia arriverà presto.",
+    comingSoonLabel: "Storia in arrivo",
   },
   numbers: {
     label: "46 oppure 47 cromosomi",

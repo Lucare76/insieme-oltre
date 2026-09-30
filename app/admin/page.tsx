@@ -77,10 +77,25 @@ const fields: Field[] = [
   { label: "Genitori — frase in evidenza", path: "auroraStory.parentsParagraphs.2", multiline: true },
   { label: "Genitori — chiusura", path: "auroraStory.parentsParagraphs.3", multiline: true },
 
+  { label: "Emanuele — titolo della storia", path: "emanueleStory.title" },
+  { label: "Emanuele — sottotitolo nella scheda", path: "emanueleStory.cardLine" },
+  { label: "Emanuele — estratto nella scheda", path: "emanueleStory.cardDescription", multiline: true },
+  { label: "Emanuele — testo del link", path: "emanueleStory.cardLink" },
+  ...defaultHomeContent.emanueleStory.paragraphs.map((_, index, all) => ({
+    label: index === all.length - 1 ? "Storia di Emanuele — chiusura" : `Storia di Emanuele — paragrafo ${index + 1}`,
+    path: `emanueleStory.paragraphs.${index}`,
+    multiline: true,
+  })),
+  { label: "Emanuele — foto 1, apertura (facoltativa)", path: "emanueleStory.photos.0" },
+  { label: "Emanuele — foto 2 (facoltativa)", path: "emanueleStory.photos.1" },
+  { label: "Emanuele — foto 3 (facoltativa)", path: "emanueleStory.photos.2" },
+
   { label: "Storie — occhiello", path: "stories.kicker" },
   { label: "Storie — titolo riga 1", path: "stories.titleLine1" },
   { label: "Storie — titolo riga 2", path: "stories.titleLine2" },
-  { label: "Storie — testo in arrivo", path: "stories.comingSoon" },
+  { label: "Storie in arrivo — sottotitolo", path: "stories.comingSoonLine" },
+  { label: "Storie in arrivo — testo", path: "stories.comingSoon" },
+  { label: "Storie in arrivo — etichetta in basso", path: "stories.comingSoonLabel" },
 
   { label: "Numeri — etichetta", path: "numbers.label" },
   { label: "Numeri — titolo riga 1", path: "numbers.titleLine1" },

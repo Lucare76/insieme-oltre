@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { getHomeContent, type StoryContent } from "../lib/siteContent";
 import Image from "next/image";
+import type { CSSProperties } from "react";
 
 const logoTopSrc = "/insieme-oltre-logo-top.png";
 const logoFullSrc = "/insieme-oltre-logo.png";
@@ -15,31 +16,34 @@ function HeartLine() {
   );
 }
 
-function StoryCard({ story, index, comingSoon, description, linkLabel, duplicate = false }: {
+type StoryPage = { href: string; line?: string; description: string; linkLabel: string };
+
+const storyTitle = (name: string) => `Io sono ${name.trim()}.`;
+
+// Stessa struttura per tutte le card: cambia solo il contenuto, non l'impaginazione.
+function StoryCard({ story, index, comingSoon, page, duplicate = false }: {
   story: StoryContent;
   index: number;
-  comingSoon: string;
-  description: string;
-  linkLabel: string;
+  comingSoon: { line: string; text: string; label: string };
+  page?: StoryPage;
   duplicate?: boolean;
 }) {
   const photo = story.photo && /^\/(?:storie\/)?[a-z0-9-]+\.(?:jpg|jpeg|png|webp)$/i.test(story.photo)
     && existsSync(join(process.cwd(), "public", story.photo.slice(1))) ? story.photo : null;
+  const line = story.line || (page ? page.line : comingSoon.line);
 
   return (
-    <article className={["story-card", story.accent, index === 0 ? "story-featured" : ""].join(" ")} aria-hidden={duplicate || undefined}>
+    <article className={["story-card", story.accent, page ? "" : "story-pending"].join(" ")} aria-hidden={duplicate || undefined}>
       <div className="story-number">{String(index + 1).padStart(2, "0")}</div>
       <div className="story-avatar" aria-hidden="true">
-        {photo ? <Image src={photo} alt="" fill sizes="94px" /> : story.name.charAt(0)}
+        {photo ? <Image src={photo} alt="" fill sizes="94px" /> : story.name.trim().charAt(0)}
       </div>
-      <h3>{index === 0 ? `Io sono ${story.name}.` : story.name}</h3>
-      {index === 0 ? (
-        <>
-          <p>{story.line}</p>
-          <p className="story-description">{description}</p>
-          <a className="story-link" href="/storie/aurora" tabIndex={duplicate ? -1 : undefined}>{linkLabel}</a>
-        </>
-      ) : <p>{story.line || comingSoon}</p>}
+      <h3>{storyTitle(story.name)}</h3>
+      <p className="story-line">{line}</p>
+      <p className="story-description">{page ? page.description : comingSoon.text}</p>
+      {page
+        ? <a className="story-link" href={page.href} tabIndex={duplicate ? -1 : undefined}>{page.linkLabel}</a>
+        : <span className="story-link story-link-pending">{comingSoon.label}</span>}
     </article>
   );
 }
@@ -47,6 +51,22 @@ function StoryCard({ story, index, comingSoon, description, linkLabel, duplicate
 export default async function Home() {
   const content = await getHomeContent();
   const stories = content.stories.items.filter((story) => story.name.trim());
+  // Il titolo più lungo decide la dimensione comune dei titoli, così nessuno va a capo.
+  const titleChars = Math.max(15, ...stories.map((story) => storyTitle(story.name).length));
+  const comingSoon = {
+    line: content.stories.comingSoonLine,
+    text: content.stories.comingSoon,
+    label: content.stories.comingSoonLabel,
+  };
+  const storyPages: Record<string, StoryPage> = {
+    aurora: { href: "/storie/aurora", description: content.auroraStory.cardDescription, linkLabel: content.auroraStory.cardLink },
+    emanuele: {
+      href: "/storie/emanuele",
+      line: content.emanueleStory.cardLine,
+      description: content.emanueleStory.cardDescription,
+      linkLabel: content.emanueleStory.cardLink,
+    },
+  };
 
   return (
     <main>
@@ -154,14 +174,14 @@ export default async function Home() {
           <p className="section-kicker">{content.stories.kicker}</p>
           <h2 id="stories-title">{content.stories.titleLine1}<br/>{content.stories.titleLine2}</h2>
         </div>
-        <div className="story-window" aria-label="Storie delle persone dell’associazione">
+        <div className="story-window" aria-label="Storie delle persone dell’associazione"
+          style={{ "--story-title-chars": titleChars } as CSSProperties}>
           <div className="story-track" style={{ animationDuration: `${Math.max(45, stories.length * 8)}s` }}>
             {[false, true].map((duplicate) => (
               <div className="story-row" key={String(duplicate)} aria-hidden={duplicate || undefined}>
                 {stories.map((story, index) => (
                   <StoryCard key={`${story.name}-${index}`} story={story} index={index} duplicate={duplicate}
-                    comingSoon={content.stories.comingSoon} description={content.auroraStory.cardDescription}
-                    linkLabel={content.auroraStory.cardLink} />
+                    comingSoon={comingSoon} page={storyPages[story.name.trim().toLowerCase()]} />
                 ))}
               </div>
             ))}

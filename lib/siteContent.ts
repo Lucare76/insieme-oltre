@@ -69,12 +69,23 @@ export type HomeContent = {
     parentsTitle: string;
     parentsParagraphs: string[];
   };
+  emanueleStory: {
+    title: string;
+    cardLine: string;
+    cardDescription: string;
+    cardLink: string;
+    paragraphs: string[];
+    /** Foto facoltative (fino a 3), percorsi in /public. Quelle mancanti vengono ignorate. */
+    photos: string[];
+  };
   stories: {
     kicker: string;
     titleLine1: string;
     titleLine2: string;
     items: StoryContent[];
     comingSoon: string;
+    comingSoonLine: string;
+    comingSoonLabel: string;
   };
   numbers: {
     label: string;
@@ -210,6 +221,30 @@ export const defaultHomeContent: HomeContent = {
       "Perché l’amore era già lì.",
     ],
   },
+  emanueleStory: {
+    title: "Il suo volo verso la vita e la scoperta del mondo",
+    cardLine: "Il suo volo verso la vita.",
+    cardDescription: "Il suo viaggio è cominciato con un volo, nelle prime ore di vita. Poi piccoli passi, ma costanti. Oggi Emanuele vola a modo suo: con un sorriso che illumina una stanza e uno sguardo curioso che scopre il mondo senza fretta.",
+    cardLink: "Conosci la sua storia →",
+    paragraphs: [
+      "Le prime ore di vita di Emanuele non sono state semplici.",
+      "Un viaggio in elicottero e, a poche ore dalla nascita, un’operazione per atresia duodenale.",
+      "Anche la ripresa è stata lenta e graduale.\nPiccoli passi, ma costanti.",
+      "E poi sono arrivate le piccole grandi conquiste:\nil primo biberon,\nil primo pannolino sporco,\nla prima tutina,\nla prima uscita con mamma, papà e la sorellina.",
+      "Conquiste che forse, per qualcuno, possono sembrare piccole.\nPer noi, invece, sono state immense.",
+      "Il suo viaggio non si è fermato a quel primo volo in elicottero.",
+      "Oggi Emanuele vola a modo suo: con la forza di chi ha dovuto lottare fin dal primo giorno e con la dolcezza di chi sa guardare il mondo con occhi unici.",
+      "Ogni suo giorno è una nuova conquista.",
+      "La bellezza di Emanuele sta nel suo sorriso, quello che illumina una stanza e sa curare ogni paura passata.",
+      "Sta nel suo sguardo curioso, che esplora la vita senza fretta, scoprendo ogni cosa a modo suo.",
+      "La Trisomia 21 è solo una sfumatura del suo disegno, non è il suo confine.",
+      "Emanuele ci insegna ogni giorno che non importa quanto sia stata ripida la salita all’inizio.",
+      "Ciò che conta è la bellezza del paesaggio che stiamo scoprendo insieme.",
+      "Un passo alla volta.\nUna conquista alla volta.\nE, perché no, un volo alla volta.",
+      "Questo è il viaggio di Emanuele.\nIl suo meraviglioso volo verso la vita.",
+    ],
+    photos: ["/emanuele-storia.jpg", "/emanuele-storia-2.jpg", "/emanuele-storia-3.jpg"],
+  },
   stories: {
     kicker: "Storie vere, vite intere",
     titleLine1: "Dietro ogni nome",
@@ -217,13 +252,15 @@ export const defaultHomeContent: HomeContent = {
     items: [
       { name: "Aurora", line: "Ho una luce tutta mia.", photo: "/aurora-storia.jpg", accent: "coral" },
       { name: "Alessandro", line: "", accent: "sage" },
-      { name: "Emanuele", line: "", accent: "gold" },
+      { name: "Emanuele", line: "Il suo volo verso la vita.", accent: "gold" },
       { name: "Celeste", line: "", accent: "coral" },
       { name: "Vincenzo", line: "", accent: "sage" },
       { name: "Eleonora", line: "", accent: "gold" },
       { name: "Biagio", line: "", accent: "coral" },
     ],
     comingSoon: "Presto, raccontato dalla sua famiglia.",
+    comingSoonLine: "La mia storia arriverà presto.",
+    comingSoonLabel: "Storia in arrivo",
   },
   numbers: {
     label: "46 oppure 47 cromosomi",
@@ -285,6 +322,12 @@ function mergeHomeContent(base: HomeContent, incoming: unknown): HomeContent {
       ...candidate.auroraStory,
       paragraphs: candidate.auroraStory?.paragraphs ?? base.auroraStory.paragraphs,
       parentsParagraphs: candidate.auroraStory?.parentsParagraphs ?? base.auroraStory.parentsParagraphs,
+    },
+    emanueleStory: {
+      ...base.emanueleStory,
+      ...candidate.emanueleStory,
+      paragraphs: candidate.emanueleStory?.paragraphs ?? base.emanueleStory.paragraphs,
+      photos: candidate.emanueleStory?.photos ?? base.emanueleStory.photos,
     },
     stories: {
       ...base.stories,

@@ -228,17 +228,14 @@
 
   .story-row { gap: 12px; padding-right: 12px; }
   .story-card {
-    flex-basis: 230px;
-    min-height: 320px !important;
-    padding: 22px !important;
+    flex-basis: min(84vw, 340px);
+    min-height: 440px !important;
+    padding: 36px 24px 24px !important;
   }
 
-  .story-card h3 { font-size: 26px !important; }
-  .story-card p { font-size: 15px !important; }
-  .story-featured { flex-basis: min(84vw, 360px); padding: 24px !important; }
-  .story-featured h3 { font-size: 34px !important; }
-  .story-featured > p:not(.story-description) { font-size: 20px !important; }
-  .story-featured .story-description { font-size: 15px !important; }
+  .story-avatar { width: 76px; height: 76px; font-size: 38px; }
+  .story-card h3 { margin-top: 48px; }
+  .story-card .story-line { font-size: 19px; }
 
   .numbers {
     padding: 86px 20px !important;

@@ -236,6 +236,7 @@
   .story-card h3 { font-size: 26px !important; }
   .story-card p { font-size: 15px !important; }
   .story-featured { flex-basis: min(84vw, 360px); padding: 24px !important; }
+  .story-told { flex-basis: min(78vw, 300px); }
   .story-featured h3 { font-size: 34px !important; }
   .story-featured > p:not(.story-description) { font-size: 20px !important; }
   .story-featured .story-description { font-size: 15px !important; }

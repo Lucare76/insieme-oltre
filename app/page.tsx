@@ -15,29 +15,30 @@ function HeartLine() {
   );
 }
 
-function StoryCard({ story, index, comingSoon, description, linkLabel, duplicate = false }: {
+type StoryPage = { href: string; description: string; linkLabel: string };
+
+function StoryCard({ story, index, comingSoon, page, duplicate = false }: {
   story: StoryContent;
   index: number;
   comingSoon: string;
-  description: string;
-  linkLabel: string;
+  page?: StoryPage;
   duplicate?: boolean;
 }) {
   const photo = story.photo && /^\/(?:storie\/)?[a-z0-9-]+\.(?:jpg|jpeg|png|webp)$/i.test(story.photo)
     && existsSync(join(process.cwd(), "public", story.photo.slice(1))) ? story.photo : null;
 
   return (
-    <article className={["story-card", story.accent, index === 0 ? "story-featured" : ""].join(" ")} aria-hidden={duplicate || undefined}>
+    <article className={["story-card", story.accent, index === 0 ? "story-featured" : page ? "story-told" : ""].join(" ")} aria-hidden={duplicate || undefined}>
       <div className="story-number">{String(index + 1).padStart(2, "0")}</div>
       <div className="story-avatar" aria-hidden="true">
         {photo ? <Image src={photo} alt="" fill sizes="94px" /> : story.name.charAt(0)}
       </div>
       <h3>{index === 0 ? `Io sono ${story.name}.` : story.name}</h3>
-      {index === 0 ? (
+      {page ? (
         <>
-          <p>{story.line}</p>
-          <p className="story-description">{description}</p>
-          <a className="story-link" href="/storie/aurora" tabIndex={duplicate ? -1 : undefined}>{linkLabel}</a>
+          {story.line && <p>{story.line}</p>}
+          <p className="story-description">{page.description}</p>
+          <a className="story-link" href={page.href} tabIndex={duplicate ? -1 : undefined}>{page.linkLabel}</a>
         </>
       ) : <p>{story.line || comingSoon}</p>}
     </article>
@@ -47,6 +48,10 @@ function StoryCard({ story, index, comingSoon, description, linkLabel, duplicate
 export default async function Home() {
   const content = await getHomeContent();
   const stories = content.stories.items.filter((story) => story.name.trim());
+  const storyPages: Record<string, StoryPage> = {
+    aurora: { href: "/storie/aurora", description: content.auroraStory.cardDescription, linkLabel: content.auroraStory.cardLink },
+    emanuele: { href: "/storie/emanuele", description: content.emanueleStory.cardDescription, linkLabel: content.emanueleStory.cardLink },
+  };
 
   return (
     <main>
@@ -160,8 +165,7 @@ export default async function Home() {
               <div className="story-row" key={String(duplicate)} aria-hidden={duplicate || undefined}>
                 {stories.map((story, index) => (
                   <StoryCard key={`${story.name}-${index}`} story={story} index={index} duplicate={duplicate}
-                    comingSoon={content.stories.comingSoon} description={content.auroraStory.cardDescription}
-                    linkLabel={content.auroraStory.cardLink} />
+                    comingSoon={content.stories.comingSoon} page={storyPages[story.name.trim().toLowerCase()]} />
                 ))}
               </div>
             ))}

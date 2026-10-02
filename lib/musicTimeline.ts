@@ -106,6 +106,19 @@ export function musicSceneAt(time: number, started: boolean, ended: boolean): Mu
   return "constellation";
 }
 
+/**
+ * Il ritornello e la frase che lo segue subito ("Siamo qui come voi.", "Siamo qui per restare.") sono un unico momento:
+ * nella breve pausa fra i due e durante la seconda frase i nomi restano quasi fermi come nel ritornello.
+ */
+export function isChorusContinuation(time: number) {
+  const index = musicTimeline.findIndex((cue, i) => {
+    const previous = musicTimeline[i - 1];
+    return previous && HERO_EFFECTS.includes(previous.effect) && !HERO_EFFECTS.includes(cue.effect)
+      && cue.startTime - previous.endTime < 1.5 && time >= previous.endTime && time < cue.endTime;
+  });
+  return index !== -1;
+}
+
 /** Quanto del finale è visibile: 0 niente, 1 "Insieme Oltre", 2 anche lo slogan, 3 anche i pulsanti (brano finito). */
 export function finaleStep(time: number, ended: boolean) {
   if (ended) return 3;

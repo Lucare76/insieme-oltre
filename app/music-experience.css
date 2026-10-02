@@ -269,6 +269,8 @@
 .music[data-scene="essential"] { --float-amp: .6; }
 .music[data-scene="together"] { --float-amp: .5; }
 .music[data-scene="finale"] { --float-amp: .35; }
+/* Ritornello + frase che lo segue subito: un unico momento, i nomi restano quasi fermi anche nella pausa fra le due. */
+.music[data-float="hold"] { --float-amp: .18; }
 .music[data-scene="phrase"] .music-name { --o: .6; }
 .music[data-scene="chorus"] .music-name { --o: .45; }
 .music[data-scene="essential"] .music-name { --o: .42; }

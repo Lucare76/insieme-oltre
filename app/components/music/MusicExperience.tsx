@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { finaleStep, musicSceneAt, musicTrack } from "../../../lib/musicTimeline";
+import { finaleStep, isChorusContinuation, musicSceneAt, musicTrack } from "../../../lib/musicTimeline";
 import { MusicFinale } from "./MusicFinale";
 import { MusicPhotos } from "./MusicPhotos";
 import { MusicPlayer, type MusicStatus } from "./MusicPlayer";
@@ -97,7 +97,8 @@ export function MusicExperience({ names, photos, slogan, storiesHref, joinHref }
   }
 
   return (
-    <section className="music" id="canzone" data-state={status} data-scene={scene} aria-labelledby="music-title">
+    <section className="music" id="canzone" data-state={status} data-scene={scene}
+      data-float={started && !ended && isChorusContinuation(time) ? "hold" : undefined} aria-labelledby="music-title">
       <div className="music-sky" aria-hidden="true" />
       <div className="music-inner">
         <header className="music-head">

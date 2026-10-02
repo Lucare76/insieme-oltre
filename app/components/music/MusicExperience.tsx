@@ -6,7 +6,7 @@ import { MusicFinale } from "./MusicFinale";
 import { MusicPhotos } from "./MusicPhotos";
 import { MusicPlayer, type MusicStatus } from "./MusicPlayer";
 import { MusicQuotes } from "./MusicQuotes";
-import { NamesConstellation, type MusicName } from "./NamesConstellation";
+import { NamesConstellation, orderNames, shuffleIds, type MusicName } from "./NamesConstellation";
 
 /**
  * Sezione "Non veniamo da Marte". Lo stato visivo dipende solo dal tempo del brano:
@@ -27,6 +27,8 @@ export function MusicExperience({ names, photos, slogan, storiesHref, joinHref }
   const [duration, setDuration] = useState<number>(musicTrack.duration);
   const [volume, setVolume] = useState(1);
   const [failed, setFailed] = useState(false);
+  // Ordine dei nomi: scelto a caso al primo avvio e poi stabile (pausa, ripresa e riavvio non lo cambiano).
+  const [nameOrder, setNameOrder] = useState<string[] | null>(null);
 
   const started = status !== "idle";
   const ended = status === "ended";
@@ -36,6 +38,10 @@ export function MusicExperience({ names, photos, slogan, storiesHref, joinHref }
     if (!("mediaSession" in navigator) || typeof MediaMetadata === "undefined") return;
     navigator.mediaSession.metadata = new MediaMetadata({ title: musicTrack.title, artist: musicTrack.artist });
   }, []);
+
+  function chooseNameOrder() {
+    if (!nameOrder) setNameOrder(shuffleIds(names.map((child) => child.id)));
+  }
 
   // Al primo ascolto, se il pulsante è in basso nello schermo, porta il player in alto con calma
   // perché la scena che si apre sotto sia visibile. Dopo, lo scroll resta sempre libero.
@@ -60,7 +66,10 @@ export function MusicExperience({ names, photos, slogan, storiesHref, joinHref }
       audio.currentTime = 0;
       setTime(0);
     }
-    if (status === "idle") bringIntoView();
+    if (status === "idle") {
+      chooseNameOrder();
+      bringIntoView();
+    }
     setFailed(false);
     audio.play().catch((error: unknown) => {
       if (error instanceof DOMException && error.name === "AbortError") return;
@@ -73,6 +82,7 @@ export function MusicExperience({ names, photos, slogan, storiesHref, joinHref }
     if (!audio) return;
     audio.currentTime = value;
     setTime(value);
+    if (status === "idle") chooseNameOrder();
     if (status === "idle" || (status === "ended" && value < duration - 1)) setStatus("paused");
   }
 
@@ -111,7 +121,7 @@ export function MusicExperience({ names, photos, slogan, storiesHref, joinHref }
 
         <div className="music-stage">
           <div className="music-stage-inner">
-            <NamesConstellation names={names} time={time} scene={scene}>
+            <NamesConstellation names={orderNames(names, nameOrder)} time={time} scene={scene}>
               <div className="music-center">
                 <MusicQuotes time={time} active={started && !ended} />
                 <MusicPhotos photos={photos} time={time} active={started && !ended} />

@@ -1,3 +1,9 @@
+@property --float-amp {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
 /* "Non veniamo da Marte": sezione emozionale della homepage (app/components/music).
    A riposo è una sezione chiara come le altre; quando parte la musica scende piano una "notte" verde salvia
    in cui compaiono nomi, frasi e qualche foto. Solo opacità, piccoli movimenti e nessun effetto vistoso. */
@@ -15,7 +21,8 @@
     linear-gradient(180deg, var(--paper) 0%, #f6efe4 100%);
   color: var(--ink);
   text-align: center;
-  transition: color 1.8s ease;
+  --float-amp: 1;
+  transition: color 1.8s ease, --float-amp 1s ease;
 }
 .music:not([data-state="idle"]) { color: var(--music-night-text); }
 
@@ -246,8 +253,8 @@
 .music-name > * {
   display: inline-block;
   padding: 8px 2px;
-  animation: music-drift 11s ease-in-out infinite;
-  animation-delay: calc(var(--i, 0) * -1.9s);
+  /* Fluttuazione: ampiezza, durata e direzione proprie di ogni nome (vedi floatStyle in NamesConstellation). */
+  animation: music-float var(--float-duration, 8s) ease-in-out var(--float-delay, 0s) infinite;
 }
 .music-name a {
   background: linear-gradient(rgba(246,229,201,.38), rgba(246,229,201,.38)) left calc(100% - 6px) / 100% 1px no-repeat;
@@ -256,7 +263,12 @@
 .music-name a:hover, .music-name a:focus-visible { color: #fff8ee; background-image: linear-gradient(var(--gold), var(--gold)); }
 .music-name a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
 
-/* Le scene cambiano solo l'intensità dei nomi. */
+/* Le scene cambiano l'intensità dei nomi e quanto fluttuano: quasi fermi nel ritornello, più calmi durante le frasi. */
+.music[data-scene="phrase"] { --float-amp: .4; }
+.music[data-scene="chorus"] { --float-amp: .12; }
+.music[data-scene="essential"] { --float-amp: .6; }
+.music[data-scene="together"] { --float-amp: .5; }
+.music[data-scene="finale"] { --float-amp: .35; }
 .music[data-scene="phrase"] .music-name { --o: .6; }
 .music[data-scene="chorus"] .music-name { --o: .45; }
 .music[data-scene="essential"] .music-name { --o: .42; }
@@ -380,9 +392,10 @@
   0%, 100% { box-shadow: 0 14px 34px rgba(201,82,73,.26), 0 0 0 0 rgba(230,104,94,.28); }
   50% { box-shadow: 0 14px 34px rgba(201,82,73,.26), 0 0 0 12px rgba(230,104,94,0); }
 }
-@keyframes music-drift {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+@keyframes music-float {
+  0%, 100% { transform: translate(0, 0); }
+  35% { transform: translate(calc(var(--float-x, 0px) * var(--float-amp)), calc(var(--float-y, 4px) * var(--float-amp) * -1)); }
+  70% { transform: translate(calc(var(--float-x, 0px) * var(--float-amp) * -.6), calc(var(--float-y, 4px) * var(--float-amp) * -.4)); }
 }
 
 @media (max-width: 760px) {

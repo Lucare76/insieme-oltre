@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { musicSceneAt, musicTrack } from "../../../lib/musicTimeline";
+import { finaleStep, musicSceneAt, musicTrack } from "../../../lib/musicTimeline";
 import { MusicFinale } from "./MusicFinale";
 import { MusicPhotos } from "./MusicPhotos";
 import { MusicPlayer, type MusicStatus } from "./MusicPlayer";
@@ -115,7 +115,7 @@ export function MusicExperience({ names, photos, slogan, storiesHref, joinHref }
               <div className="music-center">
                 <MusicQuotes time={time} active={started && !ended} />
                 <MusicPhotos photos={photos} time={time} active={started && !ended} />
-                <MusicFinale visible={ended} slogan={slogan} storiesHref={storiesHref} joinHref={joinHref} />
+                <MusicFinale step={started ? finaleStep(time, ended) : 0} slogan={slogan} storiesHref={storiesHref} joinHref={joinHref} />
               </div>
             </NamesConstellation>
           </div>

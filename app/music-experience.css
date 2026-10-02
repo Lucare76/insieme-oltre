@@ -226,7 +226,7 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(calc(var(--dy) + 12px));
-  transition: opacity 2.2s ease, transform 2.8s ease, color 2s ease, visibility 0s linear 2.2s;
+  transition: opacity 1.2s ease, transform 1.6s ease, color 1.2s ease, visibility 0s linear 1.2s;
 }
 .music-name::before {
   content: "✦";
@@ -241,7 +241,7 @@
   opacity: var(--o);
   visibility: visible;
   transform: translateY(var(--dy));
-  transition: opacity 2.2s ease, transform 2.8s ease, color 2s ease, visibility 0s;
+  transition: opacity 1.2s ease, transform 1.6s ease, color 1.2s ease, visibility 0s;
 }
 .music-name > * {
   display: inline-block;
@@ -257,10 +257,11 @@
 .music-name a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
 
 /* Le scene cambiano solo l'intensità dei nomi. */
+.music[data-scene="phrase"] .music-name { --o: .6; }
 .music[data-scene="chorus"] .music-name { --o: .45; }
 .music[data-scene="essential"] .music-name { --o: .42; }
 .music[data-scene="together"] .music-name { --o: 1; color: #fff7ea; }
-.music[data-scene="finale"] .music-name { --o: .78; }
+.music[data-scene="finale"] .music-name { --o: .7; }
 
 /* Pausa: tutto resta fermo dov'è. */
 .music[data-state="paused"] .music-name > * { animation-play-state: paused; }
@@ -286,25 +287,43 @@
   overflow-wrap: break-word;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 1.6s ease, transform 2.4s ease, visibility 0s linear 1.6s;
+  transition: opacity .8s ease, transform 1.2s ease, visibility 0s linear .8s;
 }
 .music-quote.is-active {
   opacity: 1;
   visibility: visible;
   transform: none;
-  transition: opacity 1.6s ease, transform 2.4s ease, visibility 0s;
+  transition: opacity 1s ease, transform 1.2s ease, visibility 0s;
 }
 .music-quote-whisper { font-size: clamp(24px, 3vw, 40px); font-style: italic; color: var(--music-name); transform: translateY(6px); }
-.music-quote-rise { font-size: clamp(28px, 4vw, 56px); transform: translateY(20px); }
+.music-quote-rise { font-size: clamp(28px, 4vw, 56px); transform: translateY(12px); }
 .music-quote-hero {
   font-size: clamp(42px, 9vw, 128px);
   line-height: 1;
   letter-spacing: -.045em;
   color: #fff3e2;
   text-shadow: 0 0 60px rgba(224,167,87,.28);
-  transform: scale(.94);
+  transform: scale(.96);
 }
-.music-quote-hero.is-active { transition: opacity 1.8s ease, transform 7s cubic-bezier(.2,.6,.2,1), visibility 0s; }
+.music-quote-hero.is-active { transition: opacity 1s ease, transform 3s cubic-bezier(.2,.6,.2,1), visibility 0s; }
+/* Secondo ritornello: stesso linguaggio, più asciutto (niente alone, niente ingrandimento). */
+.music-quote-hero-sober {
+  font-size: clamp(38px, 7.4vw, 104px);
+  line-height: 1;
+  letter-spacing: -.035em;
+  color: #f6e5c9;
+  transform: translateY(8px);
+}
+/* Ritornello finale: corsivo e caldo, entra lentamente nel silenzio che lo precede. */
+.music-quote-hero-final {
+  font-size: clamp(40px, 8.4vw, 118px);
+  font-style: italic;
+  line-height: 1.02;
+  letter-spacing: -.03em;
+  color: #f6d19b;
+  text-shadow: 0 0 80px rgba(224,167,87,.22);
+}
+.music-quote-hero-final.is-active { transition: opacity 1.2s ease, visibility 0s; }
 .music-quote-together { font-size: clamp(30px, 4.8vw, 66px); font-style: italic; color: var(--music-gold); transform: translateY(10px); }
 
 .music-photo {
@@ -315,18 +334,26 @@
   border-radius: 48% 52% 46% 54% / 55% 43% 57% 45%;
   box-shadow: 0 0 0 1px rgba(255,255,255,.2), 0 30px 70px rgba(0,0,0,.22);
   opacity: 0;
-  transform: scale(.96) translateY(8px);
-  transition: opacity 2.2s ease, transform 6s cubic-bezier(.2,.6,.2,1);
+  transform: scale(.98);
+  transition: opacity 1.2s ease, transform 3s cubic-bezier(.2,.6,.2,1);
 }
 .music-photo.is-visible { opacity: .9; transform: none; }
 .music-photo img { object-fit: cover; filter: saturate(.9) sepia(.06); }
 
-.music-finale { display: grid; justify-items: center; visibility: hidden; }
-.music-finale.is-visible { visibility: visible; }
-.music-finale > * { opacity: 0; transform: translateY(14px); transition: opacity 1.8s ease, transform 2.4s ease; }
-.music-finale.is-visible > * { opacity: 1; transform: none; }
-.music-finale.is-visible > :nth-child(2) { transition-delay: 1.3s; }
-.music-finale.is-visible > :nth-child(3) { transition-delay: 2.6s; }
+/* Finale a passi (vedi finaleStep): ogni elemento emerge quando arriva il suo momento, con più calma che nel resto. */
+.music-finale { display: grid; justify-items: center; }
+.music-finale > * {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 1.2s ease, transform 1.6s ease, visibility 0s linear 1.2s;
+}
+.music-finale > .is-shown {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 1.5s ease, transform 2s ease, visibility 0s;
+}
 .music-finale-brand {
   margin: 0;
   font-family: Georgia, 'Times New Roman', serif;
@@ -382,5 +409,7 @@
   .music:not([data-state="idle"]) .music-stage { transition: opacity 1s ease, visibility 0s !important; }
   .music .music-name, .music .music-quote { transition: opacity 1s ease, color 1s ease, visibility 0s linear 1s !important; }
   .music .music-name.is-visible, .music .music-quote.is-active { transition: opacity 1s ease, color 1s ease, visibility 0s !important; }
-  .music .music-photo, .music .music-finale > * { transition: opacity 1s ease !important; }
+  .music .music-photo { transition: opacity 1s ease !important; }
+  .music .music-finale > * { transition: opacity 1s ease, visibility 0s linear 1s !important; }
+  .music .music-finale > .is-shown { transition: opacity 1.2s ease, visibility 0s !important; }
 }

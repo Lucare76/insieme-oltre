@@ -1,4 +1,5 @@
 import AuthHashRedirect from "./AuthHashRedirect";
+import { LegalLinks } from "./components/LegalLinks";
 import { StoryCard, storyRowStyle } from "./components/StoryCard";
 import { MusicExperience } from "./components/music/MusicExperience";
 import { childAccent, isPublished, PHOTO_PATTERN, type ChildStory } from "../lib/children";
@@ -206,6 +207,7 @@ export default async function Home() {
         <div className="footer-brand">
           <span>Insieme <em>Oltre</em></span>
           <small>{content.footer.slogan}</small>
+          <LegalLinks className="footer-legal" />
         </div>
         <p>{content.footer.note}</p>
         <a href="#top">{content.footer.backTop}</a>

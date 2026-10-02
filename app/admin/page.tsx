@@ -6,7 +6,6 @@ import { childIssues, normalizeChildren } from "../../lib/children";
 import { ChildrenEditor } from "./ChildrenEditor";
 import "./admin.css";
 
-const allowedEmail = "luca_renna@hotmail.com";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -133,7 +132,7 @@ function tokenFromHash() {
 }
 
 export default function AdminPage() {
-  const [email, setEmail] = useState(allowedEmail);
+  const [email, setEmail] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [content, setContent] = useState<HomeContent>(defaultHomeContent);
   const [jsonMode, setJsonMode] = useState(false);
@@ -189,8 +188,8 @@ export default function AdminPage() {
       return;
     }
 
-    if (email.toLowerCase() !== allowedEmail) {
-      setStatus("Questo pannello è riservato a Luca.");
+    if (!email.trim()) {
+      setStatus("Inserisci l’indirizzo email autorizzato.");
       return;
     }
 
@@ -205,8 +204,10 @@ export default function AdminPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email,
-        create_user: true,
+        email: email.trim(),
+        // Nessuna registrazione automatica: il link arriva solo a un account già esistente in Supabase Auth.
+        // Chi può davvero modificare i testi lo decide il server con ADMIN_ALLOWED_EMAIL.
+        create_user: false,
         options: {
           email_redirect_to: redirectTo,
         },
@@ -216,12 +217,11 @@ export default function AdminPage() {
     setLoading(false);
 
     if (response.ok) {
-      setStatus("Link inviato. Controlla Hotmail.");
+      setStatus("Link inviato. Controlla la tua casella email.");
       return;
     }
 
-    const detail = await response.text().catch(() => "");
-    setStatus(`Invio link non riuscito: ${detail || "controlla Supabase Auth."}`);
+    setStatus("Invio link non riuscito: indirizzo non autorizzato o servizio non disponibile.");
   }
 
   async function saveContent() {
@@ -290,10 +290,10 @@ export default function AdminPage() {
         {!token ? (
           <div className="admin-card">
             <h2>Accesso riservato</h2>
-            <p>Può entrare solo l’account autorizzato: {allowedEmail}</p>
+            <p>Può entrare solo l’account autorizzato.</p>
             <label>
               Email
-              <input value={email} onChange={(event) => setEmail(event.target.value)} />
+              <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
             </label>
             <button disabled={loading} onClick={sendMagicLink}>Invia link di accesso</button>
             {!isConfigured && (

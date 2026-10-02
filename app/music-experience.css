@@ -1,0 +1,386 @@
+/* "Non veniamo da Marte": sezione emozionale della homepage (app/components/music).
+   A riposo è una sezione chiara come le altre; quando parte la musica scende piano una "notte" verde salvia
+   in cui compaiono nomi, frasi e qualche foto. Solo opacità, piccoli movimenti e nessun effetto vistoso. */
+
+.music {
+  --music-night-text: #fbf3e6;
+  --music-name: #f6e5c9;
+  --music-gold: #f1bf78;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 120px max(6vw, 48px) 110px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(224,167,87,.14), transparent 38%),
+    linear-gradient(180deg, var(--paper) 0%, #f6efe4 100%);
+  color: var(--ink);
+  text-align: center;
+  transition: color 1.8s ease;
+}
+.music:not([data-state="idle"]) { color: var(--music-night-text); }
+
+.music-sky {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background:
+    radial-gradient(ellipse at 50% 58%, rgba(224,167,87,.18), transparent 46%),
+    radial-gradient(circle at 14% 10%, rgba(239,180,168,.10), transparent 30%),
+    radial-gradient(circle at 88% 86%, rgba(112,135,108,.30), transparent 34%),
+    linear-gradient(180deg, #2a3b30 0%, #24342b 55%, #27372d 100%);
+  transition: opacity 2.6s ease;
+}
+.music-sky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .16;
+  background-image: radial-gradient(rgba(255,255,255,.5) .6px, transparent .6px);
+  background-size: 9px 9px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+}
+.music:not([data-state="idle"]) .music-sky { opacity: 1; }
+
+.music-inner { position: relative; max-width: 1180px; margin: 0 auto; }
+
+/* Titolo */
+.music-head .section-kicker { margin: 0; transition: color 1.8s ease; }
+.music:not([data-state="idle"]) .music-head .section-kicker { color: #f2b8aa; }
+.music-head h2 {
+  margin: 18px auto 16px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(34px, 5.4vw, 80px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.music-subtitle {
+  max-width: 560px;
+  margin: 0 auto;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: clamp(19px, 1.8vw, 26px);
+  line-height: 1.45;
+  color: var(--ink-soft);
+  transition: color 1.8s ease;
+}
+.music:not([data-state="idle"]) .music-subtitle { color: rgba(251,243,230,.74); }
+
+/* Player */
+.music-player-wrap { scroll-margin-top: 96px; }
+.music-player {
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  max-width: 600px;
+  margin: 40px auto 0;
+}
+.music-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 0 32px 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--coral);
+  color: white;
+  font: 750 17px/1 Arial, Helvetica, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 14px 34px rgba(201,82,73,.26);
+  transition: transform .25s ease, background .25s ease, box-shadow .25s ease;
+}
+.music-play:hover { background: var(--coral-deep); transform: translateY(-2px); }
+.music-play:focus-visible { outline: 3px solid var(--gold); outline-offset: 4px; }
+.music-play-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,.2);
+}
+.music-play-icon svg { width: 20px; height: 20px; fill: currentColor; }
+.music[data-state="idle"] .music-play { animation: music-invite 3.8s ease-in-out infinite; }
+
+.music-progress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  transition: color 1.8s ease;
+}
+.music:not([data-state="idle"]) .music-progress { color: rgba(251,243,230,.72); }
+.music-time { flex: none; min-width: 3.2em; }
+.music-time:first-child { text-align: right; }
+.music-time:nth-child(3) { text-align: left; }
+.music-progress > .music-range { flex: 1; min-width: 0; }
+
+.music-range {
+  --track: rgba(36,49,42,.16);
+  --fill: var(--coral);
+  --thumb: var(--paper);
+  appearance: none;
+  -webkit-appearance: none;
+  height: 36px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.music:not([data-state="idle"]) .music-range { --track: rgba(255,255,255,.2); --thumb: #fbf3e6; }
+.music-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(var(--fill), var(--fill)) 0 0 / var(--progress, 0%) 100% no-repeat, var(--track);
+}
+.music-range::-moz-range-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(var(--fill), var(--fill)) 0 0 / var(--progress, 0%) 100% no-repeat, var(--track);
+}
+.music-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border: 2px solid var(--coral);
+  border-radius: 50%;
+  background: var(--thumb);
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
+.music-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--coral);
+  border-radius: 50%;
+  background: var(--thumb);
+}
+.music-range:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 8px; }
+
+/* Il volume serve solo con il mouse su schermi ampi: su telefono si usano i tasti del dispositivo. */
+.music-volume { display: none; }
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+  .music-volume { display: flex; flex: none; align-items: center; gap: 8px; margin-left: 10px; }
+  .music-volume .music-range { width: 86px; }
+  .music-volume svg { width: 18px; height: 18px; fill: currentColor; opacity: .8; }
+  .music-volume .music-volume-wave { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+}
+
+.music-error { margin: 18px auto 0; max-width: 440px; font-size: 14px; line-height: 1.5; }
+
+/* Scena: chiusa finché non si preme Ascolta, poi si apre sotto il player (il pulsante non si sposta). */
+.music-stage {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 1.4s cubic-bezier(.2,.7,.2,1), opacity 1.6s ease, visibility 0s linear 1.6s;
+}
+.music:not([data-state="idle"]) .music-stage {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition: grid-template-rows 1.4s cubic-bezier(.2,.7,.2,1), opacity 1.8s ease .3s, visibility 0s;
+}
+.music-stage-inner { min-height: 0; overflow: hidden; }
+
+.music-constellation {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  gap: clamp(26px, 4vh, 48px);
+  min-height: min(66svh, 640px);
+  padding: clamp(40px, 7vh, 72px) 0 8px;
+}
+
+/* La costellazione: nomi in fasce che vanno a capo, con piccoli sfalsamenti verticali. */
+.music-names {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  column-gap: clamp(24px, 5vw, 68px);
+  row-gap: 10px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+.music-name {
+  --o: .8;
+  --dy: 0px;
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: clamp(19px, 2.2vw, 30px);
+  line-height: 1.2;
+  color: var(--music-name);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(calc(var(--dy) + 12px));
+  transition: opacity 2.2s ease, transform 2.8s ease, color 2s ease, visibility 0s linear 2.2s;
+}
+.music-name::before {
+  content: "✦";
+  font-style: normal;
+  font-size: .42em;
+  color: var(--gold);
+  opacity: .85;
+}
+.music-name:nth-child(3n + 1) { --dy: -10px; }
+.music-name:nth-child(3n + 2) { --dy: 6px; }
+.music-name.is-visible {
+  opacity: var(--o);
+  visibility: visible;
+  transform: translateY(var(--dy));
+  transition: opacity 2.2s ease, transform 2.8s ease, color 2s ease, visibility 0s;
+}
+.music-name > * {
+  display: inline-block;
+  padding: 8px 2px;
+  animation: music-drift 11s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -1.9s);
+}
+.music-name a {
+  background: linear-gradient(rgba(246,229,201,.38), rgba(246,229,201,.38)) left calc(100% - 6px) / 100% 1px no-repeat;
+  transition: color .3s ease;
+}
+.music-name a:hover, .music-name a:focus-visible { color: #fff8ee; background-image: linear-gradient(var(--gold), var(--gold)); }
+.music-name a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+
+/* Le scene cambiano solo l'intensità dei nomi. */
+.music[data-scene="chorus"] .music-name { --o: .45; }
+.music[data-scene="essential"] .music-name { --o: .42; }
+.music[data-scene="together"] .music-name { --o: 1; color: #fff7ea; }
+.music[data-scene="finale"] .music-name { --o: .78; }
+
+/* Pausa: tutto resta fermo dov'è. */
+.music[data-state="paused"] .music-name > * { animation-play-state: paused; }
+
+/* Centro: frasi, foto e finale occupano la stessa cella, così l'altezza non cambia mai. */
+.music-center {
+  display: grid;
+  place-items: center;
+  min-height: clamp(220px, 32vh, 340px);
+}
+.music-center > * { grid-area: 1 / 1; }
+
+.music-quote {
+  max-width: 860px;
+  margin: 0;
+  padding: 0 4px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 500;
+  line-height: 1.14;
+  letter-spacing: -.02em;
+  color: #fff8ee;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1.6s ease, transform 2.4s ease, visibility 0s linear 1.6s;
+}
+.music-quote.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 1.6s ease, transform 2.4s ease, visibility 0s;
+}
+.music-quote-whisper { font-size: clamp(24px, 3vw, 40px); font-style: italic; color: var(--music-name); transform: translateY(6px); }
+.music-quote-rise { font-size: clamp(28px, 4vw, 56px); transform: translateY(20px); }
+.music-quote-hero {
+  font-size: clamp(42px, 9vw, 128px);
+  line-height: 1;
+  letter-spacing: -.045em;
+  color: #fff3e2;
+  text-shadow: 0 0 60px rgba(224,167,87,.28);
+  transform: scale(.94);
+}
+.music-quote-hero.is-active { transition: opacity 1.8s ease, transform 7s cubic-bezier(.2,.6,.2,1), visibility 0s; }
+.music-quote-together { font-size: clamp(30px, 4.8vw, 66px); font-style: italic; color: var(--music-gold); transform: translateY(10px); }
+
+.music-photo {
+  position: relative;
+  width: clamp(120px, 16vw, 190px);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 48% 52% 46% 54% / 55% 43% 57% 45%;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.2), 0 30px 70px rgba(0,0,0,.22);
+  opacity: 0;
+  transform: scale(.96) translateY(8px);
+  transition: opacity 2.2s ease, transform 6s cubic-bezier(.2,.6,.2,1);
+}
+.music-photo.is-visible { opacity: .9; transform: none; }
+.music-photo img { object-fit: cover; filter: saturate(.9) sepia(.06); }
+
+.music-finale { display: grid; justify-items: center; visibility: hidden; }
+.music-finale.is-visible { visibility: visible; }
+.music-finale > * { opacity: 0; transform: translateY(14px); transition: opacity 1.8s ease, transform 2.4s ease; }
+.music-finale.is-visible > * { opacity: 1; transform: none; }
+.music-finale.is-visible > :nth-child(2) { transition-delay: 1.3s; }
+.music-finale.is-visible > :nth-child(3) { transition-delay: 2.6s; }
+.music-finale-brand {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(46px, 7vw, 104px);
+  line-height: 1;
+  letter-spacing: -.05em;
+  color: #fff5e9;
+}
+.music-finale-brand em { color: #f08b80; }
+.music-finale-slogan {
+  margin: 12px 0 30px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: clamp(21px, 2.4vw, 32px);
+  line-height: 1.3;
+  color: var(--music-gold);
+  text-wrap: balance;
+}
+.music-finale-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.music .button-ghost { border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.06); color: #fff8ee; }
+.music .button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+@keyframes music-invite {
+  0%, 100% { box-shadow: 0 14px 34px rgba(201,82,73,.26), 0 0 0 0 rgba(230,104,94,.28); }
+  50% { box-shadow: 0 14px 34px rgba(201,82,73,.26), 0 0 0 12px rgba(230,104,94,0); }
+}
+@keyframes music-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@media (max-width: 760px) {
+  .music { padding: 88px 22px 84px; }
+  .music-head h2 { letter-spacing: .03em; }
+  .music-player { margin-top: 32px; gap: 16px; }
+  .music-play { min-height: 60px; font-size: 16px; padding-right: 28px; }
+  .music-constellation { min-height: 0; gap: 26px; padding-top: 40px; }
+  .music-names { column-gap: 22px; row-gap: 10px; }
+  .music-name { font-size: clamp(18px, 5.4vw, 22px); }
+  .music-name:nth-child(3n + 1) { --dy: -4px; }
+  .music-name:nth-child(3n + 2) { --dy: 3px; }
+  .music-center { min-height: 250px; }
+  .music-finale-actions { flex-direction: column; align-items: stretch; width: min(100%, 340px); }
+}
+
+/* Riduzione movimento: nessuno spostamento né pulsazione, solo dissolvenze semplici.
+   Le regole sono più specifiche della regola globale che toglie ogni transizione, così i contenuti non compaiono di scatto. */
+@media (prefers-reduced-motion: reduce) {
+  .music *, .music *::before { animation: none !important; }
+  .music-name, .music-quote, .music-photo, .music-finale > * { transform: none !important; }
+  .music, .music-sky { transition: opacity 1.2s ease, color 1.2s ease !important; }
+  .music .music-stage { transition: opacity 1s ease, visibility 0s linear 1s !important; }
+  .music:not([data-state="idle"]) .music-stage { transition: opacity 1s ease, visibility 0s !important; }
+  .music .music-name, .music .music-quote { transition: opacity 1s ease, color 1s ease, visibility 0s linear 1s !important; }
+  .music .music-name.is-visible, .music .music-quote.is-active { transition: opacity 1s ease, color 1s ease, visibility 0s !important; }
+  .music .music-photo, .music .music-finale > * { transition: opacity 1s ease !important; }
+}

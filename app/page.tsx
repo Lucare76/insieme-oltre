@@ -1,11 +1,23 @@
 import AuthHashRedirect from "./AuthHashRedirect";
 import { StoryCard, storyRowStyle } from "./components/StoryCard";
-import { childAccent } from "../lib/children";
+import { MusicExperience } from "./components/music/MusicExperience";
+import { childAccent, isPublished, PHOTO_PATTERN, type ChildStory } from "../lib/children";
+import { photoMoments } from "../lib/musicTimeline";
 import { getHomeContent } from "../lib/siteContent";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import Image from "next/image";
 
 const logoTopSrc = "/insieme-oltre-logo-top.png";
 const logoFullSrc = "/insieme-oltre-logo.png";
+
+/** Al massimo una foto per bambino e solo quante ne servono alla canzone: le foto restano facoltative. */
+function musicPhotos(children: ChildStory[]) {
+  return children
+    .map((child) => child.photos.find((photo) => PHOTO_PATTERN.test(photo) && existsSync(join(process.cwd(), "public", photo.slice(1)))))
+    .filter((photo): photo is string => Boolean(photo))
+    .slice(0, photoMoments.length);
+}
 
 function HeartLine() {
   return (
@@ -138,6 +150,18 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      <MusicExperience
+        names={children.map((child) => ({
+          id: child.id,
+          name: child.name.trim(),
+          href: isPublished(child) ? `/storie/${child.slug}` : null,
+        }))}
+        photos={musicPhotos(children)}
+        slogan={content.footer.slogan}
+        storiesHref="#storie"
+        joinHref="#unisciti"
+      />
 
       <section className="numbers" id="futuro">
         <div className="numbers-inner">

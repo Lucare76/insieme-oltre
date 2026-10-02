@@ -88,21 +88,43 @@ export async function PUT(request: Request) {
   value.hero.titleLine2 = defaultHomeContent.hero.titleLine2;
   value.footer.slogan = defaultHomeContent.footer.slogan;
 
-  const response = await fetch(`${supabaseUrl}/rest/v1/site_content`, {
-    method: "POST",
+  const payload = { key: "home", value, updated_at: new Date().toISOString() };
+
+  // Aggiorna tutte le eventuali righe duplicate "home": in passato il POST poteva
+  // accumularne più di una se la colonna key non aveva un vincolo UNIQUE.
+  let response = await fetch(`${supabaseUrl}/rest/v1/site_content?key=eq.home`, {
+    method: "PATCH",
     headers: {
       apikey: serviceKey,
       Authorization: `Bearer ${serviceKey}`,
       "Content-Type": "application/json",
-      Prefer: "resolution=merge-duplicates,return=representation",
+      Prefer: "return=representation",
     },
-    // updated_at è obbligatoria nella tabella e non ha un valore predefinito: senza, Supabase rifiuta ogni salvataggio.
-    body: JSON.stringify({ key: "home", value, updated_at: new Date().toISOString() }),
+    body: JSON.stringify({ value: payload.value, updated_at: payload.updated_at }),
   });
 
   if (!response.ok) {
     const detail = await response.text();
     return NextResponse.json({ error: "Salvataggio non riuscito", detail }, { status: 500 });
+  }
+
+  const updatedRows = (await response.json().catch(() => [])) as unknown[];
+  if (updatedRows.length === 0) {
+    response = await fetch(`${supabaseUrl}/rest/v1/site_content`, {
+      method: "POST",
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+      return NextResponse.json({ error: "Salvataggio non riuscito", detail }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ ok: true });

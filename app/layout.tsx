@@ -4,6 +4,7 @@ import { siteUrl } from "../lib/siteUrl";
 import "./globals.css";
 import "./logo-fix.css";
 import "./mobile-fix.css";
+import "./music-experience.css";
 
 const geist = Geist({
   variable: "--font-geist",

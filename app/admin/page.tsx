@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { defaultHomeContent, type HomeContent } from "../../lib/siteContent";
+import { childIssues, normalizeChildren } from "../../lib/children";
+import { ChildrenEditor } from "./ChildrenEditor";
 import "./admin.css";
 
 const allowedEmail = "luca_renna@hotmail.com";
@@ -58,9 +60,6 @@ const fields: Field[] = [
   { label: "Card 4 — titolo", path: "pillars.items.3.title" },
   { label: "Card 4 — testo", path: "pillars.items.3.text", multiline: true },
 
-  { label: "Aurora — testo nella scheda", path: "stories.items.0.line" },
-  { label: "Aurora — presentazione nella scheda", path: "auroraStory.cardDescription", multiline: true },
-  { label: "Aurora — testo del link", path: "auroraStory.cardLink" },
   { label: "Aurora — sottotitolo della storia", path: "auroraStory.subtitle" },
   { label: "Storia di Aurora — paragrafo 1", path: "auroraStory.paragraphs.0", multiline: true },
   { label: "Storia di Aurora — paragrafo 2", path: "auroraStory.paragraphs.1", multiline: true },
@@ -77,25 +76,9 @@ const fields: Field[] = [
   { label: "Genitori — frase in evidenza", path: "auroraStory.parentsParagraphs.2", multiline: true },
   { label: "Genitori — chiusura", path: "auroraStory.parentsParagraphs.3", multiline: true },
 
-  { label: "Emanuele — titolo della storia", path: "emanueleStory.title" },
-  { label: "Emanuele — sottotitolo nella scheda", path: "emanueleStory.cardLine" },
-  { label: "Emanuele — estratto nella scheda", path: "emanueleStory.cardDescription", multiline: true },
-  { label: "Emanuele — testo del link", path: "emanueleStory.cardLink" },
-  ...defaultHomeContent.emanueleStory.paragraphs.map((_, index, all) => ({
-    label: index === all.length - 1 ? "Storia di Emanuele — chiusura" : `Storia di Emanuele — paragrafo ${index + 1}`,
-    path: `emanueleStory.paragraphs.${index}`,
-    multiline: true,
-  })),
-  { label: "Emanuele — foto 1, apertura (facoltativa)", path: "emanueleStory.photos.0" },
-  { label: "Emanuele — foto 2 (facoltativa)", path: "emanueleStory.photos.1" },
-  { label: "Emanuele — foto 3 (facoltativa)", path: "emanueleStory.photos.2" },
-
   { label: "Storie — occhiello", path: "stories.kicker" },
   { label: "Storie — titolo riga 1", path: "stories.titleLine1" },
   { label: "Storie — titolo riga 2", path: "stories.titleLine2" },
-  { label: "Storie in arrivo — sottotitolo", path: "stories.comingSoonLine" },
-  { label: "Storie in arrivo — testo", path: "stories.comingSoon" },
-  { label: "Storie in arrivo — etichetta in basso", path: "stories.comingSoonLabel" },
 
   { label: "Numeri — etichetta", path: "numbers.label" },
   { label: "Numeri — titolo riga 1", path: "numbers.titleLine1" },
@@ -149,8 +132,6 @@ function tokenFromHash() {
   return hash.get("access_token");
 }
 
-const storyAccents = ["coral", "sage", "gold"] as const;
-
 export default function AdminPage() {
   const [email, setEmail] = useState(allowedEmail);
   const [token, setToken] = useState<string | null>(null);
@@ -161,24 +142,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
 
   const isConfigured = useMemo(() => Boolean(supabaseUrl && anonKey), []);
-
-  function addStory() {
-    setContent((previous) => ({
-      ...previous,
-      stories: {
-        ...previous.stories,
-        items: [...previous.stories.items, { name: "", line: "", accent: storyAccents[previous.stories.items.length % 3] }],
-      },
-    }));
-  }
-
-  function removeStory(index: number) {
-    if (index === 0) return;
-    setContent((previous) => ({
-      ...previous,
-      stories: { ...previous.stories, items: previous.stories.items.filter((_, itemIndex) => itemIndex !== index) },
-    }));
-  }
 
   useEffect(() => {
     const hashToken = tokenFromHash();
@@ -275,6 +238,14 @@ export default function AdminPage() {
       }
     }
 
+    const children = normalizeChildren(value.children) ?? [];
+    const errorCount = children.flatMap((child) => childIssues(child, children)).filter((issue) => issue.level === "error").length;
+    if (errorCount) {
+      const what = errorCount === 1 ? "C’è 1 errore" : `Ci sono ${errorCount} errori`;
+      setStatus(`${what} da correggere in «Bambini e storie»: i bambini con errori sono segnati in rosso.`);
+      return;
+    }
+
     setLoading(true);
     setStatus("Salvo…");
 
@@ -291,7 +262,8 @@ export default function AdminPage() {
 
     if (!response.ok) {
       const payload = await response.json().catch(() => null);
-      setStatus(payload?.error ?? "Salvataggio non riuscito.");
+      const detail = typeof payload?.detail === "string" ? ` (${payload.detail.slice(0, 240)})` : "";
+      setStatus(`${payload?.error ?? "Salvataggio non riuscito."}${detail}`);
       return;
     }
 
@@ -367,34 +339,7 @@ export default function AdminPage() {
                     )}
                   </label>
                 ))}
-                <section className="admin-stories" aria-labelledby="admin-stories-title">
-                  <div className="admin-stories-heading">
-                    <h2 id="admin-stories-title">Persone e storie</h2>
-                    <button type="button" onClick={addStory}>Aggiungi un nome</button>
-                  </div>
-                  <div className="admin-stories-list">
-                    {content.stories.items.map((story, index) => (
-                      <div className="admin-story" key={index}>
-                        <label>
-                          Nome {index + 1}
-                          <input value={story.name} disabled={index === 0}
-                            onChange={(event) => setContent(setValue(content, `stories.items.${index}.name`, event.target.value))} />
-                        </label>
-                        <label>
-                          {index === 0 ? "Frase di Aurora" : "Breve presentazione (facoltativa)"}
-                          <textarea value={story.line}
-                            onChange={(event) => setContent(setValue(content, `stories.items.${index}.line`, event.target.value))} />
-                        </label>
-                        <label>
-                          Foto (facoltativa, percorso nella cartella public)
-                          <input value={story.photo ?? ""} placeholder="/storie/nome.jpg"
-                            onChange={(event) => setContent(setValue(content, `stories.items.${index}.photo`, event.target.value))} />
-                        </label>
-                        {index > 0 && <button type="button" className="secondary" onClick={() => removeStory(index)}>Rimuovi</button>}
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                <ChildrenEditor items={content.children} onChange={(children) => setContent({ ...content, children })} />
               </div>
             )}
           </div>

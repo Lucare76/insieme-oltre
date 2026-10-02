@@ -21,6 +21,9 @@
 .aurora-page-parents { padding-top: 130px; padding-bottom: 150px; }
 .aurora-page-parents h2 { margin: 0 0 55px; font: 400 clamp(36px, 5vw, 62px)/1.15 Georgia, serif; }
 .aurora-page-footer { border-top: 1px solid rgba(36,49,42,.12); font-size: 12px; color: #556158; }
+.aurora-page-footer-end { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
+.aurora-page-legal a { text-decoration: underline; text-decoration-color: rgba(36,49,42,.2); text-underline-offset: 3px; }
+.aurora-page-legal a:hover, .aurora-page-legal a:focus-visible { color: #c95249; text-decoration-color: currentColor; }
 @media (max-width: 620px) {
   .aurora-page-header, .aurora-page-footer { padding: 22px; }
   .aurora-page-brand { font-size: 18px; }

@@ -1,0 +1,40 @@
+/* Pagine informative (Cookie Policy, in futuro Privacy Policy): stessa base delle pagine storia. */
+.legal { max-width: 760px; margin: 0 auto; padding: 0 32px clamp(90px, 12vw, 150px); }
+.legal-intro { padding: clamp(80px, 12vw, 150px) 0 clamp(40px, 6vw, 70px); border-bottom: 1px solid rgba(36,49,42,.12); }
+.legal-kicker { margin: 0 0 18px; font-size: 12px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: #c95249; }
+.legal-intro h1 { margin: 0; font: 400 clamp(54px, 8vw, 104px)/1 Georgia, serif; }
+.legal-lead { margin: 22px 0 0; font: italic clamp(20px, 2.4vw, 28px)/1.35 Georgia, serif; color: #556158; }
+
+.legal-section { padding-top: clamp(48px, 7vw, 72px); }
+.legal-section h2 { position: relative; margin: 0 0 24px; padding-top: 22px; font: 400 clamp(28px, 3.4vw, 40px)/1.2 Georgia, serif; }
+.legal-section h2::before { content: ""; position: absolute; top: 0; left: 0; width: 36px; height: 2px; border-radius: 2px; background: #e6685e; opacity: .7; }
+.legal-section p { margin: 0 0 20px; font-size: clamp(17px, 1.6vw, 19px); line-height: 1.75; }
+.legal-section strong { font-weight: 700; }
+.legal-section a { color: #c95249; text-decoration: underline; text-underline-offset: 3px; }
+
+.legal-highlight { padding: 20px 24px; border-left: 3px solid #70876c; border-radius: 0 18px 18px 0; background: #f5efe6; }
+
+.legal-list { margin: 0 0 24px; padding: 0; list-style: none; }
+.legal-list li { position: relative; padding: 6px 0 6px 26px; font-size: clamp(17px, 1.6vw, 19px); line-height: 1.6; }
+.legal-list li::before { content: "♥"; position: absolute; left: 0; top: 8px; font-size: 11px; color: #e6685e; }
+
+.legal-updated { display: inline-block; padding: 8px 16px; border: 1px solid rgba(36,49,42,.14); border-radius: 999px; font-size: 14px !important; color: #556158; }
+
+.legal-table-wrap { margin: 8px 0 20px; border: 1px solid rgba(36,49,42,.12); border-radius: 18px; overflow: hidden; background: #fff; }
+/* Una scheda per riga, con le etichette accanto ai valori: legge bene anche su mobile. Le intestazioni restano per gli screen reader. */
+.legal-table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.6; }
+.legal-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.legal-table tbody, .legal-table tr { display: block; }
+.legal-table tbody th, .legal-table td { display: grid; grid-template-columns: 130px 1fr; gap: 16px; padding: 14px 22px; text-align: left; font-weight: 400; border-top: 1px solid rgba(36,49,42,.08); }
+.legal-table tbody th { border-top: 0; background: #f5efe6; }
+.legal-table [data-label]::before { content: attr(data-label); font-size: 11px; font-weight: 750; letter-spacing: .08em; line-height: 2.2; text-transform: uppercase; color: #556158; }
+.legal-table code { font-size: 14px; word-break: break-all; color: #425a48; }
+
+@media (max-width: 760px) {
+  .legal-table tbody th, .legal-table td { grid-template-columns: 1fr; gap: 2px; padding: 12px 18px; }
+}
+
+@media (max-width: 620px) {
+  .legal { padding-left: 22px; padding-right: 22px; }
+  .legal-highlight { padding: 16px 18px; }
+}

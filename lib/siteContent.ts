@@ -392,7 +392,7 @@ export async function getHomeContent(): Promise<HomeContent> {
 
   try {
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/site_content?key=eq.home&select=value&limit=1`,
+      `${supabaseUrl}/rest/v1/site_content?key=eq.home&select=value,updated_at&order=updated_at.desc&limit=1`,
       {
         headers: {
           apikey: serviceKey,

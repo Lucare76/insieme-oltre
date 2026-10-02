@@ -411,6 +411,9 @@ footer {
 .footer-brand small { font-family: Arial, Helvetica, sans-serif; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; opacity: .56; }
 footer p { margin: 0; color: var(--ink-soft); }
 footer > a { justify-self: end; font-weight: 750; }
+.footer-legal { margin-top: 8px; font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: var(--ink-soft); }
+.footer-legal a { text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.footer-legal a:hover, .footer-legal a:focus-visible { color: var(--coral-deep); text-decoration-color: currentColor; }
 
 @keyframes breathe { 0%,100% { transform: scale(1) rotate(-1deg); } 50% { transform: scale(1.025) rotate(1deg); } }
 @keyframes nudge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(7px); } }

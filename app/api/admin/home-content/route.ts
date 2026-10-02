@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { childIssues, normalizeChildren, slugify } from "../../../../lib/children";
 import { defaultHomeContent, getHomeContent } from "../../../../lib/siteContent";
 
 const allowedEmail = (process.env.ADMIN_ALLOWED_EMAIL ?? "luca_renna@hotmail.com").toLowerCase();
@@ -71,6 +72,18 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Contenuto non valido" }, { status: 400 });
   }
 
+  const children = normalizeChildren(value.children)?.map((child) =>
+    child.status === "in_arrivo" && !child.slug ? { ...child, slug: slugify(child.name) } : child);
+  if (!children) {
+    return NextResponse.json({ error: "Elenco bambini mancante o non valido." }, { status: 400 });
+  }
+  const errors = children.flatMap((child) =>
+    childIssues(child, children).filter((issue) => issue.level === "error").map((issue) => `${child.name || "Bambino senza nome"}: ${issue.message}`));
+  if (errors.length) {
+    return NextResponse.json({ error: `Da correggere prima di salvare — ${errors.join(" ")}` }, { status: 400 });
+  }
+  value.children = children;
+
   value.hero.titleLine1 = defaultHomeContent.hero.titleLine1;
   value.hero.titleLine2 = defaultHomeContent.hero.titleLine2;
   value.footer.slogan = defaultHomeContent.footer.slogan;
@@ -83,7 +96,8 @@ export async function PUT(request: Request) {
       "Content-Type": "application/json",
       Prefer: "resolution=merge-duplicates,return=representation",
     },
-    body: JSON.stringify({ key: "home", value }),
+    // updated_at è obbligatoria nella tabella e non ha un valore predefinito: senza, Supabase rifiuta ogni salvataggio.
+    body: JSON.stringify({ key: "home", value, updated_at: new Date().toISOString() }),
   });
 
   if (!response.ok) {

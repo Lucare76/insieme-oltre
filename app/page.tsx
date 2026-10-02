@@ -1,9 +1,8 @@
 import AuthHashRedirect from "./AuthHashRedirect";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { getHomeContent, type StoryContent } from "../lib/siteContent";
+import { StoryCard, storyRowStyle } from "./components/StoryCard";
+import { childAccent } from "../lib/children";
+import { getHomeContent } from "../lib/siteContent";
 import Image from "next/image";
-import type { CSSProperties } from "react";
 
 const logoTopSrc = "/insieme-oltre-logo-top.png";
 const logoFullSrc = "/insieme-oltre-logo.png";
@@ -16,57 +15,9 @@ function HeartLine() {
   );
 }
 
-type StoryPage = { href: string; line?: string; description: string; linkLabel: string };
-
-const storyTitle = (name: string) => `Io sono ${name.trim()}.`;
-
-// Stessa struttura per tutte le card: cambia solo il contenuto, non l'impaginazione.
-function StoryCard({ story, index, comingSoon, page, duplicate = false }: {
-  story: StoryContent;
-  index: number;
-  comingSoon: { line: string; text: string; label: string };
-  page?: StoryPage;
-  duplicate?: boolean;
-}) {
-  const photo = story.photo && /^\/(?:storie\/)?[a-z0-9-]+\.(?:jpg|jpeg|png|webp)$/i.test(story.photo)
-    && existsSync(join(process.cwd(), "public", story.photo.slice(1))) ? story.photo : null;
-  const line = story.line || (page ? page.line : comingSoon.line);
-
-  return (
-    <article className={["story-card", story.accent, page ? "" : "story-pending"].join(" ")} aria-hidden={duplicate || undefined}>
-      <div className="story-number">{String(index + 1).padStart(2, "0")}</div>
-      <div className="story-avatar" aria-hidden="true">
-        {photo ? <Image src={photo} alt="" fill sizes="94px" /> : story.name.trim().charAt(0)}
-      </div>
-      <h3>{storyTitle(story.name)}</h3>
-      <p className="story-line">{line}</p>
-      <p className="story-description">{page ? page.description : comingSoon.text}</p>
-      {page
-        ? <a className="story-link" href={page.href} tabIndex={duplicate ? -1 : undefined}>{page.linkLabel}</a>
-        : <span className="story-link story-link-pending">{comingSoon.label}</span>}
-    </article>
-  );
-}
-
 export default async function Home() {
   const content = await getHomeContent();
-  const stories = content.stories.items.filter((story) => story.name.trim());
-  // Il titolo più lungo decide la dimensione comune dei titoli, così nessuno va a capo.
-  const titleChars = Math.max(15, ...stories.map((story) => storyTitle(story.name).length));
-  const comingSoon = {
-    line: content.stories.comingSoonLine,
-    text: content.stories.comingSoon,
-    label: content.stories.comingSoonLabel,
-  };
-  const storyPages: Record<string, StoryPage> = {
-    aurora: { href: "/storie/aurora", description: content.auroraStory.cardDescription, linkLabel: content.auroraStory.cardLink },
-    emanuele: {
-      href: "/storie/emanuele",
-      line: content.emanueleStory.cardLine,
-      description: content.emanueleStory.cardDescription,
-      linkLabel: content.emanueleStory.cardLink,
-    },
-  };
+  const children = content.children.filter((child) => child.name.trim());
 
   return (
     <main>
@@ -175,13 +126,12 @@ export default async function Home() {
           <h2 id="stories-title">{content.stories.titleLine1}<br/>{content.stories.titleLine2}</h2>
         </div>
         <div className="story-window" aria-label="Storie delle persone dell’associazione"
-          style={{ "--story-title-chars": titleChars } as CSSProperties}>
-          <div className="story-track" style={{ animationDuration: `${Math.max(45, stories.length * 8)}s` }}>
+          style={storyRowStyle(children)}>
+          <div className="story-track" style={{ animationDuration: `${Math.max(45, children.length * 8)}s` }}>
             {[false, true].map((duplicate) => (
               <div className="story-row" key={String(duplicate)} aria-hidden={duplicate || undefined}>
-                {stories.map((story, index) => (
-                  <StoryCard key={`${story.name}-${index}`} story={story} index={index} duplicate={duplicate}
-                    comingSoon={comingSoon} page={storyPages[story.name.trim().toLowerCase()]} />
+                {children.map((child, index) => (
+                  <StoryCard key={child.id} child={child} accent={childAccent(index)} duplicate={duplicate} />
                 ))}
               </div>
             ))}

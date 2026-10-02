@@ -134,12 +134,46 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
-.admin-stories { grid-column: 1 / -1; margin-top: 28px; }
-.admin-stories-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-.admin-stories-heading h2 { margin: 0; }
-.admin-stories-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.admin-story { display: grid; gap: 12px; padding: 16px; border: 1px solid rgba(36,49,42,.15); border-radius: 8px; }
-.admin-story button { justify-self: start; }
+.admin-children { grid-column: 1 / -1; margin-top: 28px; }
+.admin-children-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.admin-children-heading h2 { margin: 0; }
+.admin-children-heading p { margin: 6px 0 0; }
+.admin-children-layout { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.admin-children-list { position: sticky; top: 16px; display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.admin-children-list li { display: flex; align-items: stretch; gap: 6px; }
+.admin-card .admin-child-select {
+  flex: 1; min-width: 0; display: grid; grid-template-columns: 34px 1fr; column-gap: 10px; align-items: center; justify-items: start;
+  min-height: 0; padding: 10px 12px; border: 1px solid rgba(36,49,42,.14); border-radius: 14px; background: white; color: #24312a; text-align: left;
+}
+.admin-children-list li.selected .admin-child-select { border-color: #e6685e; box-shadow: 0 0 0 3px rgba(230,104,94,.14); }
+.admin-child-initial { grid-row: span 3; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: #f3eadc; font: 18px Georgia, serif; }
+.admin-child-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+.admin-child-status { font-size: 12px; font-weight: 700; color: #556158; }
+.admin-child-status.pubblicata { color: #3f7a4f; }
+.admin-child-errors { font-size: 12px; font-weight: 800; color: #b3261e; }
+.admin-child-order { display: grid; gap: 4px; }
+.admin-card .admin-child-order button { min-height: 0; height: 100%; padding: 0 12px; border-radius: 10px; }
+.admin-child-editor { display: grid; gap: 18px; min-width: 0; }
+.admin-child-editor > button { justify-self: start; }
+.admin-child-editor fieldset { margin: 0; padding: 4px 18px 18px; border: 1px solid rgba(36,49,42,.14); border-radius: 18px; min-width: 0; }
+.admin-child-editor legend { padding: 0 8px; font: 22px Georgia, serif; }
+.admin-card .admin-field { margin-top: 14px; }
+.admin-field-label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.admin-count { font-variant-numeric: tabular-nums; letter-spacing: 0; color: #556158; }
+.admin-count.over { color: #b3261e; }
+.admin-card .admin-hint { margin: 0; font-size: 13px; font-weight: 400; letter-spacing: normal; text-transform: none; color: #556158; }
+.admin-card .admin-issue { margin: 0; padding: 8px 12px; border-radius: 10px; font-size: 13px; font-weight: 700; letter-spacing: normal; text-transform: none; }
+.admin-card .admin-issue.warning { background: #fff4dc; color: #7a5200; }
+.admin-card .admin-issue.error { background: #fde8e6; color: #b3261e; }
+.admin-card .admin-textarea-tall { min-height: 360px; }
+.admin-status { display: flex; gap: 22px; margin-top: 14px; }
+.admin-card .admin-status label { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; letter-spacing: normal; text-transform: none; }
+.admin-card .admin-status input { width: auto; padding: 0; }
+.admin-child-preview { display: grid; gap: 10px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #425a48; }
+.admin-child-preview-row { display: flex; overflow-x: auto; letter-spacing: normal; text-transform: none; font-weight: 400; }
+/* L'anteprima deve avere gli stessi colori della homepage, non quelli dei testi dell'admin. */
+.admin-card .admin-child-preview-row .story-card,
+.admin-card .admin-child-preview-row p { color: var(--ink); }
 
 .json-editor {
   min-height: 68vh !important;
@@ -159,8 +193,9 @@
   .admin-grid {
     grid-template-columns: 1fr;
   }
-  .admin-stories-list { grid-template-columns: 1fr; }
-  .admin-stories-heading { align-items: start; flex-direction: column; }
+  .admin-children-layout { grid-template-columns: 1fr; }
+  .admin-children-list { position: static; }
+  .admin-children-heading { align-items: start; flex-direction: column; }
 
   .admin-toolbar button {
     width: 100%;

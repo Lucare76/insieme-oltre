@@ -1,15 +1,14 @@
+import { newChild, normalizeChildren, slugify, type ChildStory } from "./children";
+
 export type PillarContent = {
   number: string;
   title: string;
   text: string;
 };
 
-export type StoryContent = {
-  name: string;
-  line: string;
-  photo?: string;
-  accent: "coral" | "sage" | "gold";
-};
+function pendingChild(name: string): ChildStory {
+  return { ...newChild(name), id: slugify(name) };
+}
 
 export type HomeContent = {
   meta: {
@@ -59,9 +58,8 @@ export type HomeContent = {
     closingLine1: string;
     closingLine2: string;
   };
+  /** Testi della pagina dedicata /storie/aurora (la card di Aurora sta in `children`). */
   auroraStory: {
-    cardDescription: string;
-    cardLink: string;
     subtitle: string;
     paragraphs: string[];
     pauseLine1: string;
@@ -69,24 +67,13 @@ export type HomeContent = {
     parentsTitle: string;
     parentsParagraphs: string[];
   };
-  emanueleStory: {
-    title: string;
-    cardLine: string;
-    cardDescription: string;
-    cardLink: string;
-    paragraphs: string[];
-    /** Foto facoltative (fino a 3), percorsi in /public. Quelle mancanti vengono ignorate. */
-    photos: string[];
-  };
   stories: {
     kicker: string;
     titleLine1: string;
     titleLine2: string;
-    items: StoryContent[];
-    comingSoon: string;
-    comingSoonLine: string;
-    comingSoonLabel: string;
   };
+  /** Bambini nell'ordine in cui appaiono in homepage. */
+  children: ChildStory[];
   numbers: {
     label: string;
     titleLine1: string;
@@ -199,8 +186,6 @@ export const defaultHomeContent: HomeContent = {
     closingLine2: "Ma non sarà mai tutta la sua storia.",
   },
   auroraStory: {
-    cardDescription: "Sto scoprendo il mondo un passo alla volta, con il mio sorriso, il mio carattere e i miei tempi. E ogni giorno ricordo a mamma e papà che una persona è infinitamente più grande di qualsiasi definizione.",
-    cardLink: "Conosci la mia storia →",
     subtitle: "Prima di tutto, una bambina.",
     paragraphs: [
       "Aurora non è arrivata nella nostra vita per insegnarci una lezione. È arrivata semplicemente per essere nostra figlia.",
@@ -221,53 +206,67 @@ export const defaultHomeContent: HomeContent = {
       "Perché l’amore era già lì.",
     ],
   },
-  emanueleStory: {
-    title: "Il suo volo verso la vita e la scoperta del mondo",
-    cardLine: "Il suo volo verso la vita.",
-    cardDescription: "Il suo viaggio è cominciato con un volo, nelle prime ore di vita. Poi piccoli passi, ma costanti. Oggi Emanuele vola a modo suo: con un sorriso che illumina una stanza e uno sguardo curioso che scopre il mondo senza fretta.",
-    cardLink: "Conosci la sua storia →",
-    paragraphs: [
-      "Le prime ore di vita di Emanuele non sono state semplici.",
-      "Un viaggio in elicottero e, a poche ore dalla nascita, un’operazione per atresia duodenale.",
-      "Anche la ripresa è stata lenta e graduale.\nPiccoli passi, ma costanti.",
-      "E poi sono arrivate le piccole grandi conquiste:\nil primo biberon,\nil primo pannolino sporco,\nla prima tutina,\nla prima uscita con mamma, papà e la sorellina.",
-      "Conquiste che forse, per qualcuno, possono sembrare piccole.\nPer noi, invece, sono state immense.",
-      "Il suo viaggio non si è fermato a quel primo volo in elicottero.",
-      "Oggi Emanuele vola a modo suo: con la forza di chi ha dovuto lottare fin dal primo giorno e con la dolcezza di chi sa guardare il mondo con occhi unici.",
-      "Ogni suo giorno è una nuova conquista.",
-      "La bellezza di Emanuele sta nel suo sorriso, quello che illumina una stanza e sa curare ogni paura passata.",
-      "Sta nel suo sguardo curioso, che esplora la vita senza fretta, scoprendo ogni cosa a modo suo.",
-      "La Trisomia 21 è solo una sfumatura del suo disegno, non è il suo confine.",
-      "Emanuele ci insegna ogni giorno che non importa quanto sia stata ripida la salita all’inizio.",
-      "Ciò che conta è la bellezza del paesaggio che stiamo scoprendo insieme.",
-      "Un passo alla volta.\nUna conquista alla volta.\nE, perché no, un volo alla volta.",
-      "Questo è il viaggio di Emanuele.\nIl suo meraviglioso volo verso la vita.",
-    ],
-    photos: ["/emanuele-storia.jpg", "/emanuele-storia-2.jpg", "/emanuele-storia-3.jpg"],
-  },
   stories: {
     kicker: "Storie vere, vite intere",
     titleLine1: "Dietro ogni nome",
     titleLine2: "c’è un mondo.",
-    items: [
-      { name: "Aurora", line: "Ho una luce tutta mia.", photo: "/aurora-storia.jpg", accent: "coral" },
-      { name: "Alessandro", line: "", accent: "sage" },
-      { name: "Emanuele", line: "Il suo volo verso la vita.", accent: "gold" },
-      { name: "Celeste", line: "", accent: "coral" },
-      { name: "Vincenzo", line: "", accent: "sage" },
-      { name: "Eleonora", line: "", accent: "gold" },
-      { name: "Biagio", line: "", accent: "coral" },
-    ],
-    comingSoon: "Presto, raccontato dalla sua famiglia.",
-    comingSoonLine: "La mia storia arriverà presto.",
-    comingSoonLabel: "Storia in arrivo",
   },
+  children: [
+    {
+      id: "aurora",
+      name: "Aurora",
+      initial: "",
+      cardTitle: "",
+      cardSubtitle: "Ho una luce tutta mia.",
+      cardText: "Sto scoprendo il mondo un passo alla volta, con il mio sorriso, il mio carattere e i miei tempi. E ogni giorno ricordo a mamma e papà che una persona è infinitamente più grande di qualsiasi definizione.",
+      status: "pubblicata",
+      slug: "aurora",
+      storyTitle: "",
+      storyText: "",
+      // La pagina dedicata di Aurora usa le sue foto fisse (app/storie/aurora).
+      photos: [],
+    },
+    pendingChild("Alessandro"),
+    {
+      id: "emanuele",
+      name: "Emanuele",
+      initial: "",
+      cardTitle: "",
+      cardSubtitle: "Il suo volo verso la vita.",
+      cardText: "Il suo viaggio è cominciato con un volo, nelle prime ore di vita. Poi piccoli passi, ma costanti. Oggi Emanuele vola a modo suo: con un sorriso che illumina una stanza e uno sguardo curioso che scopre il mondo senza fretta.",
+      status: "pubblicata",
+      slug: "emanuele",
+      storyTitle: "Il suo volo verso la vita e la scoperta del mondo",
+      storyText: [
+        "Le prime ore di vita di Emanuele non sono state semplici.",
+        "Un viaggio in elicottero e, a poche ore dalla nascita, un’operazione per atresia duodenale.",
+        "Anche la ripresa è stata lenta e graduale.\nPiccoli passi, ma costanti.",
+        "E poi sono arrivate le piccole grandi conquiste:\nil primo biberon,\nil primo pannolino sporco,\nla prima tutina,\nla prima uscita con mamma, papà e la sorellina.",
+        "Conquiste che forse, per qualcuno, possono sembrare piccole.\nPer noi, invece, sono state immense.",
+        "Il suo viaggio non si è fermato a quel primo volo in elicottero.",
+        "Oggi Emanuele vola a modo suo: con la forza di chi ha dovuto lottare fin dal primo giorno e con la dolcezza di chi sa guardare il mondo con occhi unici.",
+        "Ogni suo giorno è una nuova conquista.",
+        "La bellezza di Emanuele sta nel suo sorriso, quello che illumina una stanza e sa curare ogni paura passata.",
+        "Sta nel suo sguardo curioso, che esplora la vita senza fretta, scoprendo ogni cosa a modo suo.",
+        "La Trisomia 21 è solo una sfumatura del suo disegno, non è il suo confine.",
+        "Emanuele ci insegna ogni giorno che non importa quanto sia stata ripida la salita all’inizio.",
+        "Ciò che conta è la bellezza del paesaggio che stiamo scoprendo insieme.",
+        "Un passo alla volta.\nUna conquista alla volta.\nE, perché no, un volo alla volta.",
+        "Questo è il viaggio di Emanuele.\nIl suo meraviglioso volo verso la vita.",
+      ].join("\n\n"),
+      photos: ["/emanuele-storia.jpg", "/emanuele-storia-2.jpg", "/emanuele-storia-3.jpg"],
+    },
+    pendingChild("Celeste"),
+    pendingChild("Vincenzo"),
+    pendingChild("Eleonora"),
+    pendingChild("Biagio"),
+  ],
   numbers: {
     label: "46 oppure 47 cromosomi",
     titleLine1: "Cambia un numero.",
     titleLine2: "Non il valore.",
     text:
-      "Una persona non è una statistica, una previsione o una definizione. È relazioni, sogni, desideri, voce. È il proprio posto nel mondo.",
+        "Una persona non è una statistica, una previsione o una definizione. È relazioni, sogni, desideri, voce. È il proprio posto nel mondo.",
   },
   promise: {
     kicker: "Il nostro impegno",
@@ -275,14 +274,14 @@ export const defaultHomeContent: HomeContent = {
     titleLine2: "una diagnosi.",
     accent: "Vogliamo raccontare delle vite.",
     note:
-      "Crescere. Sbagliare. Imparare. Fare amicizia. Sognare. Scegliere. Avere un posto nel mondo senza doverlo continuamente conquistare.",
+        "Crescere. Sbagliare. Imparare. Fare amicizia. Sognare. Scegliere. Avere un posto nel mondo senza doverlo continuamente conquistare.",
   },
   join: {
     kicker: "Insieme, oltre",
     titleLine1: "Il futuro non si aspetta.",
     titleLine2: "Si costruisce insieme.",
     text:
-      "Siamo all’inizio. Vorremmo costruire questo posto insieme alle famiglie, ascoltando anche ciò di cui hanno davvero bisogno.",
+        "Siamo all’inizio. Vorremmo costruire questo posto insieme alle famiglie, ascoltando anche ciò di cui hanno davvero bisogno.",
     cta: "Cominciamo da qui",
   },
   footer: {
@@ -293,14 +292,59 @@ export const defaultHomeContent: HomeContent = {
   },
 };
 
+type LegacyContent = {
+  stories?: { items?: unknown; comingSoon?: unknown; comingSoonLine?: unknown };
+  auroraStory?: { cardDescription?: unknown };
+  emanueleStory?: { title?: unknown; cardLine?: unknown; cardDescription?: unknown; paragraphs?: unknown; photos?: unknown };
+};
+
+const filled = (value: unknown) => (typeof value === "string" && value.trim() ? value : undefined);
+
+/** Converte i contenuti salvati prima dell'elenco `children` (stories.items, auroraStory.cardDescription, emanueleStory). */
+function migrateLegacyChildren(base: ChildStory[], legacy: LegacyContent): ChildStory[] {
+  const items = Array.isArray(legacy.stories?.items) ? (legacy.stories.items as { name?: unknown; line?: unknown }[]) : null;
+  const pendingLine = filled(legacy.stories?.comingSoonLine);
+  const pendingText = filled(legacy.stories?.comingSoon);
+
+  const children = items
+    ? items.flatMap((item) => {
+      const name = filled(item?.name)?.trim();
+      if (!name) return [];
+      const child = { ...(base.find((known) => known.slug === slugify(name)) ?? pendingChild(name)) };
+      const line = filled(item.line);
+      if (line) child.cardSubtitle = line;
+      else if (child.status === "in_arrivo" && pendingLine) child.cardSubtitle = pendingLine;
+      if (child.status === "in_arrivo" && pendingText) child.cardText = pendingText;
+      return [child];
+    })
+    : base.map((child) => ({ ...child }));
+
+  const aurora = children.find((child) => child.slug === "aurora");
+  if (aurora) aurora.cardText = filled(legacy.auroraStory?.cardDescription) ?? aurora.cardText;
+
+  const emanuele = children.find((child) => child.slug === "emanuele");
+  const oldEmanuele = legacy.emanueleStory;
+  if (emanuele && oldEmanuele) {
+    emanuele.storyTitle = filled(oldEmanuele.title) ?? emanuele.storyTitle;
+    emanuele.cardSubtitle = filled(oldEmanuele.cardLine) ?? emanuele.cardSubtitle;
+    emanuele.cardText = filled(oldEmanuele.cardDescription) ?? emanuele.cardText;
+    if (Array.isArray(oldEmanuele.paragraphs)) emanuele.storyText = oldEmanuele.paragraphs.filter(filled).join("\n\n");
+    if (Array.isArray(oldEmanuele.photos)) emanuele.photos = oldEmanuele.photos.filter(filled).slice(0, 3);
+  }
+
+  return children;
+}
+
 function mergeHomeContent(base: HomeContent, incoming: unknown): HomeContent {
   if (!incoming || typeof incoming !== "object") return base;
 
   const candidate = incoming as Partial<HomeContent>;
+  // Le chiavi del vecchio formato non vengono riportate: restano solo quelle di HomeContent.
+  const known = Object.fromEntries(Object.entries(candidate).filter(([key]) => key in base)) as Partial<HomeContent>;
 
   return {
     ...base,
-    ...candidate,
+    ...known,
     meta: { ...base.meta, ...candidate.meta },
     nav: { ...base.nav, ...candidate.nav },
     hero: {
@@ -318,22 +362,19 @@ function mergeHomeContent(base: HomeContent, incoming: unknown): HomeContent {
     },
     aurora: { ...base.aurora, ...candidate.aurora },
     auroraStory: {
-      ...base.auroraStory,
-      ...candidate.auroraStory,
+      subtitle: candidate.auroraStory?.subtitle ?? base.auroraStory.subtitle,
       paragraphs: candidate.auroraStory?.paragraphs ?? base.auroraStory.paragraphs,
+      pauseLine1: candidate.auroraStory?.pauseLine1 ?? base.auroraStory.pauseLine1,
+      pauseLine2: candidate.auroraStory?.pauseLine2 ?? base.auroraStory.pauseLine2,
+      parentsTitle: candidate.auroraStory?.parentsTitle ?? base.auroraStory.parentsTitle,
       parentsParagraphs: candidate.auroraStory?.parentsParagraphs ?? base.auroraStory.parentsParagraphs,
     },
-    emanueleStory: {
-      ...base.emanueleStory,
-      ...candidate.emanueleStory,
-      paragraphs: candidate.emanueleStory?.paragraphs ?? base.emanueleStory.paragraphs,
-      photos: candidate.emanueleStory?.photos ?? base.emanueleStory.photos,
-    },
     stories: {
-      ...base.stories,
-      ...candidate.stories,
-      items: candidate.stories?.items ?? base.stories.items,
+      kicker: candidate.stories?.kicker ?? base.stories.kicker,
+      titleLine1: candidate.stories?.titleLine1 ?? base.stories.titleLine1,
+      titleLine2: candidate.stories?.titleLine2 ?? base.stories.titleLine2,
     },
+    children: normalizeChildren(candidate.children) ?? migrateLegacyChildren(base.children, candidate as LegacyContent),
     numbers: { ...base.numbers, ...candidate.numbers },
     promise: { ...base.promise, ...candidate.promise },
     join: { ...base.join, ...candidate.join },

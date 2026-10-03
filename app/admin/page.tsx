@@ -224,6 +224,24 @@ export default function AdminPage() {
     setStatus("Invio link non riuscito: indirizzo non autorizzato o servizio non disponibile.");
   }
 
+  function toggleEditorMode() {
+    if (jsonMode) {
+      try {
+        const parsed = JSON.parse(jsonDraft) as HomeContent;
+        setContent(parsed);
+        setJsonMode(false);
+        setStatus("Editor semplice sincronizzato con il JSON.");
+      } catch {
+        setStatus("JSON non valido: correggilo prima di tornare all’editor semplice.");
+      }
+      return;
+    }
+
+    setJsonDraft(JSON.stringify(content, null, 2));
+    setJsonMode(true);
+    setStatus("Editor JSON sincronizzato con le modifiche correnti.");
+  }
+
   async function saveContent() {
     if (!token) return;
 
@@ -267,9 +285,13 @@ export default function AdminPage() {
       return;
     }
 
-    setContent(value);
-    setJsonDraft(JSON.stringify(value, null, 2));
-    setStatus("Salvato. Il sito pubblico leggerà i nuovi testi.");
+    const payload = await response.json().catch(() => null);
+    const persisted = payload?.content ?? value;
+    setContent(persisted);
+    setJsonDraft(JSON.stringify(persisted, null, 2));
+    setStatus(payload?.verified
+      ? "Salvato e verificato su Supabase."
+      : "Salvato. Il sito pubblico leggerà i nuovi testi.");
   }
 
   function logout() {
@@ -306,7 +328,7 @@ export default function AdminPage() {
           <div className="admin-card admin-editor">
             <div className="admin-toolbar">
               <button disabled={loading} onClick={saveContent}>Salva testi</button>
-              <button type="button" className="secondary" onClick={() => setJsonMode(!jsonMode)}>
+              <button type="button" className="secondary" onClick={toggleEditorMode}>
                 {jsonMode ? "Editor semplice" : "Editor avanzato JSON"}
               </button>
               <button type="button" className="secondary" onClick={logout}>Esci</button>

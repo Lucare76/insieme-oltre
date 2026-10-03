@@ -127,5 +127,38 @@ export async function PUT(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true });
+  const verifyResponse = await fetch(
+    `${supabaseUrl}/rest/v1/site_content?key=eq.home&select=value,updated_at&order=updated_at.desc&limit=1`,
+    {
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+      cache: "no-store",
+    },
+  );
+
+  if (!verifyResponse.ok) {
+    const detail = await verifyResponse.text();
+    return NextResponse.json(
+      { error: "Salvataggio eseguito ma verifica non riuscita", detail },
+      { status: 500 },
+    );
+  }
+
+  const rows = (await verifyResponse.json()) as { value?: unknown; updated_at?: string }[];
+  const saved = rows[0];
+  if (!saved?.value) {
+    return NextResponse.json(
+      { error: "Salvataggio non verificato: nessun contenuto trovato dopo la scrittura." },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({
+    ok: true,
+    verified: true,
+    content: saved.value,
+    updatedAt: saved.updated_at ?? payload.updated_at,
+  });
 }

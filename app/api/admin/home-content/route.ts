@@ -127,5 +127,45 @@ export async function PUT(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true });
+  // Rilegge da Supabase la riga "home" più recente: il salvataggio è riuscito solo se è proprio quella appena scritta.
+  const saved = await readLatestHome(supabaseUrl, serviceKey);
+  if (!saved.ok) {
+    return NextResponse.json({ error: "Salvataggio non verificato: rilettura da Supabase non riuscita", detail: saved.detail }, { status: 500 });
+  }
+  if (!sameInstant(saved.updatedAt, payload.updated_at)) {
+    return NextResponse.json(
+      { error: "Salvataggio non verificato: su Supabase la versione più recente non è quella appena salvata." },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({ ok: true, verified: true, content: saved.value, updatedAt: saved.updatedAt });
+}
+
+async function readLatestHome(supabaseUrl: string, serviceKey: string) {
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/site_content?key=eq.home&select=value,updated_at&order=updated_at.desc&limit=1`,
+      {
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+        cache: "no-store",
+      },
+    );
+    if (!response.ok) return { ok: false as const, detail: await response.text() };
+
+    const rows = (await response.json()) as { value?: unknown; updated_at?: string }[];
+    const row = rows[0];
+    if (!row?.value || typeof row.value !== "object" || typeof row.updated_at !== "string") {
+      return { ok: false as const, detail: "Nessuna riga home trovata dopo il salvataggio." };
+    }
+    return { ok: true as const, value: row.value, updatedAt: row.updated_at };
+  } catch (error) {
+    return { ok: false as const, detail: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/** Confronta due timestamp anche se Postgres li restituisce in un formato diverso da toISOString(). */
+function sameInstant(stored: string, written: string) {
+  const withZone = /(Z|[+-]\d{2}(:?\d{2})?)$/.test(stored) ? stored : `${stored}Z`;
+  return Date.parse(withZone) === Date.parse(written);
 }

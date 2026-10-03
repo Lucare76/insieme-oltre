@@ -260,16 +260,56 @@ export default function AdminPage() {
 
     setLoading(false);
 
+    const payload = await response.json().catch(() => null);
+
     if (!response.ok) {
-      const payload = await response.json().catch(() => null);
       const detail = typeof payload?.detail === "string" ? ` (${payload.detail.slice(0, 240)})` : "";
       setStatus(`${payload?.error ?? "Salvataggio non riuscito."}${detail}`);
       return;
     }
 
-    setContent(value);
-    setJsonDraft(JSON.stringify(value, null, 2));
-    setStatus("Salvato. Il sito pubblico leggerà i nuovi testi.");
+    // Si mostra ciò che Supabase ha davvero salvato (es. campi protetti riscritti dal server), non la copia locale.
+    if (!payload?.verified || !payload.content || typeof payload.content !== "object") {
+      setStatus("Salvataggio non verificato: ricarica la pagina e controlla i testi.");
+      return;
+    }
+
+    const saved = payload.content as HomeContent;
+    setContent(saved);
+    setJsonDraft(JSON.stringify(saved, null, 2));
+    setStatus("Salvato e verificato su Supabase.");
+  }
+
+  /** Cambia editor senza perdere modifiche: il JSON nasce dal contenuto corrente e, al ritorno, lo sostituisce. */
+  function toggleEditor() {
+    if (!jsonMode) {
+      setJsonDraft(JSON.stringify(content, null, 2));
+      setJsonMode(true);
+      return;
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(jsonDraft);
+    } catch {
+      setStatus("JSON non valido: correggilo prima di tornare all’editor semplice.");
+      return;
+    }
+
+    const candidate = parsed as Partial<HomeContent> | null;
+    if (!candidate || typeof candidate !== "object" || !candidate.hero || !candidate.footer) {
+      setStatus("JSON non valido: mancano le sezioni «hero» o «footer».");
+      return;
+    }
+    const children = normalizeChildren(candidate.children);
+    if (!children) {
+      setStatus("JSON non valido: l’elenco «children» manca o non è corretto.");
+      return;
+    }
+
+    setContent({ ...(candidate as HomeContent), children });
+    setJsonMode(false);
+    setStatus("Modifiche JSON applicate all’editor semplice (non ancora salvate).");
   }
 
   function logout() {
@@ -306,7 +346,7 @@ export default function AdminPage() {
           <div className="admin-card admin-editor">
             <div className="admin-toolbar">
               <button disabled={loading} onClick={saveContent}>Salva testi</button>
-              <button type="button" className="secondary" onClick={() => setJsonMode(!jsonMode)}>
+              <button type="button" className="secondary" onClick={toggleEditor}>
                 {jsonMode ? "Editor semplice" : "Editor avanzato JSON"}
               </button>
               <button type="button" className="secondary" onClick={logout}>Esci</button>

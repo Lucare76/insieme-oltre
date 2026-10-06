@@ -1,13 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { defaultHomeContent, type HomeContent } from "../../lib/siteContent";
 import { childIssues, normalizeChildren } from "../../lib/children";
 import { ChildrenEditor } from "./ChildrenEditor";
 import "./admin.css";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+/** Solo token di sessione Supabase: la password non viene mai salvata nel browser. */
+type AdminSession = { access_token: string; refresh_token: string; expires_at: number };
+
+const SESSION_KEY = "insieme_oltre_admin_session";
+const LEGACY_TOKEN_KEY = "insieme_oltre_admin_token";
+/** Rinnova il token con un minuto di anticipo sulla scadenza. */
+const REFRESH_MARGIN_S = 60;
+const SESSION_EXPIRED = "Sessione scaduta: accedi di nuovo.";
+const SESSION_CLOSED = "Sessione chiusa.";
 
 type Field = {
   label: string;
@@ -125,50 +132,134 @@ function setValue<T extends Record<string, unknown>>(obj: T, path: string, value
   return clone;
 }
 
-function tokenFromHash() {
-  if (typeof window === "undefined") return null;
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  return hash.get("access_token");
+function isSession(value: unknown): value is AdminSession {
+  const candidate = value as Partial<AdminSession> | null;
+  return Boolean(
+    candidate &&
+      typeof candidate.access_token === "string" &&
+      typeof candidate.refresh_token === "string" &&
+      typeof candidate.expires_at === "number",
+  );
+}
+
+function readStoredSession(): AdminSession | null {
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(SESSION_KEY) ?? "null");
+    return isSession(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeSession(session: AdminSession | null) {
+  try {
+    if (session) window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    else window.localStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Senza localStorage la sessione dura finché la pagina resta aperta.
+  }
 }
 
 export default function AdminPage() {
-  const [email, setEmail] = useState("");
-  const [token, setToken] = useState<string | null>(null);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const sessionRef = useRef<AdminSession | null>(null);
+  const refreshRef = useRef<Promise<AdminSession | null> | null>(null);
   const [content, setContent] = useState<HomeContent>(defaultHomeContent);
   const [jsonMode, setJsonMode] = useState(false);
   const [jsonDraft, setJsonDraft] = useState(JSON.stringify(defaultHomeContent, null, 2));
   const [status, setStatus] = useState("Pronto");
   const [loading, setLoading] = useState(false);
 
-  const isConfigured = useMemo(() => Boolean(supabaseUrl && anonKey), []);
+  const endSession = useCallback((message: string) => {
+    sessionRef.current = null;
+    storeSession(null);
+    setSignedIn(false);
+    setStatus(message);
+  }, []);
+
+  /** Un solo rinnovo alla volta, anche se più richieste trovano il token scaduto insieme. */
+  const refreshSession = useCallback(() => {
+    const current = sessionRef.current;
+    if (!current) return Promise.resolve(null);
+
+    refreshRef.current ??= fetch("/api/admin/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: current.refresh_token }),
+    })
+      .then(async (response) => {
+        const payload = response.ok ? await response.json().catch(() => null) : null;
+        const next = isSession(payload?.session) ? payload.session : null;
+        sessionRef.current = next;
+        storeSession(next);
+        return next;
+      })
+      .catch(() => null)
+      .finally(() => {
+        refreshRef.current = null;
+      });
+
+    return refreshRef.current;
+  }, []);
+
+  /** API admin con token valido: se il server lo rifiuta prova un rinnovo, altrimenti chiude la sessione. */
+  const adminFetch = useCallback(
+    async (path: string, init: RequestInit = {}) => {
+      const send = (session: AdminSession) =>
+        fetch(path, { ...init, headers: { ...init.headers, Authorization: `Bearer ${session.access_token}` } });
+
+      let session = sessionRef.current;
+      if (session && session.expires_at - REFRESH_MARGIN_S <= Date.now() / 1000) session = await refreshSession();
+      if (!session) {
+        endSession(SESSION_EXPIRED);
+        return null;
+      }
+
+      let response = await send(session);
+      if (response.status === 401) {
+        session = await refreshSession();
+        if (session) response = await send(session);
+      }
+      if (!session || response.status === 401) {
+        endSession(SESSION_EXPIRED);
+        return null;
+      }
+      return response;
+    },
+    [endSession, refreshSession],
+  );
 
   useEffect(() => {
-    const hashToken = tokenFromHash();
-    const storedToken = window.localStorage.getItem("insieme_oltre_admin_token");
-    const nextToken = hashToken ?? storedToken;
-
-    if (hashToken) {
-      window.localStorage.setItem("insieme_oltre_admin_token", hashToken);
-      window.history.replaceState(null, "", "/admin");
-    }
-
-    queueMicrotask(() => setToken(nextToken));
+    try {
+      // Il vecchio token del magic link non è rinnovabile: si rientra con utente e password.
+      window.localStorage.removeItem(LEGACY_TOKEN_KEY);
+    } catch {}
+    sessionRef.current = readStoredSession();
+    queueMicrotask(() => {
+      setSignedIn(Boolean(sessionRef.current));
+      setSessionChecked(true);
+    });
   }, []);
 
   useEffect(() => {
-    if (!token) return;
+    if (!signedIn) return;
 
     async function loadContent() {
       setLoading(true);
       setStatus("Carico i testi…");
 
-      const response = await fetch("/api/admin/home-content", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await adminFetch("/api/admin/home-content");
+      setLoading(false);
+      if (!response) return;
 
       if (!response.ok) {
-        setStatus("Accesso non autorizzato o sessione scaduta.");
-        setLoading(false);
+        setStatus("Caricamento non riuscito: riprova tra poco.");
         return;
       }
 
@@ -176,56 +267,56 @@ export default function AdminPage() {
       setContent(payload.content);
       setJsonDraft(JSON.stringify(payload.content, null, 2));
       setStatus(payload.configured ? "Testi caricati." : "Supabase non è ancora configurato: vedo i testi base.");
-      setLoading(false);
     }
 
     loadContent();
-  }, [token]);
+  }, [signedIn, adminFetch]);
 
-  async function sendMagicLink() {
-    if (!isConfigured || !supabaseUrl) {
-      setStatus("Prima vanno configurate le variabili Supabase su Vercel.");
+  async function signIn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (signingIn) return;
+
+    if (!username.trim() || !password) {
+      setLoginError("Inserisci utente e password.");
       return;
     }
 
-    if (!email.trim()) {
-      setStatus("Inserisci l’indirizzo email autorizzato.");
-      return;
+    setSigningIn(true);
+    setLoginError("");
+
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password }),
+      });
+      const payload = await response.json().catch(() => null);
+
+      if (response.ok && isSession(payload?.session)) {
+        sessionRef.current = payload.session;
+        storeSession(payload.session);
+        setPassword("");
+        setShowPassword(false);
+        setSignedIn(true);
+        return;
+      }
+
+      setLoginError(
+        response.status === 401
+          ? "Utente o password non corretti."
+          : response.status === 503
+            ? "Accesso non ancora configurato sul server."
+            : "Accesso non riuscito: riprova tra poco.",
+      );
+    } catch {
+      setLoginError("Connessione non riuscita: controlla la rete e riprova.");
+    } finally {
+      setSigningIn(false);
     }
-
-    setLoading(true);
-    setStatus("Invio link di accesso…");
-
-    const redirectTo = `${window.location.origin}/admin`;
-    const response = await fetch(`${supabaseUrl}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`, {
-      method: "POST",
-      headers: {
-        apikey: anonKey ?? "",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email.trim(),
-        // Nessuna registrazione automatica: il link arriva solo a un account già esistente in Supabase Auth.
-        // Chi può davvero modificare i testi lo decide il server con ADMIN_ALLOWED_EMAIL.
-        create_user: false,
-        options: {
-          email_redirect_to: redirectTo,
-        },
-      }),
-    });
-
-    setLoading(false);
-
-    if (response.ok) {
-      setStatus("Link inviato. Controlla la tua casella email.");
-      return;
-    }
-
-    setStatus("Invio link non riuscito: indirizzo non autorizzato o servizio non disponibile.");
   }
 
   async function saveContent() {
-    if (!token) return;
+    if (!signedIn) return;
 
     let value: HomeContent = content;
 
@@ -249,16 +340,14 @@ export default function AdminPage() {
     setLoading(true);
     setStatus("Salvo…");
 
-    const response = await fetch("/api/admin/home-content", {
+    const response = await adminFetch("/api/admin/home-content", {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value }),
     });
 
     setLoading(false);
+    if (!response) return;
 
     const payload = await response.json().catch(() => null);
 
@@ -313,9 +402,75 @@ export default function AdminPage() {
   }
 
   function logout() {
-    window.localStorage.removeItem("insieme_oltre_admin_token");
-    setToken(null);
-    setStatus("Sessione chiusa.");
+    const session = sessionRef.current;
+    // Revoca anche su Supabase, così il refresh token salvato non è più utilizzabile.
+    if (session) {
+      fetch("/api/admin/logout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }).catch(() => undefined);
+    }
+    endSession(SESSION_CLOSED);
+  }
+
+  if (!sessionChecked) {
+    return <main className="admin-page" />;
+  }
+
+  if (!signedIn) {
+    return (
+      <main className="admin-page admin-login-page">
+        <form className="admin-card admin-login" onSubmit={signIn} noValidate>
+          <div className="admin-heading">
+            <p>Insieme Oltre</p>
+            <h1>Area riservata</h1>
+          </div>
+
+          <label>
+            Utente
+            <input
+              name="username"
+              autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              disabled={signingIn}
+              autoFocus
+            />
+          </label>
+
+          <div className="admin-password">
+            <label>
+              Password
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={signingIn}
+              />
+            </label>
+            <button
+              type="button"
+              className="admin-password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-pressed={showPassword}
+              aria-label={showPassword ? "Nascondi password" : "Mostra password"}
+            >
+              {showPassword ? "Nascondi" : "Mostra"}
+            </button>
+          </div>
+
+          <p className="admin-login-error" role="alert">{loginError}</p>
+
+          <button type="submit" disabled={signingIn}>{signingIn ? "Accesso…" : "Accedi"}</button>
+          {status === SESSION_EXPIRED || status === SESSION_CLOSED ? <small>{status}</small> : null}
+        </form>
+      </main>
+    );
   }
 
   return (
@@ -327,63 +482,46 @@ export default function AdminPage() {
           <span>{status}</span>
         </div>
 
-        {!token ? (
-          <div className="admin-card">
-            <h2>Accesso riservato</h2>
-            <p>Può entrare solo l’account autorizzato.</p>
-            <label>
-              Email
-              <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
-            </label>
-            <button disabled={loading} onClick={sendMagicLink}>Invia link di accesso</button>
-            {!isConfigured && (
-              <small>
-                Mancano le variabili Supabase. Il pannello è pronto, ma va collegato prima di salvare online.
-              </small>
-            )}
+        <div className="admin-card admin-editor">
+          <div className="admin-toolbar">
+            <button disabled={loading} onClick={saveContent}>Salva testi</button>
+            <button type="button" className="secondary" onClick={toggleEditor}>
+              {jsonMode ? "Editor semplice" : "Editor avanzato JSON"}
+            </button>
+            <button type="button" className="secondary" onClick={logout}>Esci</button>
           </div>
-        ) : (
-          <div className="admin-card admin-editor">
-            <div className="admin-toolbar">
-              <button disabled={loading} onClick={saveContent}>Salva testi</button>
-              <button type="button" className="secondary" onClick={toggleEditor}>
-                {jsonMode ? "Editor semplice" : "Editor avanzato JSON"}
-              </button>
-              <button type="button" className="secondary" onClick={logout}>Esci</button>
-            </div>
 
-            {jsonMode ? (
-              <label>
-                JSON completo
-                <textarea
-                  className="json-editor"
-                  value={jsonDraft}
-                  onChange={(event) => setJsonDraft(event.target.value)}
-                />
-              </label>
-            ) : (
-              <div className="admin-grid">
-                {fields.map((field) => (
-                  <label key={field.path}>
-                    {field.label}
-                    {field.multiline ? (
-                      <textarea
-                        value={getValue(content, field.path)}
-                        onChange={(event) => setContent(setValue(content, field.path, event.target.value))}
-                      />
-                    ) : (
-                      <input
-                        value={getValue(content, field.path)}
-                        onChange={(event) => setContent(setValue(content, field.path, event.target.value))}
-                      />
-                    )}
-                  </label>
-                ))}
-                <ChildrenEditor items={content.children} onChange={(children) => setContent({ ...content, children })} />
-              </div>
-            )}
-          </div>
-        )}
+          {jsonMode ? (
+            <label>
+              JSON completo
+              <textarea
+                className="json-editor"
+                value={jsonDraft}
+                onChange={(event) => setJsonDraft(event.target.value)}
+              />
+            </label>
+          ) : (
+            <div className="admin-grid">
+              {fields.map((field) => (
+                <label key={field.path}>
+                  {field.label}
+                  {field.multiline ? (
+                    <textarea
+                      value={getValue(content, field.path)}
+                      onChange={(event) => setContent(setValue(content, field.path, event.target.value))}
+                    />
+                  ) : (
+                    <input
+                      value={getValue(content, field.path)}
+                      onChange={(event) => setContent(setValue(content, field.path, event.target.value))}
+                    />
+                  )}
+                </label>
+              ))}
+              <ChildrenEditor items={content.children} onChange={(children) => setContent({ ...content, children })} />
+            </div>
+          )}
+        </div>
       </section>
     </main>
   );

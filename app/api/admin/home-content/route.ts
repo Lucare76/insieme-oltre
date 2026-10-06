@@ -1,35 +1,7 @@
 import { NextResponse } from "next/server";
 import { childIssues, normalizeChildren, slugify } from "../../../../lib/children";
+import { requireAdmin } from "../../../../lib/adminAuth";
 import { defaultHomeContent, getHomeContent } from "../../../../lib/siteContent";
-
-const allowedEmail = (process.env.ADMIN_ALLOWED_EMAIL ?? "luca_renna@hotmail.com").toLowerCase();
-
-async function getAuthenticatedEmail(request: Request) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const authHeader = request.headers.get("authorization");
-  const token = authHeader?.replace(/^Bearer\s+/i, "");
-
-  if (!supabaseUrl || !anonKey || !token) return null;
-
-  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
-    headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${token}`,
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) return null;
-
-  const user = (await response.json()) as { email?: string };
-  return user.email?.toLowerCase() ?? null;
-}
-
-async function requireAdmin(request: Request) {
-  const email = await getAuthenticatedEmail(request);
-  return email === allowedEmail;
-}
 
 async function readContent() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -201,3 +201,25 @@
     width: 100%;
   }
 }
+
+.admin-login-page { display: grid; place-items: center; }
+.admin-login { display: grid; width: min(420px, 100%); }
+.admin-login .admin-heading { margin-bottom: 6px; }
+.admin-login .admin-heading h1 { font-size: clamp(38px, 9vw, 52px); margin: 0; }
+.admin-password { position: relative; }
+.admin-card .admin-password input { padding-right: 104px; }
+.admin-card .admin-password-toggle {
+  position: absolute;
+  bottom: 7px;
+  right: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  background: transparent;
+  color: #425a48;
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+.admin-card .admin-password-toggle:focus-visible { outline: 2px solid #e6685e; outline-offset: 2px; }
+.admin-card .admin-login-error { min-height: 1.55em; margin: 14px 0 4px; color: #b3261e; font-weight: 700; }
+.admin-login button[type="submit"] { width: 100%; }
+.admin-login small { margin-top: 12px; text-align: center; }

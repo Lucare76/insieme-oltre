@@ -1,0 +1,114 @@
+/* Movimento della homepage durante lo scroll (vedi app/components/ScrollReveal.tsx).
+   Si usano le proprietà `translate` e `scale`, che si sommano ai `transform` già presenti (es. la nota ruotata).
+   Il nascondimento vale solo con html.reveal-ready: senza JavaScript o con riduzione movimento tutto resta visibile. */
+
+:root {
+  --reveal-distance: 24px;
+  --reveal-ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+html.reveal-ready [data-reveal] {
+  opacity: 0;
+  transition: opacity .8s var(--reveal-ease), translate .9s var(--reveal-ease), scale .9s var(--reveal-ease);
+  transition-delay: var(--reveal-wait, 0ms);
+}
+html.reveal-ready [data-reveal="fade-up"] { translate: 0 var(--reveal-distance); }
+html.reveal-ready [data-reveal="fade-left"] { translate: calc(var(--reveal-distance) * -1) 0; }
+html.reveal-ready [data-reveal="fade-right"] { translate: var(--reveal-distance) 0; }
+html.reveal-ready [data-reveal="scale"] { scale: .97; translate: 0 calc(var(--reveal-distance) * .5); }
+/* Titoli importanti: un po' più di strada e di tempo. */
+html.reveal-ready [data-reveal="title"] {
+  translate: 0 calc(var(--reveal-distance) * 1.25);
+  transition-duration: 1s, 1.1s, 1.1s;
+}
+/* "46 o 47": la tipografia cresce appena. */
+html.reveal-ready [data-reveal="impact"] {
+  scale: .94;
+  translate: 0 var(--reveal-distance);
+  transition-duration: 1s, 1.1s, 1.1s;
+}
+html.reveal-ready [data-reveal="accent"] {
+  translate: 0 calc(var(--reveal-distance) * .75);
+  transition-duration: 1s, 1.1s, 1.1s;
+}
+html.reveal-ready [data-reveal].is-revealed { opacity: 1; translate: none; scale: none; }
+
+/* Su telefono: spostamenti più corti e niente ingressi laterali. */
+@media (max-width: 760px) {
+  :root { --reveal-distance: 14px; }
+  html.reveal-ready [data-reveal="fade-left"],
+  html.reveal-ready [data-reveal="fade-right"] { translate: 0 var(--reveal-distance); }
+}
+
+/* Hero: movimento ambientale lentissimo del logo e delle orbite. */
+.hero-logo-img { animation: home-logo-breathe 16s ease-in-out infinite; }
+.hero .sun-orbit { animation: home-orbit-drift 28s ease-in-out infinite; }
+.hero .orbit-two { animation-duration: 36s; animation-direction: reverse; }
+@keyframes home-logo-breathe { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@keyframes home-orbit-drift { 0%, 100% { translate: 0 0; } 50% { translate: -8px 6px; } }
+@media (max-width: 760px) {
+  .hero-logo-img { animation-name: home-logo-breathe-small; }
+  .hero .sun-orbit { animation: none; }
+}
+@keyframes home-logo-breathe-small { 0%, 100% { translate: 0 0; } 50% { translate: 0 -3px; } }
+
+/* "Chi siamo": la linea-cuore si disegna dopo il testo. */
+.heart-line path { stroke-dasharray: 1; transition: stroke-dashoffset 1.6s var(--reveal-ease) .35s; }
+html.reveal-ready .heart-line[data-reveal]:not(.is-revealed) path { stroke-dashoffset: 1; }
+
+/* "Cosa facciamo": hover solo con mouse, più leggero di prima; la freccia si sposta di pochi pixel. */
+.pillar-grid .pillar-card:hover { transform: none; box-shadow: none; }
+.pillar-card .card-arrow { transition: translate .3s ease, color .3s ease; }
+@media (hover: hover) and (pointer: fine) {
+  .pillar-grid .pillar-card { transition: transform .35s var(--reveal-ease), box-shadow .35s ease, border-color .35s ease; }
+  .pillar-grid .pillar-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 44px rgba(54, 44, 33, .08);
+    border-color: rgba(36, 49, 42, .14);
+  }
+  .pillar-grid .pillar-card:hover .card-arrow { translate: 3px -3px; color: var(--coral); }
+}
+
+/* Storie: hover discreto (niente spostamenti, il carosello si ferma già al passaggio del mouse). */
+@media (hover: hover) and (pointer: fine) {
+  .story-card { transition: border-color .4s ease; }
+  .story-card::before { transition: opacity .4s ease; }
+  .story-card:hover { border-color: rgba(36, 49, 42, .16); }
+  .story-card:hover::before { opacity: .92; }
+}
+
+/* Soglia prima della canzone: una linea sottile scende verso la sezione musicale. */
+.music-threshold {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0 0;
+  background: var(--paper);
+}
+.music-threshold-line {
+  width: 1px;
+  height: 96px;
+  background: linear-gradient(to bottom, transparent, rgba(201, 82, 73, .38), rgba(224, 167, 87, .7));
+  transform-origin: top;
+  transition: scale 1.4s var(--reveal-ease) .1s;
+}
+.music-threshold-star { font-size: 12px; color: var(--gold); transition: opacity 1s ease .9s; }
+html.reveal-ready .music-threshold[data-reveal]:not(.is-revealed) .music-threshold-line { scale: 1 0; }
+html.reveal-ready .music-threshold[data-reveal]:not(.is-revealed) .music-threshold-star { opacity: 0; }
+@media (max-width: 760px) { .music-threshold-line { height: 64px; } }
+
+/* "Il nostro impegno": il titolo entra riga per riga; l'ultima frase riceve una piccola sottolineatura. */
+.promise h2 .promise-line { display: block; margin-top: 0; color: inherit; font-style: normal; }
+.promise h2 .promise-accent::after {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 2px;
+  margin: 22px auto 0;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: .45;
+  transition: scale 1.1s var(--reveal-ease) .5s;
+}
+html.reveal-ready .promise-accent[data-reveal]:not(.is-revealed)::after { scale: 0 1; }

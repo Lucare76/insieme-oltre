@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LegalLinks } from "../../components/LegalLinks";
 import { getHomeContent } from "../../../lib/siteContent";
+import { socialMetadata, storySocialImage } from "../../../lib/seo";
 import "./story.css";
 
 const photoNames = ["aurora-storia.jpg", "aurora-storia-2.jpg", "aurora-storia-3.jpg"];
@@ -13,13 +14,13 @@ export const metadata: Metadata = {
   title: "Aurora | Insieme Oltre",
   description: "Aurora è Aurora. La sua storia raccontata da mamma e papà.",
   alternates: { canonical: "/storie/aurora" },
-  openGraph: {
+  ...socialMetadata({
     title: "La storia di Aurora | Insieme Oltre",
     description: "Aurora è Aurora. La sua storia raccontata da mamma e papà.",
-    url: "/storie/aurora",
+    path: "/storie/aurora",
     type: "article",
-    locale: "it_IT",
-  },
+    image: storySocialImage(photoNames.map((name) => `/${name}`), "Aurora"),
+  }),
 };
 
 export default async function AuroraStoryPage() {

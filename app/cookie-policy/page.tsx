@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalLinks } from "../components/LegalLinks";
 import { privacyPolicy } from "../../lib/legal";
+import { socialMetadata } from "../../lib/seo";
 import "../storie/aurora/story.css";
 import "./legal.css";
 
@@ -9,6 +10,11 @@ export const metadata: Metadata = {
   title: "Cookie Policy | Insieme Oltre",
   description: "Come il sito di Insieme Oltre usa cookie e tecnologie simili: nessun cookie sul sito pubblico, nessun tracciamento, nessuna profilazione.",
   alternates: { canonical: "/cookie-policy" },
+  ...socialMetadata({
+    title: "Cookie Policy | Insieme Oltre",
+    description: "Come il sito di Insieme Oltre usa cookie e tecnologie simili: nessun cookie sul sito pubblico, nessun tracciamento, nessuna profilazione.",
+    path: "/cookie-policy",
+  }),
 };
 
 const notUsed = [

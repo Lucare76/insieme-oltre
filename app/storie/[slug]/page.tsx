@@ -7,6 +7,7 @@ import { LegalLinks } from "../../components/LegalLinks";
 import { notFound } from "next/navigation";
 import { PHOTO_PATTERN, hasDedicatedPage, isPublished, storyParagraphs } from "../../../lib/children";
 import { getHomeContent } from "../../../lib/siteContent";
+import { socialMetadata, storySocialImage } from "../../../lib/seo";
 import "../aurora/story.css";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -28,7 +29,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${child.name} | Insieme Oltre`,
     description,
     alternates: { canonical: path },
-    openGraph: { title: `La storia di ${child.name} | Insieme Oltre`, description, url: path, type: "article", locale: "it_IT" },
+    ...socialMetadata({
+      title: `La storia di ${child.name} | Insieme Oltre`,
+      description,
+      path,
+      type: "article",
+      image: storySocialImage(child.photos, child.name),
+    }),
   };
 }
 

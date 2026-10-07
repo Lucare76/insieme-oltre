@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { homeDescription, homeSocialDescription, homeSocialTitle, homeTitle, socialMetadata } from "../lib/seo";
 import { siteUrl } from "../lib/siteUrl";
 import "./globals.css";
 import "./logo-fix.css";
@@ -11,19 +12,12 @@ const geist = Geist({
   subsets: ["latin"],
 });
 
+// Il canonical sta nelle singole pagine: qui verrebbe ereditato anche da /admin e dalle 404.
 export const metadata: Metadata = {
-  title: "Insieme Oltre | L’amore non si misura in cromosomi",
-  description:
-    "Insieme Oltre nasce a Ischia per le persone con trisomia 21 e altre disabilità intellettive o relazionali, le loro famiglie e una comunità più inclusiva.",
+  title: homeTitle,
+  description: homeDescription,
   metadataBase: new URL(siteUrl),
-  alternates: { canonical: "/" },
-  openGraph: {
-    title: "Insieme Oltre | L’amore non si misura in cromosomi",
-    description: "A Ischia, storie, ascolto e nuove possibilità per persone con trisomia 21 e le loro famiglie.",
-    type: "website",
-    locale: "it_IT",
-    url: "/",
-  },
+  ...socialMetadata({ title: homeSocialTitle, description: homeSocialDescription }),
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

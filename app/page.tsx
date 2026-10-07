@@ -6,6 +6,8 @@ import { MusicExperience } from "./components/music/MusicExperience";
 import { childAccent, isPublished, PHOTO_PATTERN, type ChildStory } from "../lib/children";
 import { photoMoments } from "../lib/musicTimeline";
 import { getHomeContent } from "../lib/siteContent";
+import { homeSocialDescription, homeSocialTitle, organizationJsonLd, socialMetadata } from "../lib/seo";
+import type { Metadata } from "next";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import Image from "next/image";
@@ -34,6 +36,11 @@ function HeartLine() {
   );
 }
 
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  ...socialMetadata({ title: homeSocialTitle, description: homeSocialDescription, path: "/" }),
+};
+
 export default async function Home() {
   const content = await getHomeContent();
   const children = content.children.filter((child) => child.name.trim());
@@ -42,6 +49,10 @@ export default async function Home() {
     <main>
       {/* Prima di disegnare la pagina: attiva le animazioni d'ingresso solo se possono partire davvero. */}
       <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOT_SCRIPT }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }}
+      />
       <ScrollReveal />
       <AuthHashRedirect />
       <header className="site-header">

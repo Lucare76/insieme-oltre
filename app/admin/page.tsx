@@ -4,6 +4,16 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { defaultHomeContent, type HomeContent } from "../../lib/siteContent";
 import { childIssues, normalizeChildren } from "../../lib/children";
 import { ChildrenEditor } from "./ChildrenEditor";
+import {
+  ACTIVITY_WRITE_INTERVAL_MS,
+  SESSION_TIMES_KEY,
+  isSessionExpired,
+  parseSessionTimes,
+  readSessionTimes,
+  sessionDeadline,
+  storeSessionTimes,
+  type SessionTimes,
+} from "./sessionTimeout";
 import "./admin.css";
 
 /** Solo token di sessione Supabase: la password non viene mai salvata nel browser. */
@@ -15,6 +25,10 @@ const LEGACY_TOKEN_KEY = "insieme_oltre_admin_token";
 const REFRESH_MARGIN_S = 60;
 const SESSION_EXPIRED = "Sessione scaduta: accedi di nuovo.";
 const SESSION_CLOSED = "Sessione chiusa.";
+const SESSION_TIMEOUT = "Sessione scaduta per sicurezza. Accedi di nuovo.";
+const LOGIN_MESSAGES = [SESSION_EXPIRED, SESSION_CLOSED, SESSION_TIMEOUT];
+/** Attività reale dell'utente: il semplice movimento del mouse non conta. */
+const ACTIVITY_EVENTS = ["pointerdown", "keydown", "touchstart", "input"] as const;
 
 type Field = {
   label: string;
@@ -160,6 +174,22 @@ function storeSession(session: AdminSession | null) {
   }
 }
 
+/** Revoca la sessione su Supabase, così il refresh token salvato non è più utilizzabile. */
+function revokeSession(session: AdminSession | null) {
+  if (!session) return;
+  fetch("/api/admin/logout", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  }).catch(() => undefined);
+}
+
+/** Tra i timestamp salvati (anche da altre tab) e quelli in memoria vale l'attività più recente. */
+function latestTimes(memory: SessionTimes | null): SessionTimes | null {
+  const stored = readSessionTimes();
+  if (!stored || !memory) return stored ?? memory;
+  return stored.lastActivityAt >= memory.lastActivityAt ? stored : memory;
+}
+
 export default function AdminPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -170,6 +200,7 @@ export default function AdminPage() {
   const [signedIn, setSignedIn] = useState(false);
   const sessionRef = useRef<AdminSession | null>(null);
   const refreshRef = useRef<Promise<AdminSession | null> | null>(null);
+  const timesRef = useRef<SessionTimes | null>(null);
   const [content, setContent] = useState<HomeContent>(defaultHomeContent);
   const [jsonMode, setJsonMode] = useState(false);
   const [jsonDraft, setJsonDraft] = useState(JSON.stringify(defaultHomeContent, null, 2));
@@ -178,10 +209,19 @@ export default function AdminPage() {
 
   const endSession = useCallback((message: string) => {
     sessionRef.current = null;
+    timesRef.current = null;
+    // Prima i timestamp, poi la sessione: le altre tab reagiscono alla rimozione della sessione.
+    storeSessionTimes(null);
     storeSession(null);
     setSignedIn(false);
     setStatus(message);
   }, []);
+
+  /** Timeout di sicurezza (inattività o durata massima): revoca il token se possibile e torna al login. */
+  const expireSession = useCallback(() => {
+    revokeSession(sessionRef.current);
+    endSession(SESSION_TIMEOUT);
+  }, [endSession]);
 
   /** Un solo rinnovo alla volta, anche se più richieste trovano il token scaduto insieme. */
   const refreshSession = useCallback(() => {
@@ -214,6 +254,12 @@ export default function AdminPage() {
       const send = (session: AdminSession) =>
         fetch(path, { ...init, headers: { ...init.headers, Authorization: `Bearer ${session.access_token}` } });
 
+      // Controllo anche qui: dopo uno standby il timer può non essere ancora scattato.
+      if (sessionRef.current && isSessionExpired(latestTimes(timesRef.current))) {
+        expireSession();
+        return null;
+      }
+
       let session = sessionRef.current;
       if (session && session.expires_at - REFRESH_MARGIN_S <= Date.now() / 1000) session = await refreshSession();
       if (!session) {
@@ -232,7 +278,7 @@ export default function AdminPage() {
       }
       return response;
     },
-    [endSession, refreshSession],
+    [endSession, expireSession, refreshSession],
   );
 
   useEffect(() => {
@@ -241,11 +287,99 @@ export default function AdminPage() {
       window.localStorage.removeItem(LEGACY_TOKEN_KEY);
     } catch {}
     sessionRef.current = readStoredSession();
+    timesRef.current = readSessionTimes();
+    // Il reload non è attività: si valutano i timestamp salvati così come sono.
+    const expired = Boolean(sessionRef.current) && isSessionExpired(timesRef.current);
+    if (!sessionRef.current) storeSessionTimes(null);
     queueMicrotask(() => {
-      setSignedIn(Boolean(sessionRef.current));
+      if (expired) expireSession();
+      else setSignedIn(Boolean(sessionRef.current));
       setSessionChecked(true);
     });
+  }, [expireSession]);
+
+  /** Multi-tab: login, rinnovo token e logout fatti in un'altra tab si riflettono qui. */
+  useEffect(() => {
+    function onStorage(event: StorageEvent) {
+      if (event.storageArea !== window.localStorage) return;
+
+      if (event.key === SESSION_TIMES_KEY) {
+        const times = parseSessionTimes(event.newValue);
+        if (times) timesRef.current = times;
+        return;
+      }
+      if (event.key !== SESSION_KEY && event.key !== null) return;
+
+      const next = event.key === SESSION_KEY ? readStoredSession() : null;
+      if (next) {
+        sessionRef.current = next;
+        timesRef.current = latestTimes(timesRef.current);
+        setSignedIn(true);
+        return;
+      }
+      if (!sessionRef.current) return;
+
+      // Sessione chiusa altrove: niente revoca né pulizia, l'ha già fatto l'altra tab.
+      const expired = isSessionExpired(timesRef.current);
+      sessionRef.current = null;
+      timesRef.current = null;
+      setSignedIn(false);
+      setStatus(expired ? SESSION_TIMEOUT : SESSION_CLOSED);
+    }
+
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
+
+  /** Timeout per inattività (60 min) e durata massima (8 h), finché l'admin è dentro. */
+  useEffect(() => {
+    if (!signedIn) return;
+    let timer: number | undefined;
+
+    function check() {
+      window.clearTimeout(timer);
+      const times = latestTimes(timesRef.current);
+      if (!times || isSessionExpired(times)) {
+        expireSession();
+        return;
+      }
+      timesRef.current = times;
+      // Il timer rilegge i timestamp alla scadenza: l'attività nel frattempo lo rinvia.
+      timer = window.setTimeout(check, sessionDeadline(times) - Date.now() + 250);
+    }
+
+    function onActivity() {
+      const now = Date.now();
+      const times = timesRef.current;
+      if (!times || isSessionExpired(times, now)) {
+        check();
+        return;
+      }
+      if (now - times.lastActivityAt < ACTIVITY_WRITE_INTERVAL_MS) return;
+      timesRef.current = { ...times, lastActivityAt: now };
+      storeSessionTimes(timesRef.current);
+    }
+
+    function onVisibility() {
+      if (document.visibilityState === "visible") check();
+    }
+
+    function onStorage(event: StorageEvent) {
+      if (event.key === SESSION_TIMES_KEY && event.newValue) check();
+    }
+
+    check();
+    for (const type of ACTIVITY_EVENTS) window.addEventListener(type, onActivity, { capture: true, passive: true });
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      window.clearTimeout(timer);
+      for (const type of ACTIVITY_EVENTS) window.removeEventListener(type, onActivity, { capture: true });
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [signedIn, expireSession]);
 
   useEffect(() => {
     if (!signedIn) return;
@@ -293,6 +427,9 @@ export default function AdminPage() {
       const payload = await response.json().catch(() => null);
 
       if (response.ok && isSession(payload?.session)) {
+        const now = Date.now();
+        timesRef.current = { loginAt: now, lastActivityAt: now };
+        storeSessionTimes(timesRef.current);
         sessionRef.current = payload.session;
         storeSession(payload.session);
         setPassword("");
@@ -402,14 +539,7 @@ export default function AdminPage() {
   }
 
   function logout() {
-    const session = sessionRef.current;
-    // Revoca anche su Supabase, così il refresh token salvato non è più utilizzabile.
-    if (session) {
-      fetch("/api/admin/logout", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      }).catch(() => undefined);
-    }
+    revokeSession(sessionRef.current);
     endSession(SESSION_CLOSED);
   }
 
@@ -467,7 +597,7 @@ export default function AdminPage() {
           <p className="admin-login-error" role="alert">{loginError}</p>
 
           <button type="submit" disabled={signingIn}>{signingIn ? "Accesso…" : "Accedi"}</button>
-          {status === SESSION_EXPIRED || status === SESSION_CLOSED ? <small>{status}</small> : null}
+          {LOGIN_MESSAGES.includes(status) ? <small>{status}</small> : null}
         </form>
       </main>
     );

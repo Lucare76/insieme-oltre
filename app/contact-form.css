@@ -1,0 +1,24 @@
+#unisciti { scroll-margin-top: 100px; }
+.join-copy { min-width: 0; width: 100%; }
+.join .join-future { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(24px, 2.6vw, 38px); line-height: 1.25; color: var(--ink); }
+.join-future em { color: var(--coral); }
+.contact-form { position: relative; padding: clamp(18px, 3vw, 32px); border: 1px solid var(--line); border-radius: 24px; background: var(--cream); }
+.contact-note { margin: 0 0 20px; color: var(--ink-soft); font-size: 13px; }
+.contact-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.contact-fields label { display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 14px; font-weight: 700; }
+.contact-fields input, .contact-fields select, .contact-fields textarea { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); font: inherit; font-size: 16px; font-weight: 400; }
+.contact-fields textarea { resize: vertical; min-height: 130px; }
+.contact-wide { grid-column: 1 / -1; }
+.contact-form :is(input, select, textarea, button, a):focus-visible { outline: 3px solid var(--sage-dark); outline-offset: 3px; }
+.contact-privacy { display: flex; align-items: flex-start; gap: 10px; margin: 22px 0; font-size: 14px; line-height: 1.6; }
+.contact-privacy input { flex: none; width: 18px; height: 18px; margin-top: 3px; accent-color: var(--coral-deep); }
+.contact-privacy a, .contact-direct a { text-decoration: underline; text-underline-offset: 3px; }
+.contact-notice, .contact-success { padding: 14px; border-radius: 10px; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.contact-notice { background: #f7e5dc; color: var(--ink); }
+.contact-success { background: #e7eee3; color: var(--sage-dark); }
+.contact-form button { max-width: 100%; cursor: pointer; font-family: inherit; white-space: normal; }
+.contact-form button:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+.contact-honeypot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.join-copy .contact-direct { margin-top: 24px; margin-bottom: 0; font-size: 15px; overflow-wrap: anywhere; }
+.contact-direct a { display: inline-block; margin-top: 6px; color: var(--coral-deep); font-weight: 700; }
+@media (max-width: 600px) { .contact-fields { grid-template-columns: minmax(0, 1fr); } }

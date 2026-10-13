@@ -1,3 +1,6 @@
+import { ContactForm } from "./components/ContactForm";
+import { privacyPolicy } from "../lib/legal";
+import "./contact-form.css";
 import AuthHashRedirect from "./AuthHashRedirect";
 import { LegalLinks } from "./components/LegalLinks";
 import { REVEAL_BOOT_SCRIPT, ScrollReveal } from "./components/ScrollReveal";
@@ -211,7 +214,7 @@ export default async function Home() {
         <p className="promise-note" data-reveal="fade" style={delay(300)}>{content.promise.note}</p>
       </section>
 
-      <section className="join section" id="unisciti">
+      <section className="join section" id="unisciti" aria-labelledby="contact-title">
         <div className="join-symbol logo-frame-end" data-reveal="scale">
           <Image
             className="official-logo"
@@ -223,9 +226,16 @@ export default async function Home() {
         </div>
         <div className="join-copy" data-reveal-stagger>
           <p className="section-kicker" data-reveal="fade-up" style={delay(250)}>{content.join.kicker}</p>
-          <h2 data-reveal="fade-up" style={delay(250)}>{content.join.titleLine1}<br/><em>{content.join.titleLine2}</em></h2>
-          <p data-reveal="fade-up" style={delay(250)}>{content.join.text}</p>
-          <a className="button button-primary" href="#top" data-reveal="fade-up" style={delay(350)}>{content.join.cta} <span>↑</span></a>
+          <h2 id="contact-title" data-reveal="fade-up" style={delay(250)}>Parla con noi</h2>
+          <p className="join-future" data-reveal="fade-up" style={delay(250)}>Il futuro non si aspetta.<br/><em>Si costruisce insieme.</em></p>
+          <p data-reveal="fade-up" style={delay(250)}>Se sei una famiglia, vuoi darci una mano o hai un’idea da costruire insieme, scrivici. Ti ricontatteremo per conoscerci e capire insieme il prossimo passo.</p>
+          <div data-reveal="fade-up" style={delay(350)}>
+            <ContactForm privacyPublished={privacyPolicy.published} privacyHref={privacyPolicy.href} />
+          </div>
+          <p className="contact-direct" data-reveal="fade-up" style={delay(350)}>
+            Preferisci scriverci direttamente? Puoi farlo via email.<br/>
+            <a href="mailto:info@insiemeoltreischia.it">info@insiemeoltreischia.it</a>
+          </p>
         </div>
       </section>
 

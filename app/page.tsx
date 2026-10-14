@@ -1,3 +1,5 @@
+import { EventAnnouncement } from "./components/EventAnnouncement";
+import "./event-announcement.css";
 import { ContactForm } from "./components/ContactForm";
 import { privacyPolicy } from "../lib/legal";
 import "./contact-form.css";
@@ -74,6 +76,7 @@ export default async function Home() {
 
       <section className="hero" id="top">
         <div className="hero-noise" aria-hidden="true" />
+        <EventAnnouncement />
         <div className="hero-copy">
           <p className="eyebrow" data-reveal="fade-up">{content.hero.eyebrow}</p>
           <h1 data-reveal="title" style={delay(120)}>

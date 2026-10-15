@@ -42,6 +42,28 @@ export default function PartecipazioniAdmin() {
   const [data, setData] = useState<Result | null>(null);
   const [message, setMessage] = useState("Caricamento risposte...");
   const [refresh, setRefresh] = useState(0);
+  const [diagnostic, setDiagnostic] = useState<{ database: string; email: string } | null>(null);
+  const [diagnosticMessage, setDiagnosticMessage] = useState("");
+
+  async function runDiagnostic() {
+    setDiagnostic(null);
+    setDiagnosticMessage("Verifica in corso…");
+    let token = "";
+    try {
+      const session = JSON.parse(localStorage.getItem("insieme_oltre_admin_session") || "null");
+      token = typeof session?.access_token === "string" ? session.access_token : "";
+    } catch { /* sessione non disponibile */ }
+    if (!token) { setDiagnosticMessage("Accedi nuovamente dall'area riservata."); return; }
+    try {
+      const response = await fetch("/api/admin/partecipazioni/diagnostica", {
+        headers: { Authorization: "Bearer " + token }, cache: "no-store",
+      });
+      const payload = await response.json();
+      if (!response.ok) { setDiagnosticMessage(payload.error || "Diagnostica non riuscita."); return; }
+      setDiagnostic(payload);
+      setDiagnosticMessage("");
+    } catch { setDiagnosticMessage("Impossibile completare il controllo."); }
+  }
 
   useEffect(() => {
     let active = true;
@@ -83,8 +105,24 @@ export default function PartecipazioniAdmin() {
       <p style={{ color: "#556158", marginBottom: 16 }}>Le risposte salvate su Supabase sono riepilogate qui. Se il database non è disponibile, le risposte arrivano via email all’associazione e non vengono conteggiate in questa schermata.</p>
       <div className="responses-nav"><Link href="/admin">← Torna al pannello</Link>
         <button onClick={() => setRefresh((n) => n + 1)}>Aggiorna</button>
+        <button onClick={runDiagnostic}>Verifica ricezione questionari</button>
         <button disabled={!data?.items.length} onClick={() => data && exportCsv(data.items)}>Esporta CSV</button>
       </div>
+      {(diagnosticMessage || diagnostic) && <div className="admin-card" style={{ marginBottom: 16 }} aria-live="polite">
+        <h2 style={{ fontSize: 26 }}>Stato dei canali di invio</h2>
+        {diagnosticMessage && <p>{diagnosticMessage}</p>}
+        {diagnostic && <>
+          <p><strong>Database:</strong> {({
+            ok: "Tabella presente e leggibile",
+            not_configured: "Chiavi Supabase mancanti",
+            table_missing: "Tabella risposte assente: applicare le migrazioni",
+            connection_failed: "Connessione database non riuscita",
+            access_denied: "Accesso al database rifiutato",
+          } as Record<string, string>)[diagnostic.database] || "Stato non riconosciuto"}</p>
+          <p><strong>Brevo:</strong> {diagnostic.email === "configured" ? "Chiavi presenti (invio da testare)" : "Configurazione email assente o incompleta"}</p>
+          <small>Per ricevere le risposte serve almeno un canale operativo. Non condividere mai chiavi o token.</small>
+        </>}
+      </div>}
       {!data ? <div className="admin-card"><p role="status">{message}</p><Link href="/admin">Accedi o torna all'area riservata →</Link></div> :
       <>
         {message && <p role="status">{message}</p>}

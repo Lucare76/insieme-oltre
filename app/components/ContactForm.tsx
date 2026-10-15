@@ -3,14 +3,14 @@
 import { useRef, useState, type FormEvent } from "react";
 import { contactRoles } from "../../lib/contact";
 
-export function ContactForm({ privacyPublished, privacyHref }: { privacyPublished: boolean; privacyHref: string }) {
+export function ContactForm({ available, privacyHref }: { available: boolean; privacyHref: string }) {
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<{ error: boolean; message: string } | null>(null);
   const sending = useRef(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!privacyPublished || sending.current) return;
+    if (!available || sending.current) return;
     const form = event.currentTarget;
     const data = new FormData(form);
     sending.current = true;
@@ -40,7 +40,7 @@ export function ContactForm({ privacyPublished, privacyHref }: { privacyPublishe
 
   return (
     <form className="contact-form" onSubmit={submit} aria-label="Parla con noi" aria-describedby="contact-note" aria-busy={pending}>
-      <p className="contact-note" id="contact-note">I campi con * sono obbligatori.</p>
+      <p className="contact-note" id="contact-note">I campi con * sono obbligatori. Non inserire dati sanitari o informazioni particolarmente sensibili nel messaggio.</p>
       <div className="contact-fields">
         <label htmlFor="contact-name">Nome e cognome *<input id="contact-name" name="name" autoComplete="name" required maxLength={120} /></label>
         <label htmlFor="contact-email">Email *<input id="contact-email" name="email" type="email" autoComplete="email" required maxLength={254} /></label>
@@ -50,11 +50,11 @@ export function ContactForm({ privacyPublished, privacyHref }: { privacyPublishe
       </div>
       <div className="contact-honeypot" aria-hidden="true"><label htmlFor="contact-website">Sito web<input id="contact-website" name="website" tabIndex={-1} autoComplete="off" /></label></div>
       <label className="contact-privacy" htmlFor="contact-privacy">
-        <input id="contact-privacy" name="privacy" type="checkbox" required disabled={!privacyPublished} />
-        <span>Ho letto e accetto la {privacyPublished ? <a href={privacyHref} target="_blank" rel="noopener noreferrer">Privacy Policy (si apre in una nuova scheda)</a> : "Privacy Policy"}. *</span>
+        <input id="contact-privacy" name="privacy" type="checkbox" required disabled={!available} />
+        <span>Ho letto l’<a href={privacyHref} target="_blank" rel="noopener noreferrer">informativa sul trattamento dei dati (si apre in una nuova scheda)</a>. *</span>
       </label>
-      {!privacyPublished && <p className="contact-notice">Il form sarà disponibile dopo la pubblicazione della Privacy Policy. Nel frattempo, puoi scriverci via email.</p>}
-      <button className="button button-primary" type="submit" disabled={!privacyPublished || pending}>{pending ? "Invio in corso…" : "Invia il messaggio"}<span aria-hidden="true">→</span></button>
+      {!available && <p className="contact-notice">Il modulo non è ancora disponibile. Nel frattempo puoi scriverci direttamente a <a href="mailto:info@insiemeoltreischia.it">info@insiemeoltreischia.it</a>.</p>}
+      <button className="button button-primary" type="submit" disabled={!available || pending}>{pending ? "Invio in corso…" : "Invia il messaggio"}<span aria-hidden="true">→</span></button>
       <div aria-live="polite" aria-atomic="true">{feedback && <p className={feedback.error ? "contact-notice" : "contact-success"}>{feedback.message}</p>}</div>
       <noscript><p>Per usare il form attiva JavaScript oppure scrivici via email.</p></noscript>
     </form>

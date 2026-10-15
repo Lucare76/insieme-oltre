@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { validateContact } from "../../../lib/contact";
-import { sendContactMail } from "../../../lib/contactMail";
-import { privacyPolicy } from "../../../lib/legal";
+import { contactMailConfig, sendContactMail } from "../../../lib/contactMail";
+import { contactNotice } from "../../../lib/legal";
 
 export const runtime = "nodejs";
 
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   if (typeof website === "string" && website.trim()) return reply(200, "Grazie per il tuo messaggio.");
   const message = validateContact(value);
   if (!message) return reply(400, "Controlla i campi obbligatori e la Privacy Policy.");
-  if (!privacyPolicy.published) return reply(503, "Il form sarà disponibile dopo la pubblicazione della Privacy Policy. Scrivici via email.");
+  if (!contactNotice.published || !contactMailConfig()) return reply(503, "Il modulo non è ancora disponibile. Scrivici a info@insiemeoltreischia.it.");
   try {
     await sendContactMail(message);
     return reply(200, "Messaggio inviato. Ti ricontatteremo per conoscerci e capire insieme il prossimo passo.");

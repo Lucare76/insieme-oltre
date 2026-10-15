@@ -1,7 +1,8 @@
 import { EventAnnouncement } from "./components/EventAnnouncement";
 import "./event-announcement.css";
 import { ContactForm } from "./components/ContactForm";
-import { privacyPolicy } from "../lib/legal";
+import { contactNotice } from "../lib/legal";
+import { contactMailConfig } from "../lib/contactMail";
 import "./contact-form.css";
 import AuthHashRedirect from "./AuthHashRedirect";
 import { LegalLinks } from "./components/LegalLinks";
@@ -236,7 +237,7 @@ export default async function Home() {
           <p className="join-future" data-reveal="fade-up" style={delay(250)}>Il futuro non si aspetta.<br/><em>Si costruisce insieme.</em></p>
           <p data-reveal="fade-up" style={delay(250)}>Se sei una famiglia, vuoi darci una mano o hai un’idea da costruire insieme, scrivici. Ti ricontatteremo per conoscerci e capire insieme il prossimo passo.</p>
           <div data-reveal="fade-up" style={delay(350)}>
-            <ContactForm privacyPublished={privacyPolicy.published} privacyHref={privacyPolicy.href} />
+            <ContactForm available={contactNotice.published && Boolean(contactMailConfig())} privacyHref={contactNotice.href} />
           </div>
           <p className="contact-direct" data-reveal="fade-up" style={delay(350)}>
             Preferisci scriverci direttamente? Puoi farlo via email.<br/>

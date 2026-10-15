@@ -39,5 +39,6 @@ export function validateParticipation(value: unknown): Participation | null {
   if (v.idea !== undefined && v.idea !== null && typeof v.idea !== "string") return null;
   const idea = typeof v.idea === "string" ? v.idea.trim() : "";
   if (idea.length > 350) return null;
+  if (v.privacy !== true) return null;
   return { role, age, interests: v.interests as Participation["interests"], idea: idea || null };
 }

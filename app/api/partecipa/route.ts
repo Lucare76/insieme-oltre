@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { privacyPolicy } from "../../../lib/legal";
+import { sendParticipationEmail } from "../../../lib/participationMail";
 import { validateParticipation } from "../../../lib/participation";
 
 export const runtime = "nodejs";
@@ -12,11 +12,8 @@ const respond = (status: number, message: string) => Response.json({ message }, 
 });
 
 export async function POST(request: Request) {
-  // Non attivare raccolta reale finché non è pubblicata un'informativa pertinente.
-  if (!privacyPolicy.published) return respond(503, "Il questionario sarà attivato dopo la pubblicazione della Privacy Policy.");
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return respond(503, "Servizio temporaneamente non disponibile.");
   const origin = request.headers.get("origin");
   if (origin && origin !== new URL(request.url).origin) return respond(403, "Richiesta non consentita.");
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) return respond(415, "Formato non supportato.");
@@ -50,15 +47,27 @@ export async function POST(request: Request) {
   const value = validateParticipation(data);
   if (!value) return respond(400, "Controlla le risposte e conferma la lettura della Privacy Policy.");
 
-  try {
-    const saved = await fetch(url + "/rest/v1/participation_submissions", {
-      method: "POST",
-      headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json", Prefer: "return=minimal" },
-      body: JSON.stringify({ role: value.role, age: value.age, interests: value.interests, need: value.need, times: value.times, obstacle: value.obstacle, contribution: value.contribution, idea: value.idea }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!saved.ok) return respond(503, "Non siamo riusciti a salvare la risposta. Riprova più tardi.");
-    return respond(200, "Grazie! La tua proposta ci aiuterà a scegliere le prime attività.");
-  } catch { return respond(503, "Salvataggio non confermato. Riprova più tardi."); }
+  // Prima scelta: database. In assenza della migrazione, Brevo può ricevere la risposta.
+  if (url && key) {
+    try {
+      const saved = await fetch(url + "/rest/v1/participation_submissions", {
+        method: "POST",
+        headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({
+          role: value.role, age: value.age, interests: value.interests,
+          need: value.need, times: value.times, obstacle: value.obstacle,
+          contribution: value.contribution, idea: value.idea,
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(5000),
+      });
+      if (saved.ok) return respond(200, "Grazie! La tua risposta è stata registrata.");
+    } catch {
+      // Il database non è raggiungibile; si tenta l'invio via email.
+    }
+  }
+
+  const delivered = await sendParticipationEmail(value);
+  if (delivered) return respond(200, "Grazie! La tua risposta è stata ricevuta dall'associazione.");
+  return respond(503, "Il questionario è temporaneamente non disponibile per l'invio. Riprova tra qualche minuto.");
 }

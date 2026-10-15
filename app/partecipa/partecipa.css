@@ -30,9 +30,9 @@
 .participa-consent label{display:flex;gap:11px;align-items:flex-start;line-height:1.6}
 .participa-consent a{text-decoration:underline;text-underline-offset:3px}
 .participa-consent p{padding:15px;color:#7a4036;background:#fff0e8;border-radius:12px}
-.participa-submit{border:none;border-radius:99px;background:#425a48;color:white;font-size:16px;font-weight:700;padding:18px 30px;cursor:pointer}
+.participa-submit{min-height:54px;width:100%;border:none;border-radius:99px;background:#425a48;color:white;font-size:16px;font-weight:700;padding:18px 30px;cursor:pointer}
 .participa-submit:disabled{opacity:.5;cursor:not-allowed}
 .participa-error{color:#a12329}.participa-success{color:#2d6546}
 .participa-thanks{text-align:center;padding:45px 16px}.participa-thanks>div{color:#e6685e;font-size:58px}.participa-thanks h3{font:normal 44px Georgia,serif}.participa-thanks p{color:#526356;line-height:1.6}.participa-thanks a{display:inline-block;margin-top:18px;text-decoration:underline}
 .participa-footer{padding:32px 20px;background:#425a48;color:#fff;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:14px 32px}.participa-footer strong{font:26px Georgia,serif}.participa-footer a{text-decoration:underline}
-@media(max-width:620px){.participa-header{padding:0 14px}.participa-header img{width:127px;height:92px}.participa-home{font-size:11px}.participa-intro{padding-top:25px}.participa-intro>p:not(.participa-kicker){font-size:16px}.participa-form-wrap{border-radius:22px;margin:0 12px 30px;padding:22px}.participa-activities{grid-template-columns:1fr}.participa-choices{display:grid;grid-template-columns:1fr}.participa-form legend{font-size:18px}}
+@media(max-width:620px){.participa-intro h1{font-size:clamp(39px,10vw,63px);overflow-wrap:anywhere}.participa-submit{min-height:56px}.participa-activities label,.participa-choices label{min-height:56px}.participa-page{overflow-x:hidden}.participa-header{padding:0 14px}.participa-header img{width:127px;height:92px}.participa-home{font-size:11px}.participa-intro{padding-top:25px}.participa-intro>p:not(.participa-kicker){font-size:16px}.participa-form-wrap{border-radius:22px;margin:0 12px 30px;padding:22px}.participa-activities{grid-template-columns:1fr}.participa-choices{display:grid;grid-template-columns:1fr}.participa-form legend{font-size:18px}}

@@ -18,4 +18,11 @@ export const cookiePolicy: LegalPage = {
   published: true,
 };
 
-export const legalPages = [privacyPolicy, cookiePolicy].filter((page) => page.published);
+/** Informativa dedicata ai soli messaggi del modulo «Parla con noi». */
+export const contactNotice: LegalPage = {
+  href: "/informativa-contatti",
+  label: "Informativa contatti",
+  published: true,
+};
+
+export const legalPages = [privacyPolicy, contactNotice, cookiePolicy].filter((page) => page.published);

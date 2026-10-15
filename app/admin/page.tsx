@@ -612,6 +612,8 @@ export default function AdminPage() {
           <span>{status}</span>
         </div>
 
+        <p style={{ margin: "0 0 20px" }}><a href="/admin/partecipazioni" style={{ display: "inline-block", padding: "13px 20px", borderRadius: "30px", background: "#425a48", color: "white", fontWeight: 700 }}>Le idee delle famiglie →</a></p>
+
         <div className="admin-card admin-editor">
           <div className="admin-toolbar">
             <button disabled={loading} onClick={saveContent}>Salva testi</button>

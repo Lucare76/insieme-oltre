@@ -157,6 +157,9 @@ export default async function Home() {
             </article>
           ))}
         </div>
+        <p style={{ textAlign: "center", marginTop: 38 }}>
+          <a className="button button-primary" href="/partecipa">Scopri le proposte e scegli con noi <span aria-hidden="true">→</span></a>
+        </p>
       </section>
 
       <section className="stories section" id="storie" aria-labelledby="stories-title">

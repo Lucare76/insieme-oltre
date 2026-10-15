@@ -1,13 +1,17 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
-import { ages, priorities, roles } from "../../lib/participation";
+import { ages, contributions, needs, obstacles, priorities, roles, times } from "../../lib/participation";
 
 export function ParticipationForm({ available, privacyHref }: { available: boolean; privacyHref: string }) {
   const [role, setRole] = useState("familiare");
   const [age, setAge] = useState("tutte");
   const [interests, setInterests] = useState<string[]>([]);
   const [idea, setIdea] = useState("");
+  const [need, setNeed] = useState("");
+  const [timesSelected, setTimesSelected] = useState<string[]>([]);
+  const [obstacle, setObstacle] = useState("");
+  const [contribution, setContribution] = useState("");
   const [privacy, setPrivacy] = useState(false);
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; message: string } | null>(null);
@@ -16,6 +20,10 @@ export function ParticipationForm({ available, privacyHref }: { available: boole
 
   function changeInterest(id: string, checked: boolean) {
     setInterests((list) => checked ? (list.length < 3 ? [...list, id] : list) : list.filter((x) => x !== id));
+  }
+
+  function changeTime(id: string, checked: boolean) {
+    setTimesSelected((list) => checked ? (list.length < 2 ? [...list, id] : list) : list.filter((x) => x !== id));
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -28,7 +36,7 @@ export function ParticipationForm({ available, privacyHref }: { available: boole
       const response = await fetch("/api/partecipa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, age, interests, idea: idea.trim(), privacy, website: "" }),
+        body: JSON.stringify({ role, age, interests, need, times: timesSelected, obstacle, contribution, idea: idea.trim(), privacy, website: "" }),
         signal: AbortSignal.timeout(15000),
       });
       const payload = await response.json().catch(() => null);
@@ -74,7 +82,52 @@ export function ParticipationForm({ available, privacyHref }: { available: boole
       <p className="participa-hint" aria-live="polite">Selezionate: {interests.length} su 3</p>
     </fieldset>
     <fieldset>
-      <legend><span>04</span> Vuoi aggiungere un'idea?</legend>
+      <legend><span>04</span> Qual è la difficoltà più importante da affrontare?</legend>
+      <p className="participa-hint">Facoltativo. Ci aiuta a capire da dove cominciare.</p>
+      <div className="participa-choices">
+        {needs.map((item) => <label key={item.value} className={need === item.value ? "selected" : ""}>
+          <input type="radio" name="need" value={item.value} checked={need === item.value} onChange={() => setNeed(item.value)} />
+          {item.label}
+        </label>)}
+        <label className={need === "" ? "selected" : ""}><input type="radio" name="need" value="" checked={need === ""} onChange={() => setNeed("")} />Preferisco non rispondere</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend><span>05</span> Quando ti sarebbe più comodo partecipare?</legend>
+      <p className="participa-hint">Facoltativo: puoi indicare fino a due momenti.</p>
+      <div className="participa-choices">
+        {times.map((item) => <label key={item.value} className={timesSelected.includes(item.value) ? "selected" : ""}>
+          <input type="checkbox" checked={timesSelected.includes(item.value)}
+            disabled={!timesSelected.includes(item.value) && timesSelected.length >= 2}
+            onChange={(e) => changeTime(item.value, e.target.checked)} />
+          {item.label}
+        </label>)}
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend><span>06</span> Cosa potrebbe rendere difficile partecipare?</legend>
+      <p className="participa-hint">Facoltativo: scegli la difficoltà principale.</p>
+      <div className="participa-choices">
+        {obstacles.map((item) => <label key={item.value} className={obstacle === item.value ? "selected" : ""}>
+          <input type="radio" name="obstacle" value={item.value} checked={obstacle === item.value} onChange={() => setObstacle(item.value)} />
+          {item.label}
+        </label>)}
+        <label className={obstacle === "" ? "selected" : ""}><input type="radio" name="obstacle" value="" checked={obstacle === ""} onChange={() => setObstacle("")} />Preferisco non rispondere</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend><span>07</span> Ti piacerebbe contribuire all'associazione?</legend>
+      <p className="participa-hint">Facoltativo. Non è un'iscrizione né un impegno: vogliamo capire le disponibilità.</p>
+      <div className="participa-choices">
+        {contributions.map((item) => <label key={item.value} className={contribution === item.value ? "selected" : ""}>
+          <input type="radio" name="contribution" value={item.value} checked={contribution === item.value} onChange={() => setContribution(item.value)} />
+          {item.label}
+        </label>)}
+        <label className={contribution === "" ? "selected" : ""}><input type="radio" name="contribution" value="" checked={contribution === ""} onChange={() => setContribution("")} />Preferisco non rispondere</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend><span>08</span> Vuoi aggiungere un'idea?</legend>
       <label className="participa-idea" htmlFor="participa-idea">Facoltativo: un suggerimento in poche parole.</label>
       <textarea id="participa-idea" rows={3} value={idea} onChange={(e) => setIdea(e.target.value)} maxLength={350}
         placeholder="Mi piacerebbe organizzare..." />

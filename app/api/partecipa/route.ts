@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     const saved = await fetch(url + "/rest/v1/participation_submissions", {
       method: "POST",
       headers: { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json", Prefer: "return=minimal" },
-      body: JSON.stringify({ role: value.role, age: value.age, interests: value.interests, idea: value.idea }),
+      body: JSON.stringify({ role: value.role, age: value.age, interests: value.interests, need: value.need, times: value.times, obstacle: value.obstacle, contribution: value.contribution, idea: value.idea }),
       cache: "no-store",
       signal: AbortSignal.timeout(10000),
     });

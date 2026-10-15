@@ -4,7 +4,8 @@ import { validateParticipation } from "../../../lib/participation";
 
 export const runtime = "nodejs";
 const WINDOW = 60 * 60 * 1000;
-const MAX_REQUESTS = 4;
+// QR condiviso durante eventi: molte persone possono usare lo stesso Wi-Fi.
+const MAX_REQUESTS = 80;
 const attempts = new Map<string, { n: number; until: number }>();
 const respond = (status: number, message: string) => Response.json({ message }, {
   status, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" },

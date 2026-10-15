@@ -1,7 +1,7 @@
 /** Un questionario di priorità, non un modulo sanitario o di iscrizione. */
 export const roles = [
   { value: "familiare", label: "Genitore o familiare" },
-  { value: "persona", label: "Persona con sindrome di Down" },
+  { value: "persona", label: "Partecipo in prima persona" },
   { value: "volontario", label: "Volontario o sostenitore" },
 ] as const;
 

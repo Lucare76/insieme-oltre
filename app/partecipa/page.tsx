@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { privacyPolicy } from "../../lib/legal";
 import { socialMetadata } from "../../lib/seo";
 import { ParticipationForm } from "./ParticipationForm";
 import "./partecipa.css";
@@ -34,7 +33,7 @@ export default function PartecipaPage() {
     <section className="participa-form-wrap" aria-labelledby="partecipazione-form-title">
       <h2 id="partecipazione-form-title">La tua voce conta.</h2>
       <p>Non stiamo chiedendo un'iscrizione: raccogliamo soltanto idee e preferenze per organizzare le prime attività.</p>
-      <ParticipationForm available={privacyPolicy.published} privacyHref={privacyPolicy.href} />
+      <ParticipationForm available privacyHref="/informativa-questionario" />
     </section>
     <footer className="participa-footer">
       <strong>Insieme Oltre</strong>

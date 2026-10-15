@@ -1,20 +1,28 @@
-# Questionario «Da dove cominciamo?» – rilascio
+# Attivazione e verifica del questionario – Insieme Oltre
 
-## Stato del codice
-- \`/partecipa\`: pagina mobile-first con scelte per famiglie, persone con sindrome di Down e volontari.
-- \`POST /api/partecipa\`: salva soltanto ruolo, fascia d'età, massimo tre priorità, quattro domande facoltative per organizzare le attività e un suggerimento facoltativo (max 350 caratteri). Non salva indirizzi IP, nomi, email, dati medici.
-- \`/admin/partecipazioni\`: riepilogo protetto dalla stessa autenticazione del pannello e CSV con protezione anti-formule.
-- RLS sul database: nessuna policy per \`anon\` o \`authenticated\`; accesso tramite backend \`service_role\` dopo verifica admin.
+## Percorso per chi partecipa
+- Link pubblico `/partecipa`, accessibile con QR da desktop e smartphone.
+- Nessuna iscrizione, nessun nome, email o telefono richiesto.
+- Informazioni specifiche disponibili in `/informativa-questionario`, richiamate vicino al pulsante di invio. L'informativa generale del sito resta separata e non viene fittiziamente dichiarata pubblicata.
+- Domande facoltative per comprendere esigenze, orari, difficoltà e disponibilità a collaborare; una sola risposta per invio.
 
-## Prima di abilitare l'invio
-1. Applicare nel progetto Supabase **usato dal sito** le migrazioni \`supabase/migrations/20261015160000_participation_submissions.sql\` e poi \`supabase/migrations/20261015170000_participation_planning_questions.sql\`.
-2. Completare l'informativa privacy ufficiale del titolare con le finalità, tempi di conservazione, contatti e modalità di esercizio dei diritti. Pubblicare \`/privacy-policy\` e solo allora porre \`privacyPolicy.published = true\` in \`lib/legal.ts\`. Non attivare prima.
-3. Verificare in Vercel \`NEXT_PUBLIC_SUPABASE_URL\`, \`SUPABASE_SERVICE_ROLE_KEY\`, \`NEXT_PUBLIC_SUPABASE_ANON_KEY\`, \`ADMIN_ALLOWED_EMAIL\`.
-4. Verificare invio test, riapertura del pannello admin, conteggi, esportazione CSV e protezione GET admin (401 senza token).
-5. Solo dopo il test pubblico, distribuire il flyer A4 con il QR per \`https://insiemeoltreischia.it/partecipa\` (o il dominio canonico verificato).
+## Come viene ricevuta una risposta
+1. Il backend convalida tutte le scelte, il limite di testo e la presa visione delle informazioni.
+2. Tenta di registrare la risposta nella tabella privata Supabase `participation_submissions`.
+3. Se il database non è disponibile, tenta la consegna all'email organizzativa tramite la configurazione Brevo del modulo contatti. Il messaggio di successo compare **solo quando Supabase o Brevo confermano l'accettazione**.
+4. Le risposte via email **non** sono comprese nel conteggio di `/admin/partecipazioni`; consultare anche la casella della posta dell'associazione.
+5. In caso di errore di entrambi i sistemi, restituisce un messaggio senza affermare che la risposta sia stata salvata.
 
-## Note operative
-- Il form non chiede contatti: non è un'iscrizione né invia risposte via email.
-- Rate limit in-memory (best effort), non un controllo distribuito. Per volumi elevati valutare rate limiting persistente / CAPTCHA rispettoso della privacy.
-- Pianificare una politica di cancellazione periodica delle risposte e di moderazione dei suggerimenti; non usare i testi liberi per profilazione.
-- I conteggi nell'admin mostrano al massimo le ultime 500 risposte e segnano esplicitamente il campione parziale.
+## Verifiche necessarie
+- Controllare la pubblicazione e l'adeguatezza dei testi in `/informativa-questionario` con il legale dell'associazione, i riferimenti del titolare del trattamento e le condizioni reali di conservazione.
+- In Vercel controllare `BREVO_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_TO_EMAIL`; il mittente deve essere verificato in Brevo.
+- Nel database del progetto effettivo eseguire, in ordine, le migrazioni `20261015160000_participation_submissions.sql` e `20261015170000_participation_planning_questions.sql`.
+- Testare il modulo su cellulare e desktop, con una risposta chiaramente di prova.
+- Controllare la conferma server e la ricezione effettiva in Supabase **oppure** nella casella email.
+- Verificare che `/api/admin/partecipazioni` rifiuti accessi senza autenticazione.
+- Non far stampare o distribuire il QR finché un invio reale non è stato verificato.
+
+## Note
+- Il modulo non memorizza nominativi o recapiti; il campo di testo libero può però ricevere dati identificativi se inseriti dall'utente. Va ricordato di evitarli.
+- Il semplice QR funzionante prova solo l'apertura della pagina, non la capacità di ricevere le risposte.
+- Il limite richieste è "best effort" per processo: non è un rate limit distribuito.

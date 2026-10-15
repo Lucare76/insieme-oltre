@@ -80,6 +80,7 @@ export default function PartecipazioniAdmin() {
   return <main className="admin-page">
     <section className="admin-shell">
       <div className="admin-heading"><p>Insieme Oltre · Area riservata</p><h1>Le idee delle famiglie</h1><span>Priorità e proposte per le attività</span></div>
+      <p style={{ color: "#556158", marginBottom: 16 }}>Le risposte salvate su Supabase sono riepilogate qui. Se il database non è disponibile, le risposte arrivano via email all’associazione e non vengono conteggiate in questa schermata.</p>
       <div className="responses-nav"><Link href="/admin">← Torna al pannello</Link>
         <button onClick={() => setRefresh((n) => n + 1)}>Aggiorna</button>
         <button disabled={!data?.items.length} onClick={() => data && exportCsv(data.items)}>Esporta CSV</button>

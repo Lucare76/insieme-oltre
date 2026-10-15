@@ -29,7 +29,7 @@ export default function PartecipaPage() {
       <p className="participa-kicker">Costruiamo i primi progetti insieme</p>
       <h1 id="participa-title">Da dove<br /><em>cominciamo?</em></h1>
       <p>Un'associazione diventa utile quando ascolta davvero. Dicci quali attività vorresti trovare in Insieme Oltre: le vostre indicazioni ci aiuteranno a scegliere le priorità.</p>
-      <div className="participa-tags"><span>Per ogni età</span><span>Circa 1 minuto</span><span>Senza nome o email</span></div>
+      <div className="participa-tags"><span>Per ogni età</span><span>Circa 2 minuti</span><span>Senza nome o email</span></div>
     </section>
     <section className="participa-form-wrap" aria-labelledby="partecipazione-form-title">
       <h2 id="partecipazione-form-title">La tua voce conta.</h2>

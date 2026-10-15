@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ages, priorities, roles } from "../../../lib/participation";
+import { ages, contributions, needs, obstacles, priorities, roles, times } from "../../../lib/participation";
 import "../admin.css";
 import "./risposte.css";
 
-type Item = { id: string; created_at: string; role: string; age: string; interests: string[]; idea: string | null };
+type Item = { id: string; created_at: string; role: string; age: string; interests: string[]; need?: string | null; times?: string[] | null; obstacle?: string | null; contribution?: string | null; idea: string | null };
 type Result = { items: Item[]; total: number; limited: boolean };
 const roleLabel = (v: string) => roles.find((x) => x.value === v)?.label || v;
 const ageLabel = (v: string) => ages.find((x) => x.value === v)?.label || v;
 const activityLabel = (v: string) => priorities.find((x) => x.value === v)?.title || v;
+const choiceLabel = (v: string | null | undefined, options: readonly { value: string; label: string }[]) => options.find((x) => x.value === v)?.label || "—";
 
 function csvCell(value: string) {
   // Protezione formula injection quando un campo libero viene aperto con Excel/LibreOffice.
@@ -19,11 +20,15 @@ function csvCell(value: string) {
 }
 function exportCsv(items: Item[]) {
   const lines = [
-    ["Data", "Ruolo", "Età", "Priorità", "Idea"].map(csvCell).join(";"),
+    ["Data", "Ruolo", "Età", "Priorità", "Difficoltà principale", "Orari", "Ostacoli", "Collaborazione", "Idea"].map(csvCell).join(";"),
     ...items.map((item) => [
       new Date(item.created_at).toLocaleString("it-IT"),
       roleLabel(item.role), ageLabel(item.age),
-      item.interests.map(activityLabel).join(" | "), item.idea || "",
+      item.interests.map(activityLabel).join(" | "),
+      choiceLabel(item.need, needs),
+      (item.times || []).map((x) => choiceLabel(x, times)).join(" | "),
+      choiceLabel(item.obstacle, obstacles),
+      choiceLabel(item.contribution, contributions), item.idea || "",
     ].map(csvCell).join(";")),
   ];
   const csv = "\uFEFF" + lines.join("\r\n");
@@ -65,6 +70,12 @@ export default function PartecipazioniAdmin() {
     value: data?.items.filter((item) => item.interests.includes(p.value)).length || 0,
   }));
   const top = Math.max(1, ...counts.map((x) => x.value));
+  const summaries = [
+    { title: "Difficoltà da affrontare", rows: needs.map((x) => ({ label: x.label, value: data?.items.filter((item) => item.need === x.value).length || 0 })) },
+    { title: "Orari preferiti", rows: times.map((x) => ({ label: x.label, value: data?.items.filter((item) => item.times?.includes(x.value)).length || 0 })) },
+    { title: "Ostacoli alla partecipazione", rows: obstacles.map((x) => ({ label: x.label, value: data?.items.filter((item) => item.obstacle === x.value).length || 0 })) },
+    { title: "Disponibilità a collaborare", rows: contributions.map((x) => ({ label: x.label, value: data?.items.filter((item) => item.contribution === x.value).length || 0 })) },
+  ];
 
   return <main className="admin-page">
     <section className="admin-shell">
@@ -86,15 +97,30 @@ export default function PartecipazioniAdmin() {
             <progress max={top} value={item.value} aria-label={item.title + ": " + item.value + " preferenze"} />
           </div>)}
         </section>
+        <div className="responses-insights">
+          {summaries.map((summary) => <section key={summary.title} className="admin-card responses-chart">
+            <h2>{summary.title}</h2>
+            <p>Risposte facoltative: i dati non indicano un impegno o una registrazione.</p>
+            {summary.rows.map((item) => <div className="responses-bar" key={item.label}>
+              <div><strong>{item.label}</strong><span>{item.value}</span></div>
+              <progress max={Math.max(1, ...summary.rows.map((x) => x.value))} value={item.value} aria-label={item.label + ": " + item.value + " preferenze"} />
+            </div>)}
+          </section>)}
+        </div>
         <section className="admin-card responses-table">
           <h2>Risposte e suggerimenti</h2>
           <p>Le risposte non includono nomi, email o recapiti.</p>
           <div className="responses-scroller"><table>
-            <thead><tr><th>Data</th><th>Partecipa come</th><th>Età</th><th>Attività</th><th>Suggerimento</th></tr></thead>
+            <thead><tr><th>Data</th><th>Partecipa come</th><th>Età</th><th>Attività</th><th>Difficoltà</th><th>Quando</th><th>Ostacoli</th><th>Collaborazione</th><th>Suggerimento</th></tr></thead>
             <tbody>{data.items.map((item) => <tr key={item.id}>
               <td>{new Date(item.created_at).toLocaleDateString("it-IT")}</td>
               <td>{roleLabel(item.role)}</td><td>{ageLabel(item.age)}</td>
-              <td>{item.interests.map(activityLabel).join(", ")}</td><td>{item.idea || "—"}</td>
+              <td>{item.interests.map(activityLabel).join(", ")}</td>
+              <td>{choiceLabel(item.need, needs)}</td>
+              <td>{(item.times || []).map((x) => choiceLabel(x, times)).join(", ") || "—"}</td>
+              <td>{choiceLabel(item.obstacle, obstacles)}</td>
+              <td>{choiceLabel(item.contribution, contributions)}</td>
+              <td>{item.idea || "—"}</td>
             </tr>)}</tbody>
           </table></div>
           {data.items.length === 0 && <p>Non sono ancora arrivate risposte.</p>}

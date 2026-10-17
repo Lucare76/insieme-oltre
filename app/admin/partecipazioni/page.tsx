@@ -146,22 +146,26 @@ export default function PartecipazioniAdmin() {
             </div>)}
           </section>)}
         </div>
-        <section className="admin-card responses-table">
+        <section className="admin-card responses-list">
           <h2>Risposte e suggerimenti</h2>
-          <p>Le risposte non includono nomi, email o recapiti.</p>
-          <div className="responses-scroller"><table>
-            <thead><tr><th>Data</th><th>Partecipa come</th><th>Età</th><th>Attività</th><th>Difficoltà</th><th>Quando</th><th>Ostacoli</th><th>Collaborazione</th><th>Suggerimento</th></tr></thead>
-            <tbody>{data.items.map((item) => <tr key={item.id}>
-              <td>{new Date(item.created_at).toLocaleDateString("it-IT")}</td>
-              <td>{roleLabel(item.role)}</td><td>{ageLabel(item.age)}</td>
-              <td>{item.interests.map(activityLabel).join(", ")}</td>
-              <td>{choiceLabel(item.need, needs)}</td>
-              <td>{(item.times || []).map((x) => choiceLabel(x, times)).join(", ") || "—"}</td>
-              <td>{choiceLabel(item.obstacle, obstacles)}</td>
-              <td>{choiceLabel(item.contribution, contributions)}</td>
-              <td>{item.idea || "—"}</td>
-            </tr>)}</tbody>
-          </table></div>
+          <p>Ogni scheda raccoglie una risposta anonima. Non sono presenti nomi, email o recapiti.</p>
+          <div className="responses-cards">
+            {data.items.map((item, index) => <article className="response-card" key={item.id}>
+              <div className="response-card-heading">
+                <div><span className="response-number">Risposta {index + 1}</span><h3>{roleLabel(item.role)}</h3></div>
+                <time dateTime={item.created_at}>{new Date(item.created_at).toLocaleDateString("it-IT")}</time>
+              </div>
+              <dl className="response-fields">
+                <div><dt>Fascia d’età</dt><dd>{ageLabel(item.age)}</dd></div>
+                <div><dt>Attività d’interesse</dt><dd>{item.interests.map(activityLabel).join(", ")}</dd></div>
+                <div><dt>Difficoltà principale</dt><dd>{choiceLabel(item.need, needs)}</dd></div>
+                <div><dt>Quando</dt><dd>{(item.times || []).map((x) => choiceLabel(x, times)).join(", ") || "—"}</dd></div>
+                <div><dt>Ostacoli</dt><dd>{choiceLabel(item.obstacle, obstacles)}</dd></div>
+                <div><dt>Disponibilità a collaborare</dt><dd>{choiceLabel(item.contribution, contributions)}</dd></div>
+              </dl>
+              {item.idea && <div className="response-idea"><strong>Suggerimento</strong><p>{item.idea}</p></div>}
+            </article>)}
+          </div>
           {data.items.length === 0 && <p>Non sono ancora arrivate risposte.</p>}
         </section>
       </>}

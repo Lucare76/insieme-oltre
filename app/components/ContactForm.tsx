@@ -46,7 +46,7 @@ export function ContactForm({ available, privacyHref }: { available: boolean; pr
         <label htmlFor="contact-email">Email *<input id="contact-email" name="email" type="email" autoComplete="email" required maxLength={254} /></label>
         <label htmlFor="contact-phone">Telefono (facoltativo)<input id="contact-phone" name="phone" type="tel" autoComplete="tel" maxLength={40} pattern="[+0-9\s.\(\)\-]+" /></label>
         <label htmlFor="contact-role">Sono… *<select id="contact-role" name="role" defaultValue="" required><option value="" disabled>Seleziona un’opzione</option>{contactRoles.map((role) => <option key={role} value={role}>{role}</option>)}</select></label>
-        <label className="contact-wide" htmlFor="contact-message">Messaggio *<textarea id="contact-message" name="message" rows={5} required maxLength={5000} /></label>
+        <label className="contact-wide" htmlFor="contact-message">Messaggio (facoltativo)<textarea id="contact-message" name="message" rows={5} maxLength={5000} /></label>
       </div>
       <div className="contact-honeypot" aria-hidden="true"><label htmlFor="contact-website">Sito web<input id="contact-website" name="website" tabIndex={-1} autoComplete="off" /></label></div>
       <label className="contact-privacy" htmlFor="contact-privacy">

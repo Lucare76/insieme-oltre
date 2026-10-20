@@ -6,9 +6,10 @@ import { pathToFileURL } from 'node:url';
 const root = process.env.CONTACT_TEST_BUILD;
 if (!root) throw new Error('Set CONTACT_TEST_BUILD to the temporary tsc output');
 const { POST } = (await import(pathToFileURL(path.join(root, 'app/api/contact/route.js')))).default;
-const { privacyPolicy } = (await import(pathToFileURL(path.join(root, 'lib/legal.js')))).default;
+const { contactNotice: privacyPolicy } = (await import(pathToFileURL(path.join(root, 'lib/legal.js')))).default;
 const { validateContact, contactRoles } = (await import(pathToFileURL(path.join(root, 'lib/contact.js')))).default;
 const originalFetch = global.fetch;
+const originalPublished = privacyPolicy.published;
 const originalEnv = { VERCEL: process.env.VERCEL, BREVO_API_KEY: process.env.BREVO_API_KEY, CONTACT_FROM_EMAIL: process.env.CONTACT_FROM_EMAIL, CONTACT_TO_EMAIL: process.env.CONTACT_TO_EMAIL };
 const valid = { name: 'Persona Test', email: 'test@example.org', phone: '', role: 'Una famiglia', message: 'Richiesta di informazioni.', privacy: true, website: '' };
 let ip = 0, calls = [];
@@ -25,7 +26,7 @@ beforeEach(() => {
   global.fetch = async (...args) => { calls.push(args); return new Response('{}', { status: 201 }); };
 });
 after(() => {
-  privacyPolicy.published = false;
+  privacyPolicy.published = originalPublished;
   global.fetch = originalFetch;
   for (const [key, value] of Object.entries(originalEnv)) {
     if (value === undefined) delete process.env[key];
@@ -37,7 +38,7 @@ test('privacy unpublished blocks even a valid request before provider call', asy
 });
 test('all allowed roles validate, malformed and required fields reject', () => {
   for (const role of contactRoles) assert.ok(validateContact({ ...valid, role }));
-  for (const changes of [{ name: '' }, { name: 'a\nb' }, { email: 'bad' }, { phone: 'abc' }, { role: 'unknown' }, { message: ' ' }, { privacy: 'true' }, { privacy: false }, { message: 'a'.repeat(5001) }, { name: 'a'.repeat(121) }]) assert.equal(validateContact({ ...valid, ...changes }), null);
+  for (const changes of [{ name: '' }, { name: 'a\nb' }, { email: 'bad' }, { phone: 'abc' }, { role: 'unknown' }, { privacy: 'true' }, { privacy: false }, { message: 'a'.repeat(5001) }, { name: 'a'.repeat(121) }]) assert.equal(validateContact({ ...valid, ...changes }), null);
   assert.equal(validateContact(null), null);
   assert.equal(validateContact([]), null);
 });
@@ -80,4 +81,15 @@ test('missing credentials, provider rejection and network timeout return 503', a
   assert.equal((await POST(req())).status, 503);
   global.fetch = async () => { throw new DOMException('Timed out', 'TimeoutError'); };
   assert.equal((await POST(req())).status, 503);
+});
+
+test('optional message accepts empty, whitespace and missing values and sends contact details', async () => {
+  privacyPolicy.published = true;
+  for (const message of ['', '   ', undefined]) {
+    assert.equal(validateContact({ ...valid, message })?.message, '');
+    assert.equal((await POST(req({ ...valid, message }))).status, 200);
+    const body = JSON.parse(calls.at(-1)[1].body);
+    assert.ok(body.textContent.includes(valid.email));
+    assert.ok(body.textContent.includes('Nessun messaggio aggiunto.'));
+  }
 });

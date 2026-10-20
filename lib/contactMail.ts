@@ -23,7 +23,7 @@ export async function sendContactMail(message: ContactMessage) {
       textContent: [
         `Nome e cognome: ${message.name}`, `Email: ${message.email}`,
         `Telefono: ${message.phone || "Non indicato"}`, `Sono: ${message.role}`,
-        "Privacy Policy: accettata", "", message.message,
+        "Privacy Policy: accettata", "", message.message || "Nessun messaggio aggiunto.",
       ].join("\n"),
     }),
     signal: AbortSignal.timeout(10000),

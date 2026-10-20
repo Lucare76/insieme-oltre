@@ -26,7 +26,7 @@ export function validateContact(value: unknown): ContactMessage | null {
   const role = read("role"), message = read("message");
   if (!name || name.length > 120 || /[\r\n\x00-\x1f]/.test(name) ||
       !isContactEmail(email) || phone.length > 40 || (phone && !/^[+\d\s().-]+$/.test(phone)) ||
-      !contactRoles.some((option) => option === role) || !message || message.length > 5000 ||
+      !contactRoles.some((option) => option === role) || message.length > 5000 ||
       input.privacy !== true) return null;
   return { name, email, phone, role, message, privacy: true };
 }

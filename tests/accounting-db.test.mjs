@@ -15,7 +15,7 @@ test(
     await db.exec(
       await readFile(
         new URL(
-          "../supabase/migrations/20261020093447_association_accounting.sql",
+          "../supabase/migrations/20261020095949_association_accounting.sql",
           import.meta.url,
         ),
         "utf8",

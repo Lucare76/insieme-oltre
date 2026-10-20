@@ -12,8 +12,8 @@ I permessi vengono riletti dal database a ogni richiesta. Disattivare un socio b
 
 ## Attivazione
 
-1. Identificare il progetto Supabase effettivamente configurato nel deployment del sito. I progetti accessibili dalla connessione in questa sessione non presentavano le tabelle del sito; nessuna modifica è stata applicata a database remoti.
-2. Applicare `supabase/migrations/20261020093447_association_accounting.sql` sul progetto corretto. Le nuove tabelle sono chiuse ad `anon` e `authenticated`; accesso solo dalle API server. Il bucket documenti è privato.
+1. Progetto confermato dall’utente: `bgtsasvyttpxemjpwwbn` (`insieme-oltre`). Accesso verificato il 20 ottobre 2026.
+2. Migrazione `association_accounting` applicata sul progetto corretto il 20 ottobre 2026, versione remota `20261020095949`. Il file locale è allineato alla versione remota. Le nuove tabelle sono chiuse ad `anon` e `authenticated`; accesso solo dalle API server. Il bucket documenti è privato.
 3. Il deployment usa le variabili già previste: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_ALLOWED_EMAIL`. La chiave service role resta esclusivamente sul server.
 4. Accedere come admin da `/admin`, quindi aprire “Contabilità e area soci”. In alternativa accedere con email e password da `/area-soci`.
 5. In “Utenti e permessi” creare gli account con password iniziale di almeno 12 caratteri. Nessuna email inviata automaticamente. Comunicare le credenziali al destinatario personalmente. Per una password dimenticata, l'admin imposta una nuova password nello stesso pannello.
@@ -50,6 +50,8 @@ PGLITE_MODULE=/tmp/insieme-accounting-validation/node_modules/@electric-sql/pgli
 
 ## Limiti da verificare prima dell'uso reale
 
-Non è stata applicata alcuna migrazione remota. Test Auth/Storage reali e verifica visuale in browser non completati: il download del browser di test non era disponibile nell'ambiente. Sono necessari sul deployment con il progetto corretto. I dati reali non sono stati letti né modificati.
+Migrazione remota applicata e verificata: RLS attiva sulle quattro tabelle, nessun accesso diretto anon/authenticated, funzioni eseguibili solo dal server e bucket privato senza policy pubbliche. Test Auth/Storage reali e verifica visuale in browser non completati: il download del browser di test non era disponibile nell'ambiente. Sono necessari sul deployment con il progetto corretto. Non sono stati creati movimenti contabili o account di prova nel database remoto.
 
 Questo modulo tiene il registro operativo: non genera rendiconti ministeriali, ricevute fiscali o dichiarazioni. Non comprende riconciliazione bancaria automatica o gestione delle quote annuali dovute dai singoli soci.
+
+Controllo advisors: le segnalazioni informative RLS senza policy sono intenzionali per le tabelle accessibili solo dal server. Segnalazioni preesistenti non modificate: funzione `rls_auto_enable` e protezione password compromesse disabilitata.

@@ -1,6 +1,6 @@
 # Contabilità e area soci
 
-Percorso: `/area-soci`; link dal footer pubblico e dal pannello `/admin`.
+Percorso attuale: `/admin`, menu Contabilità. `/area-soci` reindirizza al nuovo ingresso. Per richieste, approvazione e password vedere `docs/accesso-unico.md`.
 
 ## Ruoli
 
@@ -15,8 +15,8 @@ I permessi vengono riletti dal database a ogni richiesta. Disattivare un socio b
 1. Progetto confermato dall’utente: `bgtsasvyttpxemjpwwbn` (`insieme-oltre`). Accesso verificato il 20 ottobre 2026.
 2. Migrazione `association_accounting` applicata sul progetto corretto il 20 ottobre 2026, versione remota `20261020095949`. Il file locale è allineato alla versione remota. Le nuove tabelle sono chiuse ad `anon` e `authenticated`; accesso solo dalle API server. Il bucket documenti è privato.
 3. Il deployment usa le variabili già previste: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_ALLOWED_EMAIL`. La chiave service role resta esclusivamente sul server.
-4. Accedere come admin da `/admin`, quindi aprire “Contabilità e area soci”. In alternativa accedere con email e password da `/area-soci`.
-5. In “Utenti e permessi” creare gli account con password iniziale di almeno 12 caratteri. Nessuna email inviata automaticamente. Comunicare le credenziali al destinatario personalmente. Per una password dimenticata, l'admin imposta una nuova password nello stesso pannello.
+4. Accedere da `/admin` con nome utente e password, quindi aprire Contabilità dal menu.
+5. Gli utenti compilano “Richiedi accesso”; l’owner approva e sceglie il ruolo. L’utente imposta personalmente la password tramite link email. “Utenti e permessi” permette di modificare ruoli/stato e reinviare i link.
 6. Provare con un account per ciascun ruolo: consultazione soci, registrazione contabile, gestione utenti solo owner. Controllare che le API e Storage non espongano documenti o note usando direttamente la chiave pubblica.
 7. Inserire i saldi iniziali di banca e cassa prima dei movimenti reali. La disponibilità totale comprende i saldi iniziali; entrate/uscite e risultati per iniziativa li escludono. Un trasferimento sposta denaro da un conto all'altro senza diventare entrata o uscita.
 
@@ -28,7 +28,7 @@ Le correzioni richiedono la versione corrente: due modifiche concorrenti non si 
 
 Allegati PDF, JPG o PNG fino a 3 MB, riconoscimento del formato tramite firma iniziale e confronto MIME. Il download richiede autorizzazione server ed è sempre un allegato con cache disabilitata. I file non hanno URL pubblici.
 
-Sessioni dell'area soci in sessionStorage, chiusura dopo 60 minuti di inattività o 8 ore complessive, rinnovo token con verifica del ruolo. Logout tramite Supabase Auth. Gli account possono essere disattivati individualmente.
+Sessioni dell’area riservata in localStorage con timestamp condivisi con l’editor, chiusura dopo 60 minuti di inattività o 8 ore complessive, rinnovo token con verifica del ruolo. Logout tramite Supabase Auth. Gli account possono essere disattivati individualmente.
 
 ## Verifica eseguita
 

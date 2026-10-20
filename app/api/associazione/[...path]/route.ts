@@ -8,6 +8,12 @@ import {
   AssociationError,
 } from "../../../../lib/associationServer";
 import { bearerToken, signOutAdmin } from "../../../../lib/adminAuth";
+import {
+  loginByUsername,
+  normalizeUsername,
+  validUsername,
+} from "../../../../lib/accessServer";
+import { adminUsername } from "../../../../lib/adminAuth";
 import { parseCents, validDate } from "../../../../lib/accounting";
 export const runtime = "nodejs";
 const reply = (body: unknown, status = 200) =>
@@ -25,6 +31,8 @@ function text(value: unknown, max: number, required = false) {
 }
 async function handle(request: Request, path: string[]) {
   const route = path.join("/");
+  if (route === "login" && request.method === "POST")
+    return reply(await loginByUsername(request));
   if (["login", "refresh"].includes(route) && request.method === "POST") {
     const body = await jsonBody(request);
     const email =
@@ -156,7 +164,7 @@ async function handle(request: Request, path: string[]) {
   }
   if (route === "members" && request.method === "GET") {
     const res = await service(
-      "/rest/v1/association_members?select=user_id,name,email,role,active&order=name&limit=1000",
+      "/rest/v1/association_members?select=user_id,name,email,username,role,active,activated_at&order=name&limit=1000",
     );
     return reply({ items: await res.json() });
   }
@@ -171,62 +179,37 @@ async function handle(request: Request, path: string[]) {
       typeof b.active !== "boolean"
     )
       throw new AssociationError("Email o stato non valido.");
-    let memberId = b.user_id;
-    let created = false;
-    if (!memberId) {
-      const password = text(b.password, 200, true);
-      if (password.length < 12)
-        throw new AssociationError(
-          "La password iniziale deve avere almeno 12 caratteri.",
-        );
-      // Account creato dall'owner: nessuna email viene inviata automaticamente.
-      const authRes = await service("/auth/v1/admin/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, email_confirm: true }),
-      });
-      memberId = (await authRes.json()).id;
-      created = true;
-    } else {
-      if (!uuid(memberId)) throw new AssociationError("Account non valido.");
-      const authRes = await service(`/auth/v1/admin/users/${memberId}`);
-      const account = await authRes.json();
-      if (account.email?.toLowerCase() !== email)
-        throw new AssociationError("Email diversa dall'account.");
-      if (typeof b.password === "string" && b.password) {
-        if (b.password.length < 12 || b.password.length > 200)
-          throw new AssociationError(
-            "La password deve avere almeno 12 caratteri.",
-          );
-        await service(`/auth/v1/admin/users/${memberId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password: b.password }),
-        });
-      }
-    }
-    try {
-      await service("/rest/v1/rpc/association_save_member", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          p_actor: user.id,
-          p_member: {
-            user_id: memberId,
-            name,
-            email,
-            role: b.role,
-            active: b.active,
-          },
-        }),
-      });
-    } catch (error) {
-      if (created)
-        await service(`/auth/v1/admin/users/${memberId}`, {
-          method: "DELETE",
-        }).catch(() => undefined);
-      throw error;
-    }
+    if (!uuid(b.user_id))
+      throw new AssociationError("Approva prima una richiesta di accesso.");
+    const username = normalizeUsername(b.username);
+    if (
+      !validUsername(username) ||
+      username === normalizeUsername(adminUsername()) ||
+      ["admin", "administrator", "superadmin", "system"].includes(username)
+    )
+      throw new AssociationError("Nome utente non valido o riservato.");
+    const [existing] = await (
+      await service(
+        `/rest/v1/association_members?user_id=eq.${b.user_id}&select=email`,
+      )
+    ).json();
+    if (!existing || existing.email.toLowerCase() !== email)
+      throw new AssociationError("Account non corrispondente.");
+    await service("/rest/v1/rpc/association_save_member", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        p_actor: user.id,
+        p_member: {
+          user_id: b.user_id,
+          name,
+          email,
+          username,
+          role: b.role,
+          active: b.active,
+        },
+      }),
+    });
     return reply({ ok: true });
   }
   if (route === "audit" && request.method === "GET") {

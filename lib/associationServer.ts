@@ -53,14 +53,19 @@ export async function identity(token: string) {
   if (user.email?.toLowerCase() === allowedAdminEmail())
     return { id: user.id, name: "Luca", role: "owner" as AssociationRole };
   const responseRole = await service(
-    `/rest/v1/association_members?user_id=eq.${encodeURIComponent(user.id)}&select=user_id,name,role,active`,
+    `/rest/v1/association_members?user_id=eq.${encodeURIComponent(user.id)}&select=user_id,name,role,active,activated_at`,
   );
   const [member] = (await responseRole.json()) as {
     name: string;
     role: AssociationRole;
     active: boolean;
+    activated_at: string | null;
   }[];
-  if (!member?.active || !["accountant", "member"].includes(member.role))
+  if (
+    !member?.active ||
+    !member.activated_at ||
+    !["accountant", "member"].includes(member.role)
+  )
     throw new AssociationError("Accesso all'associazione non abilitato.", 403);
   return { id: user.id, name: member.name, role: member.role };
 }
@@ -80,11 +85,27 @@ export async function authorize(
   return user;
 }
 export async function jsonBody(request: Request) {
-  const text = await request.text();
-  if (text.length > 16000)
-    throw new AssociationError("Richiesta troppo grande.", 413);
+  if (!request.headers.get("content-type")?.startsWith("application/json"))
+    throw new AssociationError("Formato non valido.", 415);
+  const reader = request.body?.getReader();
+  if (!reader) throw new AssociationError("Dati mancanti.");
+  const chunks: Uint8Array[] = [];
+  let bytes = 0;
+  while (true) {
+    const next = await reader.read();
+    if (next.done) break;
+    bytes += next.value.byteLength;
+    if (bytes > 16000) {
+      await reader.cancel();
+      throw new AssociationError("Richiesta troppo grande.", 413);
+    }
+    chunks.push(next.value);
+  }
   try {
-    return JSON.parse(text) as Record<string, unknown>;
+    const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    if (!body || typeof body !== "object" || Array.isArray(body))
+      throw new Error();
+    return body as Record<string, unknown>;
   } catch {
     throw new AssociationError("Dati non validi.");
   }

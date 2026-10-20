@@ -1,661 +1,1204 @@
 "use client";
-
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { defaultHomeContent, type HomeContent } from "../../lib/siteContent";
-import { childIssues, normalizeChildren } from "../../lib/children";
-import { ChildrenEditor } from "./ChildrenEditor";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import {
-  ACTIVITY_WRITE_INTERVAL_MS,
-  SESSION_TIMES_KEY,
-  isSessionExpired,
-  parseSessionTimes,
+  balances,
+  categories,
+  csvCell,
+  kindLabels,
+  roleLabels,
+  type AssociationRole,
+  type Movement,
+} from "../../lib/accounting";
+import "../area-soci/soci.css";
+import dynamic from "next/dynamic";
+import {
   readSessionTimes,
-  sessionDeadline,
   storeSessionTimes,
-  type SessionTimes,
+  SESSION_TIMES_KEY,
 } from "./sessionTimeout";
-import "./admin.css";
-
-/** Solo token di sessione Supabase: la password non viene mai salvata nel browser. */
-type AdminSession = { access_token: string; refresh_token: string; expires_at: number };
-
-const SESSION_KEY = "insieme_oltre_admin_session";
-const LEGACY_TOKEN_KEY = "insieme_oltre_admin_token";
-/** Rinnova il token con un minuto di anticipo sulla scadenza. */
-const REFRESH_MARGIN_S = 60;
-const SESSION_EXPIRED = "Sessione scaduta: accedi di nuovo.";
-const SESSION_CLOSED = "Sessione chiusa.";
-const SESSION_TIMEOUT = "Sessione scaduta per sicurezza. Accedi di nuovo.";
-const LOGIN_MESSAGES = [SESSION_EXPIRED, SESSION_CLOSED, SESSION_TIMEOUT];
-/** Attività reale dell'utente: il semplice movimento del mouse non conta. */
-const ACTIVITY_EVENTS = ["pointerdown", "keydown", "touchstart", "input"] as const;
-
-type Field = {
-  label: string;
-  path: string;
-  multiline?: boolean;
+const ContentEditor = dynamic(() => import("./ContentEditor"));
+import { AccessForms, AccessRequests } from "./accessComponents";
+type User = { id: string; name: string; role: AssociationRole };
+type Session = {
+  access_token: string;
+  refresh_token?: string;
+  expires_at: number;
+  started_at: number;
 };
-
-const fields: Field[] = [
-  { label: "SEO — titolo pagina", path: "meta.title" },
-  { label: "SEO — descrizione", path: "meta.description", multiline: true },
-  { label: "Menu — CTA", path: "nav.cta" },
-
-  { label: "Hero — occhiello", path: "hero.eyebrow" },
-  { label: "Hero — testo", path: "hero.lead", multiline: true },
-  { label: "Hero — CTA principale", path: "hero.primaryCta" },
-  { label: "Hero — CTA secondaria", path: "hero.secondaryCta" },
-  { label: "Hero — nota scritta a mano", path: "hero.note" },
-  { label: "Hero — frase logo riga 1", path: "hero.whisperLine1" },
-  { label: "Hero — frase logo riga 2", path: "hero.whisperLine2" },
-  { label: "Hero — frase logo evidenziata", path: "hero.whisperStrong" },
-
-  { label: "Da dove nasce — occhiello", path: "emotionalOpening.kicker" },
-  { label: "Da dove nasce — titolo riga 1", path: "emotionalOpening.titleLine1" },
-  { label: "Da dove nasce — titolo riga 2", path: "emotionalOpening.titleLine2" },
-  { label: "Da dove nasce — paragrafo 1", path: "emotionalOpening.paragraphs.0", multiline: true },
-  { label: "Da dove nasce — paragrafo 2", path: "emotionalOpening.paragraphs.1", multiline: true },
-
-  { label: "Manifesto — occhiello", path: "manifesto.kicker" },
-  { label: "Manifesto — titolo riga 1", path: "manifesto.titleLine1" },
-  { label: "Manifesto — titolo riga 2", path: "manifesto.titleLine2" },
-  { label: "Manifesto — paragrafo 1", path: "manifesto.paragraphs.0", multiline: true },
-  { label: "Manifesto — paragrafo 2", path: "manifesto.paragraphs.1", multiline: true },
-  { label: "Manifesto — paragrafo 3", path: "manifesto.paragraphs.2", multiline: true },
-
-  { label: "Cosa facciamo — occhiello", path: "pillars.kicker" },
-  { label: "Cosa facciamo — titolo riga 1", path: "pillars.titleLine1" },
-  { label: "Cosa facciamo — titolo riga 2", path: "pillars.titleLine2" },
-  { label: "Cosa facciamo — introduzione", path: "pillars.intro", multiline: true },
-  { label: "Card 1 — numero", path: "pillars.items.0.number" },
-  { label: "Card 1 — titolo", path: "pillars.items.0.title" },
-  { label: "Card 1 — testo", path: "pillars.items.0.text", multiline: true },
-  { label: "Card 2 — numero", path: "pillars.items.1.number" },
-  { label: "Card 2 — titolo", path: "pillars.items.1.title" },
-  { label: "Card 2 — testo", path: "pillars.items.1.text", multiline: true },
-  { label: "Card 3 — numero", path: "pillars.items.2.number" },
-  { label: "Card 3 — titolo", path: "pillars.items.2.title" },
-  { label: "Card 3 — testo", path: "pillars.items.2.text", multiline: true },
-  { label: "Card 4 — numero", path: "pillars.items.3.number" },
-  { label: "Card 4 — titolo", path: "pillars.items.3.title" },
-  { label: "Card 4 — testo", path: "pillars.items.3.text", multiline: true },
-
-  { label: "Aurora — sottotitolo della storia", path: "auroraStory.subtitle" },
-  { label: "Storia di Aurora — paragrafo 1", path: "auroraStory.paragraphs.0", multiline: true },
-  { label: "Storia di Aurora — paragrafo 2", path: "auroraStory.paragraphs.1", multiline: true },
-  { label: "Storia di Aurora — paragrafo 3", path: "auroraStory.paragraphs.2", multiline: true },
-  { label: "Storia di Aurora — paragrafo 4", path: "auroraStory.paragraphs.3", multiline: true },
-  { label: "Storia di Aurora — paragrafo 5", path: "auroraStory.paragraphs.4", multiline: true },
-  { label: "Storia di Aurora — paragrafo 6", path: "auroraStory.paragraphs.5", multiline: true },
-  { label: "Storia di Aurora — chiusura", path: "auroraStory.paragraphs.6", multiline: true },
-  { label: "Aurora — frase sotto la foto, riga 1", path: "auroraStory.pauseLine1" },
-  { label: "Aurora — frase sotto la foto, riga 2", path: "auroraStory.pauseLine2" },
-  { label: "Genitori — titolo", path: "auroraStory.parentsTitle", multiline: true },
-  { label: "Genitori — paragrafo 1", path: "auroraStory.parentsParagraphs.0", multiline: true },
-  { label: "Genitori — paragrafo 2", path: "auroraStory.parentsParagraphs.1", multiline: true },
-  { label: "Genitori — frase in evidenza", path: "auroraStory.parentsParagraphs.2", multiline: true },
-  { label: "Genitori — chiusura", path: "auroraStory.parentsParagraphs.3", multiline: true },
-
-  { label: "Storie — occhiello", path: "stories.kicker" },
-  { label: "Storie — titolo riga 1", path: "stories.titleLine1" },
-  { label: "Storie — titolo riga 2", path: "stories.titleLine2" },
-
-  { label: "Numeri — etichetta", path: "numbers.label" },
-  { label: "Numeri — titolo riga 1", path: "numbers.titleLine1" },
-  { label: "Numeri — titolo riga 2", path: "numbers.titleLine2" },
-  { label: "Numeri — testo", path: "numbers.text", multiline: true },
-
-  { label: "Promise — occhiello", path: "promise.kicker" },
-  { label: "Promise — titolo riga 1", path: "promise.titleLine1" },
-  { label: "Promise — titolo riga 2", path: "promise.titleLine2" },
-  { label: "Promise — frase evidenziata", path: "promise.accent" },
-  { label: "Promise — nota", path: "promise.note", multiline: true },
-
-  { label: "Finale — occhiello", path: "join.kicker" },
-  { label: "Finale — titolo riga 1", path: "join.titleLine1" },
-  { label: "Finale — titolo riga 2", path: "join.titleLine2" },
-  { label: "Finale — testo", path: "join.text", multiline: true },
-  { label: "Finale — CTA", path: "join.cta" },
-
-  { label: "Footer — brand", path: "footer.brand" },
-  { label: "Footer — nota", path: "footer.note" },
-  { label: "Footer — torna su", path: "footer.backTop" },
-];
-
-function getValue(obj: unknown, path: string): string {
-  const value = path.split(".").reduce<unknown>((acc, key) => {
-    if (!acc || typeof acc !== "object") return "";
-    return (acc as Record<string, unknown>)[key];
-  }, obj);
-
-  return typeof value === "string" ? value : "";
-}
-
-function setValue<T extends Record<string, unknown>>(obj: T, path: string, value: string): T {
-  const clone = structuredClone(obj);
-  const keys = path.split(".");
-  let current: Record<string, unknown> = clone;
-
-  keys.slice(0, -1).forEach((key, index) => {
-    const nextKey = keys[index + 1];
-    current[key] = current[key] ?? (/^\d+$/.test(nextKey) ? [] : {});
-    current = current[key] as Record<string, unknown>;
-  });
-
-  current[keys[keys.length - 1]] = value;
-  return clone;
-}
-
-function isSession(value: unknown): value is AdminSession {
-  const candidate = value as Partial<AdminSession> | null;
-  return Boolean(
-    candidate &&
-      typeof candidate.access_token === "string" &&
-      typeof candidate.refresh_token === "string" &&
-      typeof candidate.expires_at === "number",
+type Item = Movement & { private_note?: string };
+type Member = {
+  user_id: string;
+  name: string;
+  email: string;
+  role: "member" | "accountant";
+  active: boolean;
+  username: string | null;
+  activated_at: string | null;
+};
+type Audit = {
+  id: number;
+  created_at: string;
+  entity_id: string;
+  actor_id: string;
+  action: string;
+  before_data: unknown;
+  after_data: unknown;
+};
+const KEY = "insieme_oltre_admin_session";
+const money = (n: number) =>
+  (n / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
+const dateLabel = (v: string) => v.split("-").reverse().join("/");
+const today = () =>
+  new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Rome" }).format(
+    new Date(),
   );
+function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-
-function readStoredSession(): AdminSession | null {
-  try {
-    const parsed: unknown = JSON.parse(window.localStorage.getItem(SESSION_KEY) ?? "null");
-    return isSession(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function storeSession(session: AdminSession | null) {
-  try {
-    if (session) window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    else window.localStorage.removeItem(SESSION_KEY);
-  } catch {
-    // Senza localStorage la sessione dura finché la pagina resta aperta.
-  }
-}
-
-/** Revoca la sessione su Supabase, così il refresh token salvato non è più utilizzabile. */
-function revokeSession(session: AdminSession | null) {
-  if (!session) return;
-  fetch("/api/admin/logout", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${session.access_token}` },
-  }).catch(() => undefined);
-}
-
-/** Tra i timestamp salvati (anche da altre tab) e quelli in memoria vale l'attività più recente. */
-function latestTimes(memory: SessionTimes | null): SessionTimes | null {
-  const stored = readSessionTimes();
-  if (!stored || !memory) return stored ?? memory;
-  return stored.lastActivityAt >= memory.lastActivityAt ? stored : memory;
-}
-
-export default function AdminPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loginError, setLoginError] = useState("");
-  const [signingIn, setSigningIn] = useState(false);
-  const [sessionChecked, setSessionChecked] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-  const sessionRef = useRef<AdminSession | null>(null);
-  const refreshRef = useRef<Promise<AdminSession | null> | null>(null);
-  const timesRef = useRef<SessionTimes | null>(null);
-  const [content, setContent] = useState<HomeContent>(defaultHomeContent);
-  const [jsonMode, setJsonMode] = useState(false);
-  const [jsonDraft, setJsonDraft] = useState(JSON.stringify(defaultHomeContent, null, 2));
-  const [status, setStatus] = useState("Pronto");
-  const [loading, setLoading] = useState(false);
-
-  const endSession = useCallback((message: string) => {
-    sessionRef.current = null;
-    timesRef.current = null;
-    // Prima i timestamp, poi la sessione: le altre tab reagiscono alla rimozione della sessione.
-    storeSessionTimes(null);
-    storeSession(null);
-    setSignedIn(false);
-    setStatus(message);
+export default function AreaSoci() {
+  const [user, setUser] = useState<User | null>(null);
+  const [ready, setReady] = useState(false);
+  const [items, setItems] = useState<Item[]>([]);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [newDate, setNewDate] = useState("");
+  const [tab, setTab] = useState("home");
+  const [pending, setPending] = useState(0);
+  const [editing, setEditing] = useState<Item | null | undefined>(undefined);
+  const [year, setYear] = useState("");
+  const [search, setSearch] = useState("");
+  const [project, setProject] = useState("");
+  const [showCancelled, setShowCancelled] = useState(false);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [audit, setAudit] = useState<Audit[]>([]);
+  const [memberEdit, setMemberEdit] = useState<Member | null>(null);
+  const [documents, setDocuments] = useState<
+    { id: string; filename: string }[]
+  >([]);
+  const [documentItem, setDocumentItem] = useState<Item | null>(null);
+  const session = useRef<Session | null>(null);
+  const renewing = useRef<Promise<void> | null>(null);
+  const lastActivity = useRef(0);
+  const clear = useCallback(() => {
+    session.current = null;
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(SESSION_TIMES_KEY);
+    sessionStorage.removeItem("insieme_oltre_association_v1");
+    setUser(null);
+    setItems([]);
+    setDataLoaded(false);
+    setMembers([]);
+    setAudit([]);
+    setDocuments([]);
+    setDocumentItem(null);
+    setEditing(undefined);
+    setMemberEdit(null);
   }, []);
+  const api = useCallback(
+    async (path: string, init: RequestInit = {}) => {
+      const times = readSessionTimes();
+      const stored = localStorage.getItem(KEY);
+      if (!stored) {
+        clear();
+        throw new Error("Sessione chiusa. Accedi nuovamente.");
+      }
+      try {
+        const current = JSON.parse(stored);
+        if (current.access_token !== session.current?.access_token)
+          session.current = { ...current, started_at: times?.loginAt ?? 0 };
+      } catch {
+        clear();
+        throw new Error("Accedi nuovamente.");
+      }
+      if (times)
+        lastActivity.current = Math.max(
+          lastActivity.current,
+          times.lastActivityAt,
+        );
 
-  /** Timeout di sicurezza (inattività o durata massima): revoca il token se possibile e torna al login. */
-  const expireSession = useCallback(() => {
-    revokeSession(sessionRef.current);
-    endSession(SESSION_TIMEOUT);
-  }, [endSession]);
-
-  /** Un solo rinnovo alla volta, anche se più richieste trovano il token scaduto insieme. */
-  const refreshSession = useCallback(() => {
-    const current = sessionRef.current;
-    if (!current) return Promise.resolve(null);
-
-    refreshRef.current ??= fetch("/api/admin/refresh", {
+      if (
+        !session.current ||
+        Date.now() - session.current.started_at > 8 * 3600000 ||
+        Date.now() - lastActivity.current > 3600000
+      ) {
+        clear();
+        throw new Error("Sessione scaduta. Accedi nuovamente.");
+      }
+      if (
+        session.current.expires_at * 1000 < Date.now() + 60000 &&
+        session.current.refresh_token
+      ) {
+        renewing.current ??= (async () => {
+          const r = await fetch("/api/associazione/refresh", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              refresh_token: session.current?.refresh_token,
+            }),
+          });
+          const b = await r.json();
+          if (!r.ok) {
+            clear();
+            throw new Error(b.error);
+          }
+          session.current = {
+            ...b.session,
+            started_at: session.current!.started_at,
+          };
+          localStorage.setItem(KEY, JSON.stringify(session.current));
+        })().finally(() => {
+          renewing.current = null;
+        });
+        await renewing.current;
+      }
+      const res = await fetch(
+        path.startsWith("access/")
+          ? "/api/accesso/" + path.slice(7)
+          : "/api/associazione/" + path,
+        {
+          ...init,
+          headers: {
+            ...init.headers,
+            Authorization: "Bearer " + session.current?.access_token,
+          },
+          cache: "no-store",
+        },
+      );
+      if (!res.ok) {
+        const b = await res.json();
+        if (res.status === 401 || (res.status === 403 && path === "me"))
+          clear();
+        throw new Error(b.error || "Operazione non riuscita.");
+      }
+      return res;
+    },
+    [clear],
+  );
+  const load = useCallback(async () => {
+    const res = await api("movements");
+    setItems((await res.json()).items);
+    setDataLoaded(true);
+  }, [api]);
+  useEffect(() => {
+    let active = true;
+    lastActivity.current = Date.now();
+    async function init() {
+      try {
+        const saved = localStorage.getItem(KEY);
+        const times = readSessionTimes();
+        const parsed = saved ? JSON.parse(saved) : null;
+        const value =
+          parsed && times ? { ...parsed, started_at: times.loginAt } : null;
+        lastActivity.current = times?.lastActivityAt ?? 0;
+        if (
+          value?.access_token &&
+          typeof value.expires_at === "number" &&
+          typeof value.started_at === "number"
+        ) {
+          session.current = value;
+          const res = await api("me");
+          const data = await res.json();
+          if (active) {
+            setUser(data.user);
+            if (data.user.role === "owner") {
+              const requests = await (await api("access/requests")).json();
+              setPending(
+                requests.items.filter(
+                  (x: { status: string }) => x.status === "pending",
+                ).length,
+              );
+            }
+          }
+        }
+      } catch (error) {
+        if (active) {
+          clear();
+          setMessage(
+            error instanceof Error ? error.message : "Accedi nuovamente.",
+          );
+        }
+      } finally {
+        if (active) setReady(true);
+      }
+    }
+    void init();
+    return () => {
+      active = false;
+    };
+  }, [api, load, clear]);
+  useEffect(() => {
+    const activity = () => {
+      if (!session.current) return;
+      if (
+        Date.now() - lastActivity.current > 3600000 ||
+        Date.now() - session.current.started_at > 8 * 3600000
+      ) {
+        clear();
+        return;
+      }
+      lastActivity.current = Date.now();
+      storeSessionTimes({
+        loginAt: session.current.started_at,
+        lastActivityAt: lastActivity.current,
+      });
+    };
+    window.addEventListener("pointerdown", activity);
+    window.addEventListener("keydown", activity);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === SESSION_TIMES_KEY) {
+        const times = readSessionTimes();
+        if (times) lastActivity.current = times.lastActivityAt;
+      }
+      if (event.key === KEY) {
+        if (!event.newValue) clear();
+        else
+          try {
+            session.current = {
+              ...JSON.parse(event.newValue),
+              started_at: readSessionTimes()?.loginAt ?? 0,
+            };
+          } catch {
+            clear();
+          }
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    const timer = setInterval(() => {
+      if (
+        session.current &&
+        (Date.now() - lastActivity.current > 3600000 ||
+          Date.now() - session.current.started_at > 8 * 3600000)
+      ) {
+        clear();
+        setMessage("Sessione terminata per sicurezza.");
+      }
+    }, 30000);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("pointerdown", activity);
+      window.removeEventListener("keydown", activity);
+    };
+  }, [clear]);
+  async function run(action: () => Promise<void>) {
+    setBusy(true);
+    setMessage("");
+    try {
+      await action();
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Operazione non riuscita.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  const post = async (path: string, body: unknown) =>
+    api(path, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: current.refresh_token }),
-    })
-      .then(async (response) => {
-        const payload = response.ok ? await response.json().catch(() => null) : null;
-        const next = isSession(payload?.session) ? payload.session : null;
-        sessionRef.current = next;
-        storeSession(next);
-        return next;
-      })
-      .catch(() => null)
-      .finally(() => {
-        refreshRef.current = null;
-      });
-
-    return refreshRef.current;
-  }, []);
-
-  /** API admin con token valido: se il server lo rifiuta prova un rinnovo, altrimenti chiude la sessione. */
-  const adminFetch = useCallback(
-    async (path: string, init: RequestInit = {}) => {
-      const send = (session: AdminSession) =>
-        fetch(path, { ...init, headers: { ...init.headers, Authorization: `Bearer ${session.access_token}` } });
-
-      // Controllo anche qui: dopo uno standby il timer può non essere ancora scattato.
-      if (sessionRef.current && isSessionExpired(latestTimes(timesRef.current))) {
-        expireSession();
-        return null;
-      }
-
-      let session = sessionRef.current;
-      if (session && session.expires_at - REFRESH_MARGIN_S <= Date.now() / 1000) session = await refreshSession();
-      if (!session) {
-        endSession(SESSION_EXPIRED);
-        return null;
-      }
-
-      let response = await send(session);
-      if (response.status === 401) {
-        session = await refreshSession();
-        if (session) response = await send(session);
-      }
-      if (!session || response.status === 401) {
-        endSession(SESSION_EXPIRED);
-        return null;
-      }
-      return response;
-    },
-    [endSession, expireSession, refreshSession],
-  );
-
-  useEffect(() => {
-    try {
-      // Il vecchio token del magic link non è rinnovabile: si rientra con utente e password.
-      window.localStorage.removeItem(LEGACY_TOKEN_KEY);
-    } catch {}
-    sessionRef.current = readStoredSession();
-    timesRef.current = readSessionTimes();
-    // Il reload non è attività: si valutano i timestamp salvati così come sono.
-    const expired = Boolean(sessionRef.current) && isSessionExpired(timesRef.current);
-    if (!sessionRef.current) storeSessionTimes(null);
-    queueMicrotask(() => {
-      if (expired) expireSession();
-      else setSignedIn(Boolean(sessionRef.current));
-      setSessionChecked(true);
+      body: JSON.stringify(body),
     });
-  }, [expireSession]);
-
-  /** Multi-tab: login, rinnovo token e logout fatti in un'altra tab si riflettono qui. */
-  useEffect(() => {
-    function onStorage(event: StorageEvent) {
-      if (event.storageArea !== window.localStorage) return;
-
-      if (event.key === SESSION_TIMES_KEY) {
-        const times = parseSessionTimes(event.newValue);
-        if (times) timesRef.current = times;
-        return;
-      }
-      if (event.key !== SESSION_KEY && event.key !== null) return;
-
-      const next = event.key === SESSION_KEY ? readStoredSession() : null;
-      if (next) {
-        sessionRef.current = next;
-        timesRef.current = latestTimes(timesRef.current);
-        setSignedIn(true);
-        return;
-      }
-      if (!sessionRef.current) return;
-
-      // Sessione chiusa altrove: niente revoca né pulizia, l'ha già fatto l'altra tab.
-      const expired = isSessionExpired(timesRef.current);
-      sessionRef.current = null;
-      timesRef.current = null;
-      setSignedIn(false);
-      setStatus(expired ? SESSION_TIMEOUT : SESSION_CLOSED);
-    }
-
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  /** Timeout per inattività (60 min) e durata massima (8 h), finché l'admin è dentro. */
-  useEffect(() => {
-    if (!signedIn) return;
-    let timer: number | undefined;
-
-    function check() {
-      window.clearTimeout(timer);
-      const times = latestTimes(timesRef.current);
-      if (!times || isSessionExpired(times)) {
-        expireSession();
-        return;
-      }
-      timesRef.current = times;
-      // Il timer rilegge i timestamp alla scadenza: l'attività nel frattempo lo rinvia.
-      timer = window.setTimeout(check, sessionDeadline(times) - Date.now() + 250);
-    }
-
-    function onActivity() {
-      const now = Date.now();
-      const times = timesRef.current;
-      if (!times || isSessionExpired(times, now)) {
-        check();
-        return;
-      }
-      if (now - times.lastActivityAt < ACTIVITY_WRITE_INTERVAL_MS) return;
-      timesRef.current = { ...times, lastActivityAt: now };
-      storeSessionTimes(timesRef.current);
-    }
-
-    function onVisibility() {
-      if (document.visibilityState === "visible") check();
-    }
-
-    function onStorage(event: StorageEvent) {
-      if (event.key === SESSION_TIMES_KEY && event.newValue) check();
-    }
-
-    check();
-    for (const type of ACTIVITY_EVENTS) window.addEventListener(type, onActivity, { capture: true, passive: true });
-    document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("storage", onStorage);
-
-    return () => {
-      window.clearTimeout(timer);
-      for (const type of ACTIVITY_EVENTS) window.removeEventListener(type, onActivity, { capture: true });
-      document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, [signedIn, expireSession]);
-
-  useEffect(() => {
-    if (!signedIn) return;
-
-    async function loadContent() {
-      setLoading(true);
-      setStatus("Carico i testi…");
-
-      const response = await adminFetch("/api/admin/home-content");
-      setLoading(false);
-      if (!response) return;
-
-      if (!response.ok) {
-        setStatus("Caricamento non riuscito: riprova tra poco.");
-        return;
-      }
-
-      const payload = await response.json();
-      setContent(payload.content);
-      setJsonDraft(JSON.stringify(payload.content, null, 2));
-      setStatus(payload.configured ? "Testi caricati." : "Supabase non è ancora configurato: vedo i testi base.");
-    }
-
-    loadContent();
-  }, [signedIn, adminFetch]);
-
-  async function signIn(event: FormEvent<HTMLFormElement>) {
+  async function login(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (signingIn) return;
-
-    if (!username.trim() || !password) {
-      setLoginError("Inserisci utente e password.");
-      return;
-    }
-
-    setSigningIn(true);
-    setLoginError("");
-
-    try {
-      const response = await fetch("/api/admin/login", {
+    const data = new FormData(event.currentTarget);
+    await run(async () => {
+      const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.trim(), password }),
+        body: JSON.stringify(Object.fromEntries(data)),
       });
-      const payload = await response.json().catch(() => null);
-
-      if (response.ok && isSession(payload?.session)) {
-        const now = Date.now();
-        timesRef.current = { loginAt: now, lastActivityAt: now };
-        storeSessionTimes(timesRef.current);
-        sessionRef.current = payload.session;
-        storeSession(payload.session);
-        setPassword("");
-        setShowPassword(false);
-        setSignedIn(true);
-        return;
+      const b = await res.json();
+      if (!res.ok) throw new Error(b.error);
+      session.current = { ...b.session, started_at: Date.now() };
+      lastActivity.current = Date.now();
+      localStorage.setItem(KEY, JSON.stringify(session.current));
+      storeSessionTimes({ loginAt: Date.now(), lastActivityAt: Date.now() });
+      setUser(b.user);
+      setTab("home");
+      if (b.user.role === "owner") {
+        const requests = await (await api("access/requests")).json();
+        setPending(
+          requests.items.filter(
+            (x: { status: string }) => x.status === "pending",
+          ).length,
+        );
       }
-
-      setLoginError(
-        response.status === 401
-          ? "Utente o password non corretti."
-          : response.status === 503
-            ? "Accesso non ancora configurato sul server."
-            : "Accesso non riuscito: riprova tra poco.",
-      );
-    } catch {
-      setLoginError("Connessione non riuscita: controlla la rete e riprova.");
-    } finally {
-      setSigningIn(false);
-    }
-  }
-
-  async function saveContent() {
-    if (!signedIn) return;
-
-    let value: HomeContent = content;
-
-    if (jsonMode) {
-      try {
-        value = JSON.parse(jsonDraft) as HomeContent;
-      } catch {
-        setStatus("JSON non valido: correggi prima di salvare.");
-        return;
-      }
-    }
-
-    const children = normalizeChildren(value.children) ?? [];
-    const errorCount = children.flatMap((child) => childIssues(child, children)).filter((issue) => issue.level === "error").length;
-    if (errorCount) {
-      const what = errorCount === 1 ? "C’è 1 errore" : `Ci sono ${errorCount} errori`;
-      setStatus(`${what} da correggere in «Bambini e storie»: i bambini con errori sono segnati in rosso.`);
-      return;
-    }
-
-    setLoading(true);
-    setStatus("Salvo…");
-
-    const response = await adminFetch("/api/admin/home-content", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ value }),
     });
-
-    setLoading(false);
-    if (!response) return;
-
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      const detail = typeof payload?.detail === "string" ? ` (${payload.detail.slice(0, 240)})` : "";
-      setStatus(`${payload?.error ?? "Salvataggio non riuscito."}${detail}`);
-      return;
-    }
-
-    // Si mostra ciò che Supabase ha davvero salvato (es. campi protetti riscritti dal server), non la copia locale.
-    if (!payload?.verified || !payload.content || typeof payload.content !== "object") {
-      setStatus("Salvataggio non verificato: ricarica la pagina e controlla i testi.");
-      return;
-    }
-
-    const saved = payload.content as HomeContent;
-    setContent(saved);
-    setJsonDraft(JSON.stringify(saved, null, 2));
-    setStatus("Salvato e verificato su Supabase.");
   }
-
-  /** Cambia editor senza perdere modifiche: il JSON nasce dal contenuto corrente e, al ritorno, lo sostituisce. */
-  function toggleEditor() {
-    if (!jsonMode) {
-      setJsonDraft(JSON.stringify(content, null, 2));
-      setJsonMode(true);
-      return;
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(jsonDraft);
-    } catch {
-      setStatus("JSON non valido: correggilo prima di tornare all’editor semplice.");
-      return;
-    }
-
-    const candidate = parsed as Partial<HomeContent> | null;
-    if (!candidate || typeof candidate !== "object" || !candidate.hero || !candidate.footer) {
-      setStatus("JSON non valido: mancano le sezioni «hero» o «footer».");
-      return;
-    }
-    const children = normalizeChildren(candidate.children);
-    if (!children) {
-      setStatus("JSON non valido: l’elenco «children» manca o non è corretto.");
-      return;
-    }
-
-    setContent({ ...(candidate as HomeContent), children });
-    setJsonMode(false);
-    setStatus("Modifiche JSON applicate all’editor semplice (non ancora salvate).");
+  const write = user?.role !== "member";
+  const filtered = items.filter(
+    (x) =>
+      (!year || x.date.startsWith(year)) &&
+      (!project || x.project === project) &&
+      (showCancelled || !x.cancelled) &&
+      `${x.description} ${x.category} ${x.project}`
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+  );
+  const totals = balances(items);
+  const period = balances(filtered);
+  const projects = [
+    ...new Set(items.map((x) => x.project).filter(Boolean)),
+  ].sort();
+  const years = [...new Set(items.map((x) => x.date.slice(0, 4)))]
+    .sort()
+    .reverse();
+  async function openTab(value: string) {
+    setTab(value);
+    await run(async () => {
+      if (value === "register") await load();
+      if (value === "members")
+        setMembers((await (await api("members")).json()).items);
+      if (value === "audit")
+        setAudit((await (await api("audit")).json()).items);
+    });
   }
-
-  function logout() {
-    revokeSession(sessionRef.current);
-    endSession(SESSION_CLOSED);
-  }
-
-  if (!sessionChecked) {
-    return <main className="admin-page" />;
-  }
-
-  if (!signedIn) {
-    return (
-      <main className="admin-page admin-login-page">
-        <form className="admin-card admin-login" onSubmit={signIn} noValidate>
-          <div className="admin-heading">
-            <p>Insieme Oltre</p>
-            <h1>Area riservata</h1>
-          </div>
-
-          <label>
-            Utente
-            <input
-              name="username"
-              autoComplete="username"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              disabled={signingIn}
-              autoFocus
-            />
-          </label>
-
-          <div className="admin-password">
-            <label>
-              Password
-              <input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                disabled={signingIn}
-              />
-            </label>
-            <button
-              type="button"
-              className="admin-password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-pressed={showPassword}
-              aria-label={showPassword ? "Nascondi password" : "Mostra password"}
-            >
-              {showPassword ? "Nascondi" : "Mostra"}
-            </button>
-          </div>
-
-          <p className="admin-login-error" role="alert">{loginError}</p>
-
-          <button type="submit" disabled={signingIn}>{signingIn ? "Accesso…" : "Accedi"}</button>
-          {LOGIN_MESSAGES.includes(status) ? <small>{status}</small> : null}
-        </form>
-      </main>
+  async function openDocuments(item: Item) {
+    setDocumentItem(item);
+    setDocuments([]);
+    await run(async () =>
+      setDocuments(
+        (await (await api("documents?movement_id=" + item.id)).json()).items,
+      ),
     );
   }
-
+  if (!ready)
+    return (
+      <main className="soci">
+        <p role="status">Caricamento area riservata…</p>
+      </main>
+    );
   return (
-    <main className="admin-page">
-      <section className="admin-shell">
-        <div className="admin-heading">
-          <p>Insieme Oltre</p>
-          <h1>Pannello testi</h1>
-          <span>{status}</span>
-        </div>
-
-        <p><a href="/area-soci">Contabilità e area soci →</a></p>
-        <p style={{ margin: "0 0 20px" }}><a href="/admin/partecipazioni" style={{ display: "inline-block", padding: "13px 20px", borderRadius: "30px", background: "#425a48", color: "white", fontWeight: 700 }}>Le idee delle famiglie →</a></p>
-
-        <div className="admin-card admin-editor">
-          <div className="admin-toolbar">
-            <button disabled={loading} onClick={saveContent}>Salva testi</button>
-            <button type="button" className="secondary" onClick={toggleEditor}>
-              {jsonMode ? "Editor semplice" : "Editor avanzato JSON"}
-            </button>
-            <button type="button" className="secondary" onClick={logout}>Esci</button>
+    <main className="soci">
+      <div className="soci-shell">
+        <header className="soci-header">
+          <Link href="/">
+            <Image
+              src="/insieme-oltre-logo.png"
+              alt="Insieme Oltre"
+              width={150}
+              height={112}
+            />
+          </Link>
+          <div>
+            <p className="soci-kicker">Insieme Oltre ODV</p>
+            <h1>Area riservata</h1>
+            <p>
+              {user
+                ? `${user.name} · ${roleLabels[user.role]}`
+                : "Uno spazio riservato per i conti dell’associazione."}
+            </p>
           </div>
-
-          {jsonMode ? (
-            <label>
-              JSON completo
-              <textarea
-                className="json-editor"
-                value={jsonDraft}
-                onChange={(event) => setJsonDraft(event.target.value)}
-              />
-            </label>
-          ) : (
-            <div className="admin-grid">
-              {fields.map((field) => (
-                <label key={field.path}>
-                  {field.label}
-                  {field.multiline ? (
-                    <textarea
-                      value={getValue(content, field.path)}
-                      onChange={(event) => setContent(setValue(content, field.path, event.target.value))}
-                    />
-                  ) : (
-                    <input
-                      value={getValue(content, field.path)}
-                      onChange={(event) => setContent(setValue(content, field.path, event.target.value))}
-                    />
-                  )}
-                </label>
-              ))}
-              <ChildrenEditor items={content.children} onChange={(children) => setContent({ ...content, children })} />
-            </div>
+          {user && (
+            <button
+              disabled={busy}
+              onClick={() =>
+                void run(async () => {
+                  await api("logout", { method: "POST" });
+                  clear();
+                })
+              }
+            >
+              Esci
+            </button>
           )}
-        </div>
-      </section>
+        </header>
+        {message && (
+          <p className="soci-message" role="alert">
+            {message}
+          </p>
+        )}
+        {!user ? (
+          <div className="soci-card soci-login">
+            <form onSubmit={login}>
+              <h2>Accedi</h2>
+              <label>
+                Nome utente
+                <input
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  required
+                  maxLength={254}
+                />
+              </label>
+              <label>
+                Password
+                <input
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  maxLength={200}
+                />
+              </label>
+              <button className="primary" disabled={busy}>
+                {busy ? "Accesso…" : "Entra nell’area soci"}
+              </button>
+            </form>
+            <AccessForms />
+          </div>
+        ) : (
+          <>
+            <nav className="soci-tabs" aria-label="Sezioni area soci">
+              <button
+                aria-pressed={tab === "home"}
+                onClick={() => void openTab("home")}
+              >
+                Menu
+              </button>
+              <button
+                aria-pressed={tab === "register"}
+                onClick={() => void openTab("register")}
+              >
+                Contabilità
+              </button>
+              {user.role === "owner" && (
+                <>
+                  <button
+                    aria-pressed={tab === "requests"}
+                    onClick={() => void openTab("requests")}
+                  >
+                    Richieste di accesso {pending > 0 ? `(${pending})` : ""}
+                  </button>
+                  <button
+                    aria-pressed={tab === "contents"}
+                    onClick={() => void openTab("contents")}
+                  >
+                    Gestione sito
+                  </button>
+                  <button
+                    aria-pressed={tab === "members"}
+                    onClick={() => void openTab("members")}
+                  >
+                    Utenti e permessi
+                  </button>
+                  <button
+                    aria-pressed={tab === "audit"}
+                    onClick={() => void openTab("audit")}
+                  >
+                    Storico operazioni
+                  </button>
+                  <Link href="/admin/partecipazioni">
+                    Le idee delle famiglie →
+                  </Link>
+                </>
+              )}
+            </nav>
+            {tab === "home" && (
+              <section className="soci-card">
+                <h2>Benvenuto, {user.name}</h2>
+                <p>
+                  {user.role === "owner"
+                    ? "Da questo menu gestisci il sito, la contabilità e gli accessi dell’associazione."
+                    : user.role === "accountant"
+                      ? "Puoi consultare e registrare i movimenti dell’associazione."
+                      : "Puoi consultare i movimenti e i riepiloghi dell’associazione."}
+                </p>
+                <div className="soci-menu-cards">
+                  <button onClick={() => void openTab("register")}>
+                    <strong>Contabilità</strong>
+                    <span>Entrate, uscite, cassa e banca</span>
+                  </button>
+                  {user.role === "owner" && (
+                    <>
+                      <button onClick={() => void openTab("contents")}>
+                        <strong>Gestione sito</strong>
+                        <span>Testi e storie dei bambini</span>
+                      </button>
+                      <button onClick={() => void openTab("requests")}>
+                        <strong>
+                          Richieste di accesso{" "}
+                          {pending > 0 ? `· ${pending}` : ""}
+                        </strong>
+                        <span>Approva e assegna il ruolo</span>
+                      </button>
+                      <button onClick={() => void openTab("members")}>
+                        <strong>Utenti e permessi</strong>
+                        <span>Gestisci account e inviti</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </section>
+            )}
+            {tab === "contents" && user.role === "owner" && <ContentEditor />}
+            {tab === "requests" && user.role === "owner" && (
+              <AccessRequests api={api} onPending={setPending} />
+            )}
+            {tab === "register" && (
+              <>
+                <section className="soci-stats" aria-label="Saldi complessivi">
+                  <article>
+                    <span>Cassa</span>
+                    <strong>{dataLoaded ? money(totals.cash) : "—"}</strong>
+                  </article>
+                  <article>
+                    <span>Conto bancario</span>
+                    <strong>{dataLoaded ? money(totals.bank) : "—"}</strong>
+                  </article>
+                  <article>
+                    <span>Disponibilità totale</span>
+                    <strong>
+                      {dataLoaded ? money(totals.cash + totals.bank) : "—"}
+                    </strong>
+                  </article>
+                </section>
+                <div className="soci-toolbar">
+                  <div>
+                    <h2>Entrate e uscite</h2>
+                    <p>
+                      Saldi su tutti i movimenti attivi. Entrate e uscite qui
+                      sotto seguono i filtri.
+                    </p>
+                  </div>
+                  <button disabled={busy} onClick={() => void run(load)}>
+                    Aggiorna
+                  </button>
+                  {write && (
+                    <button
+                      className="primary"
+                      disabled={busy}
+                      onClick={() => {
+                        setNewDate(today());
+                        setEditing(null);
+                        setDocumentItem(null);
+                      }}
+                    >
+                      + Nuovo movimento
+                    </button>
+                  )}
+                </div>
+                {editing !== undefined && write && (
+                  <form
+                    key={editing?.id ?? "new"}
+                    className="soci-card"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const values = Object.fromEntries(
+                        new FormData(e.currentTarget),
+                      );
+                      void run(async () => {
+                        await post("movements", {
+                          ...values,
+                          ...(editing
+                            ? { id: editing.id, version: editing.version }
+                            : {}),
+                        });
+                        setEditing(undefined);
+                        await load();
+                        setMessage("Movimento salvato.");
+                      });
+                    }}
+                  >
+                    <h3>
+                      {editing ? "Correggi movimento" : "Nuovo movimento"}
+                    </h3>
+                    <div className="soci-grid">
+                      <label>
+                        Data
+                        <input
+                          name="date"
+                          type="date"
+                          min="2000-01-01"
+                          max="2199-12-31"
+                          defaultValue={editing?.date ?? newDate}
+                          required
+                        />
+                      </label>
+                      <label>
+                        Tipo
+                        <select
+                          name="kind"
+                          defaultValue={editing?.kind ?? "income"}
+                        >
+                          {Object.entries(kindLabels).map(([v, l]) => (
+                            <option key={v} value={v}>
+                              {l}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Importo (€)
+                        <input
+                          name="amount"
+                          inputMode="decimal"
+                          placeholder="0,00"
+                          defaultValue={
+                            editing
+                              ? (editing.amount_cents / 100).toFixed(2)
+                              : ""
+                          }
+                          required
+                        />
+                      </label>
+                      <label>
+                        Conto / provenienza
+                        <select
+                          name="account"
+                          defaultValue={editing?.account ?? "bank"}
+                        >
+                          <option value="bank">Conto bancario</option>
+                          <option value="cash">Cassa contanti</option>
+                        </select>
+                      </label>
+                      <label>
+                        Categoria
+                        <input
+                          name="category"
+                          list="categories"
+                          defaultValue={editing?.category ?? ""}
+                          required
+                          maxLength={100}
+                        />
+                        <datalist id="categories">
+                          {categories.map((x) => (
+                            <option key={x}>{x}</option>
+                          ))}
+                        </datalist>
+                      </label>
+                      <label>
+                        Iniziativa (facoltativa)
+                        <input
+                          name="project"
+                          list="projects"
+                          maxLength={120}
+                          defaultValue={editing?.project ?? ""}
+                        />
+                        <datalist id="projects">
+                          {projects.map((x) => (
+                            <option key={x}>{x}</option>
+                          ))}
+                        </datalist>
+                      </label>
+                      <label className="wide">
+                        Causale visibile ai soci
+                        <input
+                          name="description"
+                          defaultValue={editing?.description ?? ""}
+                          maxLength={500}
+                          required
+                        />
+                      </label>
+                      <label className="wide">
+                        Note riservate agli amministratori
+                        <textarea
+                          name="private_note"
+                          defaultValue={editing?.private_note ?? ""}
+                          maxLength={1000}
+                        />
+                      </label>
+                    </div>
+                    <p>
+                      Per un trasferimento indica il conto di provenienza: la
+                      destinazione è l’altro conto. Il saldo iniziale non viene
+                      conteggiato come entrata.
+                    </p>
+                    <div className="soci-actions">
+                      <button className="primary" disabled={busy}>
+                        Salva movimento
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditing(undefined)}
+                      >
+                        Chiudi
+                      </button>
+                    </div>
+                  </form>
+                )}
+                <section className="soci-card">
+                  <div className="soci-filters">
+                    <label>
+                      Anno
+                      <select
+                        value={year}
+                        onChange={(e) => setYear(e.target.value)}
+                      >
+                        <option value="">Tutti gli anni</option>
+                        {years.map((x) => (
+                          <option key={x}>{x}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Iniziativa
+                      <select
+                        value={project}
+                        onChange={(e) => setProject(e.target.value)}
+                      >
+                        <option value="">Tutte le iniziative</option>
+                        {projects.map((x) => (
+                          <option key={x}>{x}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Cerca
+                      <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Causale o categoria"
+                      />
+                    </label>
+                    <label className="soci-check">
+                      <input
+                        type="checkbox"
+                        checked={showCancelled}
+                        onChange={(e) => setShowCancelled(e.target.checked)}
+                      />
+                      Mostra annullati
+                    </label>
+                  </div>
+                  <p>
+                    <strong>Entrate: {money(period.income)}</strong> · Uscite:{" "}
+                    {money(period.expense)} · Differenza:{" "}
+                    {money(period.income - period.expense)}
+                  </p>
+                  <button
+                    onClick={() =>
+                      download(
+                        new Blob(
+                          [
+                            "\uFEFF" +
+                              [
+                                [
+                                  "Data",
+                                  "Tipo",
+                                  "Importo EUR",
+                                  "Conto",
+                                  "Categoria",
+                                  "Iniziativa",
+                                  "Causale",
+                                  "Stato",
+                                ],
+                                ...filtered.map((x) => [
+                                  dateLabel(x.date),
+                                  kindLabels[x.kind],
+                                  (x.amount_cents / 100)
+                                    .toFixed(2)
+                                    .replace(".", ","),
+                                  x.account === "bank" ? "Banca" : "Cassa",
+                                  x.category,
+                                  x.project,
+                                  x.description,
+                                  x.cancelled ? "Annullato" : "Attivo",
+                                ]),
+                              ]
+                                .map((row) => row.map(csvCell).join(";"))
+                                .join("\r\n"),
+                          ],
+                          { type: "text/csv;charset=utf-8" },
+                        ),
+                        "insieme-oltre-movimenti.csv",
+                      )
+                    }
+                  >
+                    Esporta i movimenti filtrati (CSV)
+                  </button>
+                  <div className="soci-table-wrap">
+                    <table>
+                      <caption>
+                        {filtered.length} movimenti · gli annullati sono esclusi
+                        dai totali
+                      </caption>
+                      <thead>
+                        <tr>
+                          <th>Data</th>
+                          <th>Causale</th>
+                          <th>Categoria / iniziativa</th>
+                          <th>Conto</th>
+                          <th>Importo</th>
+                          {write && <th>Operazioni</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.slice(0, 500).map((item) => (
+                          <tr
+                            key={item.id}
+                            className={item.cancelled ? "cancelled" : ""}
+                          >
+                            <td>{dateLabel(item.date)}</td>
+                            <td>
+                              <strong>{item.description}</strong>
+                              <small>
+                                {kindLabels[item.kind]}
+                                {item.cancelled
+                                  ? " · Annullato: " + item.cancellation_reason
+                                  : ""}
+                              </small>
+                            </td>
+                            <td>
+                              {item.category}
+                              <small>{item.project}</small>
+                            </td>
+                            <td>
+                              {item.account === "bank" ? "Banca" : "Cassa"}
+                              {item.kind === "transfer"
+                                ? item.account === "bank"
+                                  ? " → Cassa"
+                                  : " → Banca"
+                                : ""}
+                            </td>
+                            <td
+                              className={
+                                item.kind === "expense" ? "expense" : ""
+                              }
+                            >
+                              {item.kind === "expense" ? "−" : ""}
+                              {money(item.amount_cents)}
+                            </td>
+                            {write && (
+                              <td>
+                                <div className="soci-row-actions">
+                                  {!item.cancelled && (
+                                    <>
+                                      <button
+                                        disabled={busy}
+                                        onClick={() => setEditing(item)}
+                                      >
+                                        Correggi
+                                      </button>
+                                      <button
+                                        disabled={busy}
+                                        onClick={() => {
+                                          const reason = window.prompt(
+                                            "Motivo dell’annullamento (10–500 caratteri):",
+                                          );
+                                          if (reason)
+                                            void run(async () => {
+                                              await post("movements", {
+                                                id: item.id,
+                                                version: item.version,
+                                                cancel_reason: reason,
+                                              });
+                                              await load();
+                                            });
+                                        }}
+                                      >
+                                        Annulla
+                                      </button>
+                                    </>
+                                  )}
+                                  <button
+                                    onClick={() => void openDocuments(item)}
+                                  >
+                                    Documenti
+                                  </button>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {!filtered.length && <p>Nessun movimento trovato.</p>}
+                    {filtered.length > 500 && (
+                      <p>
+                        Mostrati i primi 500: restringi i filtri o esporta
+                        l’elenco completo.
+                      </p>
+                    )}
+                  </div>
+                </section>
+                {documentItem && write && (
+                  <section className="soci-card">
+                    <h3>Documenti · {documentItem.description}</h3>
+                    <p>
+                      Visibili agli amministratori. PDF, JPG e PNG fino a 3 MB.
+                    </p>
+                    <ul>
+                      {documents.map((doc) => (
+                        <li key={doc.id}>
+                          <button
+                            onClick={() =>
+                              void run(async () =>
+                                download(
+                                  await (
+                                    await api("document/" + doc.id)
+                                  ).blob(),
+                                  doc.filename,
+                                ),
+                              )
+                            }
+                          >
+                            {doc.filename}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const form = new FormData(e.currentTarget);
+                        form.set("movement_id", documentItem.id);
+                        void run(async () => {
+                          await api("documents", {
+                            method: "POST",
+                            body: form,
+                          });
+                          setDocuments(
+                            (
+                              await (
+                                await api(
+                                  "documents?movement_id=" + documentItem.id,
+                                )
+                              ).json()
+                            ).items,
+                          );
+                          setMessage("Documento allegato.");
+                        });
+                      }}
+                    >
+                      <label>
+                        Giustificativo
+                        <input
+                          name="file"
+                          type="file"
+                          accept="application/pdf,image/jpeg,image/png"
+                          required
+                        />
+                      </label>
+                      <button disabled={busy}>Allega documento</button>
+                      <button
+                        type="button"
+                        onClick={() => setDocumentItem(null)}
+                      >
+                        Chiudi
+                      </button>
+                    </form>
+                  </section>
+                )}
+                <section className="soci-card">
+                  <h3>Le iniziative</h3>
+                  {projects.length ? (
+                    projects.map((p) => {
+                      const b = balances(items.filter((x) => x.project === p));
+                      return (
+                        <p key={p}>
+                          <strong>{p}</strong> · Entrate {money(b.income)} ·
+                          Uscite {money(b.expense)} · Disponibile{" "}
+                          {money(b.income - b.expense)}
+                        </p>
+                      );
+                    })
+                  ) : (
+                    <p>
+                      Le iniziative compariranno quando verranno collegate ai
+                      movimenti.
+                    </p>
+                  )}
+                </section>
+              </>
+            )}
+            {tab === "members" && user.role === "owner" && (
+              <section className="soci-card">
+                <h2>Utenti e permessi</h2>
+                <p>Solo tu puoi abilitare gli accessi e assegnare i ruoli.</p>
+                {!memberEdit && (
+                  <p>
+                    Per abilitare un nuovo utente, chiedigli di compilare
+                    “Richiedi accesso” dalla pagina di login e approva la
+                    richiesta.
+                  </p>
+                )}
+                {memberEdit && (
+                  <form
+                    key={memberEdit.user_id}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const form = Object.fromEntries(
+                        new FormData(e.currentTarget),
+                      );
+                      void run(async () => {
+                        await post("members", {
+                          ...form,
+                          active: form.active === "true",
+                          ...(memberEdit
+                            ? { user_id: memberEdit.user_id }
+                            : {}),
+                        });
+                        setMemberEdit(null);
+                        setMembers((await (await api("members")).json()).items);
+                        setMessage("Accesso aggiornato.");
+                      });
+                    }}
+                  >
+                    <div className="soci-grid">
+                      <label>
+                        Nome e cognome
+                        <input
+                          name="name"
+                          required
+                          maxLength={120}
+                          defaultValue={memberEdit?.name}
+                        />
+                      </label>
+                      <label>
+                        Email
+                        <input
+                          name="email"
+                          type="email"
+                          required
+                          maxLength={254}
+                          readOnly={!!memberEdit}
+                          defaultValue={memberEdit?.email}
+                        />
+                      </label>
+                      <label>
+                        Nome utente
+                        <input
+                          name="username"
+                          required
+                          minLength={3}
+                          maxLength={32}
+                          pattern="[a-z0-9][a-z0-9._-]{2,31}"
+                          defaultValue={memberEdit.username ?? ""}
+                        />
+                      </label>
+                      <label>
+                        Ruolo
+                        <select
+                          name="role"
+                          defaultValue={memberEdit?.role ?? "member"}
+                        >
+                          <option value="member">Socio — consultazione</option>
+                          <option value="accountant">
+                            Amministratore contabile
+                          </option>
+                        </select>
+                      </label>
+                      <label>
+                        Stato
+                        <select
+                          name="active"
+                          defaultValue={
+                            memberEdit?.active === false ? "false" : "true"
+                          }
+                        >
+                          <option value="true">Attivo</option>
+                          <option value="false">Disattivato</option>
+                        </select>
+                      </label>
+                    </div>
+                    <p>
+                      La password viene scelta dall’utente tramite il
+                      collegamento ricevuto via email.
+                    </p>
+                    <button className="primary" disabled={busy}>
+                      {memberEdit ? "Salva permessi" : "Crea accesso"}
+                    </button>
+                    {memberEdit && (
+                      <button type="button" onClick={() => setMemberEdit(null)}>
+                        Chiudi modifica
+                      </button>
+                    )}
+                  </form>
+                )}
+                <ul className="soci-members">
+                  {members.map((m) => (
+                    <li key={m.user_id}>
+                      <div>
+                        <strong>{m.name}</strong>
+                        <small>
+                          {m.email} · {m.username ?? "Nome utente da assegnare"}{" "}
+                          · {roleLabels[m.role]} ·{" "}
+                          {m.active
+                            ? m.activated_at
+                              ? "Attivo"
+                              : "Invito in attesa"
+                            : "Disattivato"}
+                        </small>
+                      </div>
+                      <div className="soci-actions">
+                        <button onClick={() => setMemberEdit(m)}>
+                          Gestisci
+                        </button>
+                        <button
+                          disabled={busy || !m.active || !m.username}
+                          onClick={() =>
+                            void run(async () => {
+                              await api("access/resend", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ user_id: m.user_id }),
+                              });
+                              setMessage(
+                                "Collegamento per la password inviato.",
+                              );
+                            })
+                          }
+                        >
+                          {m.activated_at
+                            ? "Invia recupero password"
+                            : "Reinvia invito"}
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {tab === "audit" && user.role === "owner" && (
+              <section className="soci-card">
+                <h2>Storico delle operazioni</h2>
+                <p>Movimenti e variazioni dei permessi, dal più recente.</p>
+                {audit.map((a) => (
+                  <details key={a.id}>
+                    <summary>
+                      {new Date(a.created_at).toLocaleString("it-IT")} ·{" "}
+                      {a.action} · {a.entity_id}
+                    </summary>
+                    <p>
+                      Utente:{" "}
+                      {members.find((m) => m.user_id === a.actor_id)?.name ??
+                        (a.actor_id === user.id ? user.name : a.actor_id)}
+                    </p>
+                    <pre>
+                      {JSON.stringify(
+                        { prima: a.before_data, dopo: a.after_data },
+                        null,
+                        2,
+                      )}
+                    </pre>
+                  </details>
+                ))}
+                <button
+                  disabled={busy || audit.length % 100 !== 0 || !audit.length}
+                  onClick={() =>
+                    void run(async () =>
+                      setAudit([
+                        ...audit,
+                        ...(
+                          await (
+                            await api("audit?offset=" + audit.length)
+                          ).json()
+                        ).items,
+                      ]),
+                    )
+                  }
+                >
+                  Carica operazioni precedenti
+                </button>
+              </section>
+            )}
+          </>
+        )}
+        <footer>
+          <Link href="/">← Torna al sito</Link>
+          <span>Insieme Oltre · Area riservata</span>
+        </footer>
+      </div>
     </main>
   );
 }

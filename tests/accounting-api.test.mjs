@@ -29,7 +29,9 @@ function mock() {
         email: owner ? "owner@example.org" : "member@example.org",
       });
     if (url.includes("/association_members?"))
-      return Response.json([{ name: "Socio", role, active }]);
+      return Response.json([
+        { name: "Socio", role, active, activated_at: "2026-10-20T00:00:00Z" },
+      ]);
     if (url.includes("/association_movements?")) {
       const params = new URL(url).searchParams;
       assert.ok(

@@ -19,6 +19,7 @@ import {
   SESSION_TIMES_KEY,
 } from "./sessionTimeout";
 const ContentEditor = dynamic(() => import("./ContentEditor"));
+import { AccountingDashboard } from "./AccountingDashboard";
 import { AccessForms, AccessRequests } from "./accessComponents";
 type User = { id: string; name: string; role: AssociationRole };
 type Session = {
@@ -74,6 +75,12 @@ export default function AreaSoci() {
   const [pending, setPending] = useState(0);
   const [editing, setEditing] = useState<Item | null | undefined>(undefined);
   const [year, setYear] = useState("");
+  const [reportYear, setReportYear] = useState(() => today().slice(0, 4));
+  const [accountFilter, setAccountFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [kindFilter, setKindFilter] = useState("");
+  const [movementKind, setMovementKind] = useState("income");
+  const [movementAccount, setMovementAccount] = useState("bank");
   const [search, setSearch] = useState("");
   const [project, setProject] = useState("");
   const [showCancelled, setShowCancelled] = useState(false);
@@ -83,7 +90,10 @@ export default function AreaSoci() {
   const [documents, setDocuments] = useState<
     { id: string; filename: string }[]
   >([]);
-  const [documentItem, setDocumentItem] = useState<Item | null>(null);
+  const [documentItem, setDocumentItem] = useState<Pick<
+    Item,
+    "id" | "description"
+  > | null>(null);
   const session = useRef<Session | null>(null);
   const renewing = useRef<Promise<void> | null>(null);
   const lastActivity = useRef(0);
@@ -339,12 +349,16 @@ export default function AreaSoci() {
     (x) =>
       (!year || x.date.startsWith(year)) &&
       (!project || x.project === project) &&
+      (!accountFilter ||
+        x.account === accountFilter ||
+        x.kind === "transfer") &&
+      (!categoryFilter || x.category === categoryFilter) &&
+      (!kindFilter || x.kind === kindFilter) &&
       (showCancelled || !x.cancelled) &&
       `${x.description} ${x.category} ${x.project}`
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
-  const totals = balances(items);
   const period = balances(filtered);
   const projects = [
     ...new Set(items.map((x) => x.project).filter(Boolean)),
@@ -352,6 +366,18 @@ export default function AreaSoci() {
   const years = [...new Set(items.map((x) => x.date.slice(0, 4)))]
     .sort()
     .reverse();
+  function newMovement(kind: "income" | "expense" = "income") {
+    setNewDate(today());
+    setMovementKind(kind);
+    setMovementAccount("bank");
+    setEditing(null);
+    setDocumentItem(null);
+    requestAnimationFrame(() =>
+      document
+        .getElementById("movement-editor")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
+  }
   async function openTab(value: string) {
     setTab(value);
     await run(async () => {
@@ -537,22 +563,14 @@ export default function AreaSoci() {
             )}
             {tab === "register" && (
               <>
-                <section className="soci-stats" aria-label="Saldi complessivi">
-                  <article>
-                    <span>Cassa</span>
-                    <strong>{dataLoaded ? money(totals.cash) : "—"}</strong>
-                  </article>
-                  <article>
-                    <span>Conto bancario</span>
-                    <strong>{dataLoaded ? money(totals.bank) : "—"}</strong>
-                  </article>
-                  <article>
-                    <span>Disponibilità totale</span>
-                    <strong>
-                      {dataLoaded ? money(totals.cash + totals.bank) : "—"}
-                    </strong>
-                  </article>
-                </section>
+                <AccountingDashboard
+                  items={items}
+                  loaded={dataLoaded}
+                  year={reportYear}
+                  onYear={setReportYear}
+                  onNew={write ? newMovement : undefined}
+                  busy={busy}
+                />
                 <div className="soci-toolbar">
                   <div>
                     <h2>Entrate e uscite</h2>
@@ -569,9 +587,7 @@ export default function AreaSoci() {
                       className="primary"
                       disabled={busy}
                       onClick={() => {
-                        setNewDate(today());
-                        setEditing(null);
-                        setDocumentItem(null);
+                        newMovement();
                       }}
                     >
                       + Nuovo movimento
@@ -581,22 +597,45 @@ export default function AreaSoci() {
                 {editing !== undefined && write && (
                   <form
                     key={editing?.id ?? "new"}
+                    id="movement-editor"
                     className="soci-card"
                     onSubmit={(e) => {
                       e.preventDefault();
                       const values = Object.fromEntries(
                         new FormData(e.currentTarget),
                       );
+                      const attach =
+                        (e.nativeEvent as SubmitEvent).submitter instanceof
+                          HTMLButtonElement &&
+                        (
+                          (e.nativeEvent as SubmitEvent)
+                            .submitter as HTMLButtonElement
+                        ).value === "attach";
                       void run(async () => {
-                        await post("movements", {
-                          ...values,
-                          ...(editing
-                            ? { id: editing.id, version: editing.version }
-                            : {}),
-                        });
+                        const saved = await (
+                          await post("movements", {
+                            ...values,
+                            ...(editing
+                              ? { id: editing.id, version: editing.version }
+                              : {}),
+                          })
+                        ).json();
                         setEditing(undefined);
                         await load();
                         setMessage("Movimento salvato.");
+                        if (attach && saved.id) {
+                          setDocumentItem({
+                            id: saved.id,
+                            description: String(values.description),
+                          });
+                          setDocuments(
+                            (
+                              await (
+                                await api("documents?movement_id=" + saved.id)
+                              ).json()
+                            ).items,
+                          );
+                        }
                       });
                     }}
                   >
@@ -619,7 +658,8 @@ export default function AreaSoci() {
                         Tipo
                         <select
                           name="kind"
-                          defaultValue={editing?.kind ?? "income"}
+                          value={movementKind}
+                          onChange={(e) => setMovementKind(e.target.value)}
                         >
                           {Object.entries(kindLabels).map(([v, l]) => (
                             <option key={v} value={v}>
@@ -643,21 +683,36 @@ export default function AreaSoci() {
                         />
                       </label>
                       <label>
-                        Conto / provenienza
+                        {movementKind === "transfer" ? "Dal conto" : "Conto"}
                         <select
                           name="account"
-                          defaultValue={editing?.account ?? "bank"}
+                          value={movementAccount}
+                          onChange={(e) => setMovementAccount(e.target.value)}
                         >
                           <option value="bank">Conto bancario</option>
                           <option value="cash">Cassa contanti</option>
                         </select>
                       </label>
+                      {movementKind === "transfer" && (
+                        <p className="accounting-transfer">
+                          Al conto:{" "}
+                          <strong>
+                            {movementAccount === "cash"
+                              ? "Conto bancario"
+                              : "Cassa contanti"}
+                          </strong>
+                          <small>
+                            Un solo movimento aggiorna entrambi i conti.
+                          </small>
+                        </p>
+                      )}
                       <label>
                         Categoria
                         <input
                           name="category"
                           list="categories"
                           defaultValue={editing?.category ?? ""}
+                          placeholder="Scegli o scrivi una categoria"
                           required
                           maxLength={100}
                         />
@@ -708,6 +763,9 @@ export default function AreaSoci() {
                       <button className="primary" disabled={busy}>
                         Salva movimento
                       </button>
+                      <button type="submit" value="attach" disabled={busy}>
+                        Salva e allega documento
+                      </button>
                       <button
                         type="button"
                         onClick={() => setEditing(undefined)}
@@ -744,6 +802,45 @@ export default function AreaSoci() {
                       </select>
                     </label>
                     <label>
+                      Conto
+                      <select
+                        value={accountFilter}
+                        onChange={(e) => setAccountFilter(e.target.value)}
+                      >
+                        <option value="">Cassa e banca</option>
+                        <option value="cash">Cassa contanti</option>
+                        <option value="bank">Conto bancario</option>
+                      </select>
+                    </label>
+                    <label>
+                      Tipo
+                      <select
+                        value={kindFilter}
+                        onChange={(e) => setKindFilter(e.target.value)}
+                      >
+                        <option value="">Tutti i tipi</option>
+                        {Object.entries(kindLabels).map(([v, l]) => (
+                          <option key={v} value={v}>
+                            {l}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Categoria
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                      >
+                        <option value="">Tutte le categorie</option>
+                        {[...new Set(items.map((x) => x.category))]
+                          .sort()
+                          .map((c) => (
+                            <option key={c}>{c}</option>
+                          ))}
+                      </select>
+                    </label>
+                    <label>
                       Cerca
                       <input
                         value={search}
@@ -761,10 +858,28 @@ export default function AreaSoci() {
                     </label>
                   </div>
                   <p>
-                    <strong>Entrate: {money(period.income)}</strong> · Uscite:{" "}
-                    {money(period.expense)} · Differenza:{" "}
+                    <strong>Entrate filtrate: {money(period.income)}</strong> ·
+                    Uscite: {money(period.expense)} · Differenza:{" "}
                     {money(period.income - period.expense)}
                   </p>
+                  <p className="accounting-muted">
+                    I filtri riguardano il registro e il CSV; il cruscotto
+                    mantiene i saldi complessivi. I trasferimenti compaiono in
+                    entrambi i conti.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setYear("");
+                      setProject("");
+                      setSearch("");
+                      setAccountFilter("");
+                      setCategoryFilter("");
+                      setKindFilter("");
+                      setShowCancelled(false);
+                    }}
+                  >
+                    Azzera filtri
+                  </button>{" "}
                   <button
                     onClick={() =>
                       download(
@@ -788,7 +903,13 @@ export default function AreaSoci() {
                                   (x.amount_cents / 100)
                                     .toFixed(2)
                                     .replace(".", ","),
-                                  x.account === "bank" ? "Banca" : "Cassa",
+                                  x.kind === "transfer"
+                                    ? x.account === "bank"
+                                      ? "Banca → Cassa"
+                                      : "Cassa → Banca"
+                                    : x.account === "bank"
+                                      ? "Banca"
+                                      : "Cassa",
                                   x.category,
                                   x.project,
                                   x.description,
@@ -865,7 +986,12 @@ export default function AreaSoci() {
                                     <>
                                       <button
                                         disabled={busy}
-                                        onClick={() => setEditing(item)}
+                                        onClick={() => {
+                                          setMovementKind(item.kind);
+                                          setMovementAccount(item.account);
+                                          setEditing(item);
+                                          setDocumentItem(null);
+                                        }}
                                       >
                                         Correggi
                                       </button>
@@ -915,7 +1041,8 @@ export default function AreaSoci() {
                   <section className="soci-card">
                     <h3>Documenti · {documentItem.description}</h3>
                     <p>
-                      Visibili agli amministratori. PDF, JPG e PNG fino a 3 MB.
+                      Il movimento è già salvato. I documenti sono visibili solo
+                      agli amministratori. PDF, JPG e PNG fino a 3 MB.
                     </p>
                     <ul>
                       {documents.map((doc) => (
@@ -987,7 +1114,7 @@ export default function AreaSoci() {
                       return (
                         <p key={p}>
                           <strong>{p}</strong> · Entrate {money(b.income)} ·
-                          Uscite {money(b.expense)} · Disponibile{" "}
+                          Uscite {money(b.expense)} · Differenza{" "}
                           {money(b.income - b.expense)}
                         </p>
                       );

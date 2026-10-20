@@ -46,7 +46,7 @@ function mock() {
       return Response.json([{ id: "501" }]);
     }
     if (url.includes("/rpc/association_save_movement"))
-      return Response.json({});
+      return Response.json({ id });
     throw Error("Unexpected fetch: " + url);
   };
 }
@@ -108,10 +108,9 @@ test("contabile scrive ma non gestisce permessi e storico", async () => {
     category: "Quote",
     description: "Quota socio",
   };
-  assert.equal(
-    (await POST(request("movements", data), ctx("movements"))).status,
-    200,
-  );
+  const saved = await POST(request("movements", data), ctx("movements"));
+  assert.equal(saved.status, 200);
+  assert.equal((await saved.json()).id, id);
   const rpc = calls.find((x) => x.url.includes("/rpc/"));
   const body = JSON.parse(rpc.init.body);
   assert.equal(body.p_actor, id);

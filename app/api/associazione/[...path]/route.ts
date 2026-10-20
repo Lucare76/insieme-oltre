@@ -149,7 +149,7 @@ async function handle(request: Request, path: string[]) {
         private_note: text(body.private_note ?? "", 1000),
       };
     }
-    await service("/rest/v1/rpc/association_save_movement", {
+    const saved = await service("/rest/v1/rpc/association_save_movement", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -160,7 +160,9 @@ async function handle(request: Request, path: string[]) {
         p_cancel_reason: reason,
       }),
     });
-    return reply({ ok: true });
+    const payload = await saved.json();
+    const result = Array.isArray(payload) ? payload[0] : payload;
+    return reply({ ok: true, id: result?.id });
   }
   if (route === "members" && request.method === "GET") {
     const res = await service(

@@ -75,24 +75,25 @@ export default async function Home() {
         <a className="header-cta" href="#unisciti">{content.nav.cta}</a>
       </header>
 
+      {/* La prima schermata resta visibile nel HTML, senza attendere le animazioni client. */}
       <section className="hero" id="top">
         <div className="hero-noise" aria-hidden="true" />
         <EventAnnouncement />
         <div className="hero-copy">
-          <p className="eyebrow" data-reveal="fade-up">{content.hero.eyebrow}</p>
-          <h1 data-reveal="title" style={delay(120)}>
+          <p className="eyebrow">{content.hero.eyebrow}</p>
+          <h1>
             {content.hero.titleLine1}
             <span>{content.hero.titleLine2}</span>
           </h1>
-          <p className="hero-lead" data-reveal="fade-up" style={delay(320)}>{content.hero.lead}</p>
-          <div className="hero-actions" data-reveal="fade-up" style={delay(460)}>
+          <p className="hero-lead">{content.hero.lead}</p>
+          <div className="hero-actions">
             <a className="button button-primary" href="#manifesto">{content.hero.primaryCta} <span>→</span></a>
             <a className="button button-ghost" href="#storie">{content.hero.secondaryCta}</a>
           </div>
-          <div className="hand-note" data-reveal="fade-up" style={delay(600)}>{content.hero.note}</div>
+          <div className="hand-note">{content.hero.note}</div>
         </div>
 
-        <div className="hero-art" aria-hidden="true" data-reveal="scale" style={delay(700)}>
+        <div className="hero-art" aria-hidden="true">
           <div className="sun-orbit orbit-one" />
           <div className="sun-orbit orbit-two" />
           <div className="portrait-halo logo-frame">

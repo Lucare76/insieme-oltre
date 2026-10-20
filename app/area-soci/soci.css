@@ -361,4 +361,626 @@
     overflow: visible;
   }
 }
-.soci-menu-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:25px}.soci-menu-cards button{text-align:left;padding:25px;display:flex;flex-direction:column;gap:12px}.soci-menu-cards strong{font-size:21px}.soci-menu-cards span{font-weight:400;color:#586458}.access-forms{margin-top:25px;border-top:1px solid #dde1d8;padding-top:20px}.access-forms .soci-card{padding:0;border:0;box-shadow:none}.access-honeypot{position:absolute!important;left:-10000px;width:1px;height:1px;overflow:hidden}.access-review{min-width:230px}.access-review .soci-actions{flex-wrap:wrap}.soci .soci-check{display:flex;flex-direction:row;align-items:center;gap:12px}.soci .soci-check input{flex:0 0 20px}.soci .admin-page{padding:0}.soci .admin-shell{max-width:none}.soci small{font-weight:400}@media(max-width:700px){.soci-menu-cards{grid-template-columns:1fr}.soci-members li{align-items:stretch;flex-direction:column}.soci-login .soci-actions{flex-wrap:wrap}}
+.soci-menu-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 25px;
+}
+.soci-menu-cards button {
+  text-align: left;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.soci-menu-cards strong {
+  font-size: 21px;
+}
+.soci-menu-cards span {
+  font-weight: 400;
+  color: #586458;
+}
+.access-forms {
+  margin-top: 25px;
+  border-top: 1px solid #dde1d8;
+  padding-top: 20px;
+}
+.access-forms .soci-card {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+.access-honeypot {
+  position: absolute !important;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.access-review {
+  min-width: 230px;
+}
+.access-review .soci-actions {
+  flex-wrap: wrap;
+}
+.soci .soci-check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.soci .soci-check input {
+  flex: 0 0 20px;
+}
+.soci .admin-page {
+  padding: 0;
+}
+.soci .admin-shell {
+  max-width: none;
+}
+.soci small {
+  font-weight: 400;
+}
+@media (max-width: 700px) {
+  .soci-menu-cards {
+    grid-template-columns: 1fr;
+  }
+  .soci-members li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .soci-login .soci-actions {
+    flex-wrap: wrap;
+  }
+}
+/* Richieste: schede leggibili e decisioni separate dai dati personali. */
+.access-inbox {
+  margin: 28px 0;
+}
+.access-inbox svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.access-inbox-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.access-inbox-heading .soci-kicker {
+  color: #77836e;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  margin: 0 0 8px;
+}
+.access-inbox-heading h2 {
+  font-size: clamp(27px, 3vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+.access-inbox-heading p:last-child {
+  font-size: 15px;
+  color: #697566;
+  margin: 0;
+  line-height: 1.65;
+}
+.access-inbox-heading > button,
+.access-email-banner > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  white-space: nowrap;
+}
+.access-title-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 31px;
+  height: 31px;
+  border-radius: 10px;
+  background: #e9ddc3;
+  color: #725723;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.access-email-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #e9eee4;
+  border: 1px solid #d9e2d1;
+  padding: 19px 22px;
+  border-radius: 14px;
+  margin-bottom: 25px;
+}
+.access-email-icon {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  background: #dce6d4;
+  color: #496345;
+  flex-shrink: 0;
+}
+.access-email-banner > div:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.access-email-banner strong {
+  font-size: 14px;
+}
+.access-email-banner p {
+  font-size: 13px;
+  color: #65735e;
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
+}
+.access-email-banner > button {
+  background: transparent;
+  border-color: #bac9ae;
+  font-size: 13px;
+}
+.access-email-warning {
+  background: #fff1d7;
+  border-color: #ead5ab;
+}
+.access-filters {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #dce1d5;
+  margin: 0 0 25px;
+  padding-bottom: 13px;
+}
+.soci .access-filters button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  background: transparent;
+  color: #717a6c;
+  padding: 10px 16px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+.soci .access-filters button span {
+  display: grid;
+  place-items: center;
+  min-width: 23px;
+  height: 23px;
+  background: #e9ece3;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.soci .access-filters button[aria-pressed="true"] {
+  background: #345a43;
+  color: #fff;
+}
+.soci .access-filters button[aria-pressed="true"] span {
+  background: #ffffff24;
+  color: white;
+}
+.access-request-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.access-request-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  background: #fff;
+  border: 1px solid #dce2d6;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 6px 22px #30452a04;
+}
+.access-person {
+  padding: 29px 30px;
+}
+.access-person-heading {
+  display: flex;
+  gap: 17px;
+  align-items: center;
+}
+.access-avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 57px;
+  height: 57px;
+  border: 1px solid #e3dece;
+  background: #f3eee2;
+  color: #8a7549;
+  border-radius: 16px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.access-person-heading h3 {
+  font-size: 21px;
+  letter-spacing: -0.01em;
+  margin: 9px 0 0;
+  overflow-wrap: anywhere;
+}
+.access-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  color: #9c732c;
+  background: #fbf1dc;
+  border-radius: 5px;
+  padding: 5px 8px;
+}
+.access-status > span {
+  width: 5px;
+  height: 5px;
+  background: currentColor;
+  border-radius: 50%;
+}
+.access-status-approved {
+  color: #3a6b4e;
+  background: #e8f0e6;
+}
+.access-status-rejected {
+  color: #9c5b51;
+  background: #faeeeb;
+}
+.access-status-processing {
+  color: #5f6d90;
+  background: #edf0f7;
+}
+.access-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px 25px;
+  margin: 28px 0 25px;
+}
+.access-details > div:last-child {
+  grid-column: 1/-1;
+}
+.access-details dt {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #7f8778;
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 7px;
+}
+.access-details dt svg {
+  width: 14px;
+  height: 14px;
+}
+.access-details dd {
+  margin: 0;
+  color: #34432e;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.access-mail-status {
+  border-top: 1px solid #edf0e9;
+  padding-top: 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: #6f7d65;
+  font-size: 11px;
+}
+.access-mail-status svg {
+  width: 15px;
+  height: 15px;
+}
+.access-mail-status.is-unsent {
+  color: #9b7537;
+}
+.soci .access-mail-status button {
+  font-size: 11px;
+  min-height: 32px;
+  border: 0;
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+  padding: 5px 0;
+  margin-left: 8px;
+  color: inherit;
+}
+.access-decision {
+  padding: 27px 25px;
+  background: #f7f8f3;
+  border-left: 1px solid #e4e9dd;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.access-decision-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+}
+.access-decision-title svg {
+  color: #708566;
+  width: 17px;
+  height: 17px;
+}
+.access-decision > p {
+  font-size: 12px;
+  line-height: 1.65;
+  color: #7b8572;
+  margin: 10px 0 19px;
+}
+.soci .access-decision label {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 7px;
+  letter-spacing: 0.02em;
+}
+.soci .access-decision select {
+  font-size: 12px;
+  padding: 11px 12px;
+  min-height: 44px;
+  background: #fff;
+}
+.access-decision .access-role-help {
+  font-size: 11px;
+  line-height: 1.65;
+  min-height: 37px;
+  margin: 12px 0 20px;
+}
+.soci .access-decision .access-approve {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 12px;
+  margin-top: auto;
+  white-space: normal;
+}
+.access-approve svg {
+  width: 17px;
+  height: 17px;
+}
+.soci .access-decision .access-reject {
+  background: transparent;
+  border: 0;
+  color: #887267;
+  font-weight: 500;
+  font-size: 11px;
+  margin: 7px 0;
+  min-height: 35px;
+  padding: 7px;
+}
+.access-decision > small {
+  font-size: 10px;
+  line-height: 1.6;
+  text-align: center;
+  color: #929b89;
+  margin-top: 10px;
+}
+.access-completed {
+  padding: 30px;
+  background: #f7f8f3;
+  border-left: 1px solid #e4e9dd;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+.access-completed > svg {
+  width: 30px;
+  height: 30px;
+  color: #6e8560;
+}
+.access-completed strong {
+  font-size: 15px;
+}
+.access-completed p {
+  font-size: 12px;
+  color: #77836e;
+  margin: 0;
+}
+.access-invite-warning {
+  font-size: 12px;
+  color: #9b7537;
+}
+.access-empty {
+  border: 1px dashed #d6ddce;
+  border-radius: 16px;
+  min-height: 220px;
+  text-align: center;
+  padding: 45px 20px;
+  background: #fbfcf8;
+}
+.access-empty > svg {
+  width: 32px;
+  height: 32px;
+  color: #819775;
+  display: block;
+  margin: 0 auto 17px;
+}
+.access-empty h3 {
+  font-size: 19px;
+  margin: 0 0 9px;
+}
+.access-empty p {
+  font-size: 13px;
+  color: #7d8774;
+  margin: 0;
+}
+.access-feedback {
+  padding: 14px 18px;
+  border: 1px solid #d6e2cc;
+  background: #edf4e8;
+  color: #48643b;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.access-feedback.is-error {
+  background: #fff0e9;
+  border-color: #edcebe;
+  color: #915a43;
+}
+.access-load-more {
+  margin-top: 20px;
+}
+@media (min-width: 1150px) {
+  .access-details {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 1fr);
+  }
+  .access-details > div:last-child {
+    grid-column: auto;
+  }
+}
+@media (max-width: 760px) {
+  .access-inbox-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 17px;
+  }
+  .access-inbox-heading > button {
+    align-self: flex-start;
+  }
+  .access-inbox-heading h2 {
+    font-size: 27px;
+  }
+  .access-email-banner {
+    flex-wrap: wrap;
+    padding: 17px;
+    gap: 12px;
+  }
+  .access-email-banner > button {
+    margin-left: 55px;
+    min-height: 38px;
+  }
+  .access-request-card {
+    grid-template-columns: 1fr;
+  }
+  .access-person {
+    padding: 23px 21px;
+  }
+  .access-person-heading h3 {
+    font-size: 20px;
+  }
+  .access-decision,
+  .access-completed {
+    border-left: 0;
+    border-top: 1px solid #e4e9dd;
+    padding: 23px 21px;
+  }
+  .access-decision > p {
+    margin: 10px 0 16px;
+  }
+  .access-decision .access-role-help {
+    min-height: 0;
+  }
+  .access-decision > small {
+    margin-top: 0;
+  }
+  .soci .access-filters button {
+    padding: 9px 11px;
+    font-size: 12px;
+    gap: 6px;
+  }
+  .access-details {
+    gap: 18px;
+  }
+  .access-mail-status {
+    font-size: 10px;
+  }
+  .access-filters {
+    gap: 3px;
+  }
+  .access-status {
+    font-size: 9px;
+  }
+  .access-person-heading {
+    gap: 13px;
+  }
+  .access-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 17px;
+  }
+}
+@media (max-width: 380px) {
+  .access-details {
+    grid-template-columns: 1fr;
+  }
+  .access-details > div:last-child {
+    grid-column: auto;
+  }
+  .access-email-banner > button {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+.soci .primary:hover {
+  background: #284b35;
+}
+.soci .access-filters button[aria-pressed="true"]:hover {
+  background: #284b35;
+}
+.access-feedback {
+  margin: 0 0 18px;
+}
+.access-decision > p {
+  font-size: 13px;
+}
+.access-decision .access-role-help {
+  font-size: 12px;
+}
+.access-decision > small {
+  font-size: 11px;
+}
+.access-status {
+  font-size: 11px;
+}
+@media (max-width: 760px) {
+  .access-email-banner {
+    display: grid;
+    grid-template-columns: 43px minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+  }
+  .access-email-banner > div:nth-child(2) {
+    width: auto;
+    min-width: 0;
+  }
+  .access-email-banner > button {
+    grid-column: 2;
+    margin: 0;
+    justify-self: start;
+    max-width: 100%;
+  }
+  .access-email-banner strong {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .access-status {
+    font-size: 10px;
+  }
+}
+@media (max-width: 380px) {
+  .access-email-banner > button {
+    grid-column: 1/-1;
+    justify-self: stretch;
+    width: 100%;
+  }
+}

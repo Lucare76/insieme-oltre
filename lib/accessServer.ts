@@ -12,6 +12,7 @@ import {
   accessMailReady,
   notifyAccessRequest,
   sendAccessLink,
+  sendNotificationTest,
 } from "./associationMail";
 
 export const normalizeUsername = (value: unknown) =>
@@ -333,6 +334,43 @@ export async function handleAccess(
         )
       ).json(),
       emailReady: accessMailReady(),
+      notificationEmail: allowedAdminEmail(),
+    };
+  }
+  if (route === "notification-test" && request.method === "POST") {
+    await limit(request, "notification");
+    const receipt = await sendNotificationTest();
+    return {
+      ok: true,
+      message: `Email di prova inviata a ${allowedAdminEmail()}. Se non la trovi, controlla anche lo spam.`,
+      messageId: receipt.messageId,
+    };
+  }
+  if (route === "notify-request" && request.method === "POST") {
+    await limit(request, "notification");
+    const body = await jsonBody(request);
+    if (!uuid(body.id)) throw new AssociationError("Richiesta non valida.");
+    const [item] = await (
+      await service(
+        `/rest/v1/association_access_requests?id=eq.${body.id}&select=id,name,email,username,status`,
+      )
+    ).json();
+    if (!item || !["pending", "processing"].includes(item.status))
+      throw new AssociationError("Questa richiesta non è più in attesa.", 409);
+    const receipt = await notifyAccessRequest(
+      item.name,
+      item.email,
+      item.username,
+    );
+    await service(`/rest/v1/association_access_requests?id=eq.${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notification_sent_at: new Date().toISOString() }),
+    });
+    return {
+      ok: true,
+      message: `Avviso inviato a ${allowedAdminEmail()}.`,
+      messageId: receipt.messageId,
     };
   }
   if (route === "review" && request.method === "POST") {

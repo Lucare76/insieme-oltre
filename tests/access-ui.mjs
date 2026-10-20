@@ -78,6 +78,7 @@ try {
       } else if (path.endsWith("/requests"))
         data = {
           emailReady: true,
+          notificationEmail: "owner@example.org",
           items: requested
             ? [
                 {
@@ -100,6 +101,13 @@ try {
         path.endsWith("/audit")
       )
         data = { items: [] };
+      else if (path.endsWith("/notification-test"))
+        data = {
+          ok: true,
+          message: "Email di prova inviata a owner@example.org.",
+        };
+      else if (path.endsWith("/notify-request"))
+        data = { ok: true, message: "Avviso inviato a owner@example.org." };
       else if (path.endsWith("/password"))
         data = {
           ok: true,
@@ -133,16 +141,14 @@ try {
     } catch (error) {
       console.log(await page.locator("body").innerText());
       console.log(
-        await page
-          .locator("input")
-          .evaluateAll((xs) =>
-            xs.map((x) => ({
-              name: x.name,
-              value: x.value,
-              valid: x.checkValidity(),
-              error: x.validationMessage,
-            })),
-          ),
+        await page.locator("input").evaluateAll((xs) =>
+          xs.map((x) => ({
+            name: x.name,
+            value: x.value,
+            valid: x.checkValidity(),
+            error: x.validationMessage,
+          })),
+        ),
       );
       console.log(errors);
       throw error;
@@ -159,7 +165,7 @@ try {
       .first()
       .click();
     await page
-      .getByRole("heading", { name: "Richieste di accesso", exact: true })
+      .getByRole("heading", { name: /^Richieste di accesso/ })
       .waitFor();
     try {
       await page
@@ -170,6 +176,28 @@ try {
       console.log(errors);
       throw error;
     }
+    await page
+      .getByRole("button", { name: "Prova email", exact: true })
+      .click();
+    await page
+      .getByText("Email di prova inviata a owner@example.org.", { exact: true })
+      .waitFor();
+    await page
+      .getByRole("button", { name: "Reinvia avviso", exact: true })
+      .click();
+    await page
+      .getByText("Avviso inviato a owner@example.org.", { exact: true })
+      .waitFor();
+    await page.screenshot({
+      path: "/tmp/insieme-richieste-" + width + ".png",
+      fullPage: true,
+    });
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+      "overflow requests at " + width,
+    );
     await page
       .getByRole("button", { name: "Approva e invia invito", exact: true })
       .click();

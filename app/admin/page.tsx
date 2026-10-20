@@ -612,6 +612,7 @@ export default function AdminPage() {
           <span>{status}</span>
         </div>
 
+        <p><a href="/area-soci">Contabilità e area soci →</a></p>
         <p style={{ margin: "0 0 20px" }}><a href="/admin/partecipazioni" style={{ display: "inline-block", padding: "13px 20px", borderRadius: "30px", background: "#425a48", color: "white", fontWeight: 700 }}>Le idee delle famiglie →</a></p>
 
         <div className="admin-card admin-editor">

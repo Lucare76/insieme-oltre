@@ -251,6 +251,7 @@ export default async function Home() {
           <span>Insieme <em>Oltre</em></span>
           <small>{content.footer.slogan}</small>
           <LegalLinks className="footer-legal" />
+          <a href="/area-soci">Area soci</a>
         </div>
         <p>{content.footer.note}</p>
         <a href="#top">{content.footer.backTop}</a>

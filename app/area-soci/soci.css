@@ -1,0 +1,363 @@
+.soci {
+  min-height: 100vh;
+  background: #f5f3ed;
+  color: #25382c;
+  padding: 28px 24px 50px;
+  font-family: Arial, sans-serif;
+}
+.soci * {
+  box-sizing: border-box;
+}
+.soci-shell {
+  max-width: 1280px;
+  margin: auto;
+}
+.soci-header {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+.soci-header > div {
+  flex: 1;
+}
+.soci h1 {
+  font-size: clamp(28px, 4vw, 42px);
+  margin: 4px 0;
+}
+.soci h2 {
+  font-size: 25px;
+  margin: 0 0 10px;
+}
+.soci h3 {
+  font-size: 20px;
+}
+.soci p {
+  line-height: 1.6;
+}
+.soci-kicker {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: bold;
+  margin: 0;
+}
+.soci button,
+.soci-tabs a {
+  border: 1px solid #b9c6b8;
+  border-radius: 10px;
+  padding: 11px 16px;
+  background: #fff;
+  color: #263e2e;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 44px;
+}
+.soci button:hover {
+  background: #eef3ec;
+}
+.soci button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.soci .primary,
+.soci-tabs button[aria-pressed="true"] {
+  background: #345a43;
+  color: #fff;
+  border-color: #345a43;
+}
+.soci button:focus-visible,
+.soci a:focus-visible,
+.soci input:focus-visible,
+.soci select:focus-visible,
+.soci textarea:focus-visible {
+  outline: 3px solid #bc812d;
+  outline-offset: 3px;
+}
+.soci-card {
+  padding: 25px;
+  background: #fff;
+  border: 1px solid #dde1d8;
+  border-radius: 16px;
+  margin: 20px 0;
+  box-shadow: 0 5px 22px #24342a04;
+}
+.soci-login {
+  max-width: 480px;
+  margin: 40px auto;
+}
+.soci label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.soci input,
+.soci textarea,
+.soci select {
+  font: inherit;
+  color: #263e2e;
+  width: 100%;
+  border: 1px solid #adb8ad;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 46px;
+}
+.soci textarea {
+  min-height: 85px;
+  resize: vertical;
+}
+.soci-login label {
+  margin: 20px 0;
+}
+.soci-login > button {
+  width: 100%;
+}
+.soci-login p {
+  font-size: 14px;
+  color: #586458;
+}
+.soci-tabs {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.soci-tabs a {
+  margin-left: auto;
+  text-decoration: none;
+}
+.soci-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.soci-stats article {
+  background: #e9eee4;
+  border: 1px solid #dce3d4;
+  padding: 25px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.soci-stats article:last-child {
+  background: #345a43;
+  color: white;
+}
+.soci-stats strong {
+  font-size: clamp(23px, 3vw, 34px);
+}
+.soci-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+.soci-toolbar > div {
+  flex: 1;
+  min-width: 240px;
+}
+.soci-toolbar p {
+  font-size: 14px;
+  margin: 0;
+  color: #586458;
+}
+.soci-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.soci-grid .wide {
+  grid-column: 1/-1;
+}
+.soci-actions {
+  display: flex;
+  gap: 10px;
+}
+.soci-filters {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.soci-filters > label {
+  flex: 1;
+  min-width: 160px;
+}
+.soci .soci-check {
+  flex-direction: row;
+  align-items: center;
+  min-height: 46px;
+}
+.soci-check input {
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+}
+.soci-table-wrap {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+.soci table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+.soci caption {
+  text-align: left;
+  padding: 12px 0;
+  color: #586458;
+}
+.soci th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f3f5ef;
+}
+.soci th,
+.soci td {
+  padding: 15px 10px;
+  border-bottom: 1px solid #e4e7df;
+  vertical-align: top;
+}
+.soci td:first-child {
+  white-space: nowrap;
+}
+.soci small {
+  display: block;
+  color: #586458;
+  line-height: 1.5;
+  margin-top: 5px;
+}
+.soci td.expense {
+  color: #a03328;
+}
+.soci .cancelled {
+  opacity: 0.65;
+}
+.soci .cancelled td strong {
+  text-decoration: line-through;
+}
+.soci-row-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.soci-row-actions button {
+  font-size: 12px;
+  padding: 8px;
+}
+.soci-message {
+  background: #fff2d9;
+  border: 1px solid #d6b57e;
+  border-radius: 10px;
+  padding: 15px;
+}
+.soci-members {
+  list-style: none;
+  padding: 0;
+  margin-top: 30px;
+}
+.soci-members li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  border-top: 1px solid #e4e7df;
+}
+.soci details {
+  border-bottom: 1px solid #e4e7df;
+  padding: 15px 0;
+}
+.soci summary {
+  cursor: pointer;
+  line-height: 1.6;
+}
+.soci pre {
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #f5f6f2;
+  padding: 15px;
+}
+.soci footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 45px;
+  font-size: 13px;
+}
+.soci-card form > button {
+  margin: 15px 10px 0 0;
+}
+@media (max-width: 700px) {
+  .soci {
+    padding: 18px 12px;
+  }
+  .soci-header {
+    gap: 12px;
+  }
+  .soci-header img {
+    width: 85px;
+    height: auto;
+  }
+  .soci-header p:not(.soci-kicker) {
+    font-size: 13px;
+  }
+  .soci-header h1 {
+    font-size: 28px;
+  }
+  .soci-stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .soci-stats article {
+    padding: 18px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .soci-grid {
+    grid-template-columns: 1fr;
+  }
+  .soci-card {
+    padding: 18px 14px;
+  }
+  .soci-tabs a {
+    margin-left: 0;
+  }
+  .soci footer {
+    flex-direction: column;
+  }
+  .soci table {
+    min-width: 680px;
+  }
+}
+@media print {
+  .soci-tabs,
+  .soci-toolbar button,
+  .soci-filters,
+  .soci button,
+  .soci-header > button {
+    display: none;
+  }
+  .soci {
+    padding: 0;
+    background: white;
+  }
+  .soci-card {
+    box-shadow: none;
+  }
+  .soci-table-wrap {
+    overflow: visible;
+  }
+}

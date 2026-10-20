@@ -3,7 +3,17 @@ import { siteUrl } from "../lib/siteUrl";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/api/admin", "/area-soci", "/api/associazione"] },
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: [
+        "/admin",
+        "/api/admin",
+        "/area-soci",
+        "/api/associazione",
+        "/api/accesso",
+      ],
+    },
     sitemap: `${siteUrl}/sitemap.xml`,
   };
 }

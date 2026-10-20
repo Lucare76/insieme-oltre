@@ -24,13 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!child) return {};
 
   const path = `/storie/${child.slug}`;
-  const description = child.storyTitle || child.cardSubtitle;
+  const description = (child.cardText || child.storyTitle || child.cardSubtitle || `La storia di ${child.name}, raccontata dalla sua famiglia.`).replace(/\s+/g, " ").trim().slice(0, 160);
   return {
-    title: `${child.name} | Insieme Oltre`,
+    title: `La storia di ${child.name} | Insieme Oltre Ischia`,
     description,
     alternates: { canonical: path },
     ...socialMetadata({
-      title: `La storia di ${child.name} | Insieme Oltre`,
+      title: `La storia di ${child.name} | Insieme Oltre Ischia`,
       description,
       path,
       type: "article",
@@ -88,6 +88,11 @@ export default async function ChildStoryPage({ params }: Props) {
           </section>
         )}
       </article>
+
+      <nav className="aurora-page-prose" aria-label="Continua a conoscere Insieme Oltre">
+        <p><Link href="/#storie">Conosci le altre storie →</Link></p>
+        <p><Link href="/#unisciti">Parla con noi: famiglie e volontari →</Link></p>
+      </nav>
 
       <footer className="aurora-page-footer">
         <Link href="/">Insieme Oltre</Link>

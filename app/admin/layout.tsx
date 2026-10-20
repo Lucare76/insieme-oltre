@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Amministrazione | Insieme Oltre",
-  // robots.txt blocca la scansione; questo meta impedisce l'indicizzazione anche se /admin viene linkato altrove.
+  // La scansione è consentita per leggere il noindex; i dati restano protetti dall’autenticazione.
   robots: {
     index: false,
     follow: false,

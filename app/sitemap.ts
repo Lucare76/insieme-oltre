@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const legal = legalPages.map((page) => ({ url: `${siteUrl}${page.href}`, changeFrequency: "yearly" as const, priority: 0.2 }));
+  const legal = legalPages.filter((page) => page.href !== "/informativa-contatti").map((page) => ({ url: `${siteUrl}${page.href}`, changeFrequency: "yearly" as const, priority: 0.2 }));
 
-  return [{ url: siteUrl, changeFrequency: "monthly", priority: 1 }, ...stories, ...legal];
+  return [{ url: siteUrl, changeFrequency: "monthly", priority: 1 }, { url: `${siteUrl}/partecipa`, changeFrequency: "monthly", priority: 0.8 }, ...stories, ...legal];
 }

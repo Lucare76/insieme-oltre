@@ -1,5 +1,3 @@
-import { EventAnnouncement } from "./components/EventAnnouncement";
-import "./event-announcement.css";
 import { ContactForm } from "./components/ContactForm";
 import { contactNotice } from "../lib/legal";
 import { contactMailConfig } from "../lib/contactMail";
@@ -77,13 +75,13 @@ export default async function Home() {
 
       <section className="hero" id="top">
         <div className="hero-noise" aria-hidden="true" />
-        <EventAnnouncement />
         <div className="hero-copy">
           <p className="eyebrow" data-reveal="fade-up">{content.hero.eyebrow}</p>
           <h1 data-reveal="title" style={delay(120)}>
             {content.hero.titleLine1}
             <span>{content.hero.titleLine2}</span>
           </h1>
+          <p className="hero-lead">Insieme Oltre è un’associazione a Ischia per le persone con trisomia 21 e altre disabilità intellettive o relazionali e per le loro famiglie. Vuoi conoscerci o dare una mano come volontario? <a href="#unisciti">Parla con noi</a>.</p>
           <p className="hero-lead" data-reveal="fade-up" style={delay(320)}>{content.hero.lead}</p>
           <div className="hero-actions" data-reveal="fade-up" style={delay(460)}>
             <a className="button button-primary" href="#manifesto">{content.hero.primaryCta} <span>→</span></a>
@@ -102,6 +100,7 @@ export default async function Home() {
               alt=""
               width="1448"
               height="1086"
+              sizes="(max-width: 620px) 100vw, (max-width: 980px) 80vw, 50vw"
               priority
             />
           </div>
@@ -229,6 +228,7 @@ export default async function Home() {
             alt="Insieme Oltre — L’amore non si misura in cromosomi"
             width="1448"
             height="1086"
+            sizes="(max-width: 980px) 80vw, 520px"
           />
         </div>
         <div className="join-copy" data-reveal-stagger>

@@ -11,12 +11,12 @@ import "./story.css";
 const photoNames = ["aurora-storia.jpg", "aurora-storia-2.jpg", "aurora-storia-3.jpg"];
 
 export const metadata: Metadata = {
-  title: "Aurora | Insieme Oltre",
-  description: "Aurora è Aurora. La sua storia raccontata da mamma e papà.",
+  title: "La storia di Aurora | Insieme Oltre Ischia",
+  description: "Il carattere, i sorrisi e le conquiste di Aurora, raccontati da mamma e papà. Una storia di famiglia nella comunità di Insieme Oltre a Ischia.",
   alternates: { canonical: "/storie/aurora" },
   ...socialMetadata({
-    title: "La storia di Aurora | Insieme Oltre",
-    description: "Aurora è Aurora. La sua storia raccontata da mamma e papà.",
+    title: "La storia di Aurora | Insieme Oltre Ischia",
+    description: "Il carattere, i sorrisi e le conquiste di Aurora, raccontati da mamma e papà. Una storia di famiglia nella comunità di Insieme Oltre a Ischia.",
     path: "/storie/aurora",
     type: "article",
     image: storySocialImage(photoNames.map((name) => `/${name}`), "Aurora"),
@@ -71,6 +71,11 @@ export default async function AuroraStoryPage() {
           ))}
         </section>
       </article>
+
+      <nav className="aurora-page-prose" aria-label="Continua a conoscere Insieme Oltre">
+        <p><Link href="/#storie">Conosci le altre storie →</Link></p>
+        <p><Link href="/#unisciti">Parla con noi: famiglie e volontari →</Link></p>
+      </nav>
 
       <footer className="aurora-page-footer">
         <Link href="/">Insieme Oltre</Link>

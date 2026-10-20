@@ -48,3 +48,15 @@ PLAYWRIGHT_MODULE=/tmp/insieme-browser-check/node_modules/playwright/index.mjs U
 Prima dell’uso reale verificare consegna email e attivazione con un destinatario dell’associazione autorizzato. Non sostituire i dati di produzione con fixture di test.
 
 Migrazione remota `association_access_approval` applicata il 20 ottobre 2026 a `bgtsasvyttpxemjpwwbn`, versione `20261020103759`. RLS e revoca dei grants pubblici verificate. Nessun account, richiesta o movimento di prova creato sul progetto remoto.
+
+## Avvisi email e nuova interfaccia richieste
+
+La sezione richieste usa schede separate per dati e decisione, filtri per stato, badge e aggiornamento automatico ogni minuto mentre la pagina è visibile. Il ruolo da assegnare include una spiegazione dei permessi.
+
+Il riquadro avvisi mostra all’owner l’indirizzo effettivo configurato in `ADMIN_ALLOWED_EMAIL`. “Prova email” invia una prova soltanto a quell’indirizzo; “Invia avviso” / “Reinvia avviso” ripete la notifica di una richiesta ancora da gestire. Entrambe le API sono riservate all’owner e soggette al limite persistente dei tentativi. Nessun indirizzo destinatario può essere scelto dal browser.
+
+Per ogni nuova richiesta resta attivo l’invio immediato. L’oggetto è “Nuova notifica: richiesta di accesso — Insieme Oltre”; l’email include una versione HTML con logo ufficiale del sito, dati della richiesta e pulsante per aprire il pannello, oltre alla versione testuale. I valori inseriti dagli utenti vengono escapati nell’HTML.
+
+`notification_sent_at` attesta l’accettazione dell’email da parte di Brevo, non la consegna nella posta in ingresso. In caso di rifiuto del provider, la prova o il reinvio restituiscono un errore leggibile senza registrare un falso invio. Il provider message ID viene restituito solo all’owner per prova e reinvio.
+
+Verificati 19 test API focalizzati e il percorso nel browser a 1366/390 px, compresi prova e reinvio con API simulate. Nessuna email reale inviata durante i test e nessuna migrazione necessaria per questo aggiornamento.

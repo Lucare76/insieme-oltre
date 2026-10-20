@@ -106,6 +106,19 @@ beforeEach(() => {
         refresh_token: "refresh",
         expires_at: 9999999999,
       });
+    if (
+      url.includes("/association_access_requests?id=eq.") &&
+      (!init.method || init.method === "GET")
+    )
+      return Response.json([
+        {
+          id: requestId,
+          name: "Mario Rossi",
+          email: "mario@example.org",
+          username: "mario.rossi",
+          status: "pending",
+        },
+      ]);
     if (url.includes("/association_access_requests?")) return Response.json([]);
     if (url.includes("/auth/v1/logout")) return Response.json({});
     if (url === "https://api.brevo.com/v3/smtp/email")
@@ -299,4 +312,65 @@ test("recupero pubblico non espone se un’email esiste", async () => {
   );
   assert.equal(r.status, 200);
   assert.match((await r.json()).message, /Se l’email/);
+});
+
+test("email di prova riservata all’owner e inviata al destinatario configurato", async () => {
+  const r = await POST(req("notification-test", {}), ctx("notification-test"));
+  assert.equal(r.status, 200);
+  assert.match((await r.json()).message, /owner@example.org/);
+  const mail = calls.find((x) => x.url.includes("brevo"));
+  assert.equal(mail.b.to[0].email, "owner@example.org");
+  assert.match(mail.b.subject, /Prova/);
+  assert.match(mail.b.htmlContent, /Insieme Oltre/);
+});
+test("socio e contabile non possono inviare prove o reinviare avvisi", async () => {
+  tokenOwner = false;
+  for (const value of ["member", "accountant"]) {
+    role = value;
+    for (const path of ["notification-test", "notify-request"]) {
+      assert.equal(
+        (await POST(req(path, { id: requestId }), ctx(path))).status,
+        403,
+      );
+    }
+  }
+  assert.equal(
+    calls.some((x) => x.url.includes("brevo")),
+    false,
+  );
+});
+test("reinvio avviso aggiorna stato solo dopo accettazione email", async () => {
+  const r = await POST(
+    req("notify-request", { id: requestId }),
+    ctx("notify-request"),
+  );
+  assert.equal(r.status, 200);
+  const mail = calls.find((x) => x.url.includes("brevo"));
+  assert.match(mail.b.subject, /Nuova notifica/);
+  assert.equal(mail.b.to[0].email, "owner@example.org");
+  assert.ok(
+    calls.find((x) => x.method === "PATCH" && x.b?.notification_sent_at),
+  );
+});
+test("errore del provider email viene mostrato all’owner senza segnare invio riuscito", async () => {
+  mailFail = true;
+  const r = await POST(
+    req("notify-request", { id: requestId }),
+    ctx("notify-request"),
+  );
+  assert.equal(r.status, 503);
+  assert.ok(
+    !calls.find((x) => x.method === "PATCH" && x.b?.notification_sent_at),
+  );
+});
+test("richiesta nuova produce email con collegamento e HTML escapato", async () => {
+  const r = await POST(
+    req("request", { ...form, name: "Mario <img src=x>" }, false),
+    ctx("request"),
+  );
+  assert.equal(r.status, 200);
+  const mail = calls.find((x) => x.url.includes("brevo"));
+  assert.match(mail.b.htmlContent, /Mario &lt;img src=x&gt;/);
+  assert.match(mail.b.htmlContent, /Apri le richieste/);
+  assert.ok(!mail.b.htmlContent.includes("Mario <img src=x>"));
 });

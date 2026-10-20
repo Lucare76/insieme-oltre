@@ -26,7 +26,7 @@ export function EventAnnouncement() {
   ];
 
   return (
-    <aside className="event-announcement" aria-labelledby="meeting-title" data-reveal="fade-up">
+    <aside className="event-announcement" aria-labelledby="meeting-title">
       <div className="event-copy">
         <p className="event-kicker"><span aria-hidden="true">✦</span> Save the date</p>
         <h2 id="meeting-title">Il nostro primo incontro.</h2>

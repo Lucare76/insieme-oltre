@@ -3,6 +3,8 @@ export type LegalPage = {
   label: string;
   /** Finché è false la pagina non viene linkata da nessuna parte: niente link rotti. */
   published: boolean;
+  /** Se false resta accessibile alle persone ma viene esclusa dalla sitemap SEO. */
+  indexable?: boolean;
 };
 
 export const privacyPolicy: LegalPage = {
@@ -23,6 +25,7 @@ export const contactNotice: LegalPage = {
   href: "/informativa-contatti",
   label: "Informativa contatti",
   published: true,
+  indexable: false,
 };
 
 export const legalPages = [privacyPolicy, contactNotice, cookiePolicy].filter((page) => page.published);

@@ -6,10 +6,10 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
+      // Consenti ai motori di leggere noindex in /admin e /area-soci.
+      // Le autorizzazioni restano obbligatorie: robots.txt non protegge dati privati.
       disallow: [
-        "/admin",
         "/api/admin",
-        "/area-soci",
         "/api/associazione",
         "/api/accesso",
       ],

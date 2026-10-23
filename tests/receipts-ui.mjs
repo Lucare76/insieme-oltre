@@ -36,7 +36,9 @@ const browser = await chromium.launch({
   args: ["--no-sandbox", "--disable-dev-shm-usage"],
 });
 try {
-  for (const width of [1366, 390]) {
+  for (const { width, mode } of [1366, 390].flatMap((width) =>
+    ["archive", "direct", "failure"].map((mode) => ({ width, mode })),
+  )) {
     const context = await browser.newContext({
       viewport: { width, height: 960 },
     });
@@ -46,7 +48,8 @@ try {
     let role = "accountant",
       incomes = [],
       receipts = [],
-      sends = 0;
+      sends = 0,
+      issues = 0;
     await context.addInitScript(() => {
       localStorage.setItem(
         "insieme_oltre_admin_session",
@@ -78,6 +81,7 @@ try {
               body: "%PDF-local-preview",
             });
           if (input.action === "issue") {
+            issues++;
             receipts = [
               {
                 id: input.id,
@@ -94,6 +98,18 @@ try {
             body = { number: 1, id: input.id };
           } else if (input.action === "send") {
             sends++;
+            assert.equal(
+              input.confirm_email,
+              receipts[0].data.email.trim().toLowerCase(),
+            );
+            if (mode === "failure")
+              return route.fulfill({
+                status: 503,
+                contentType: "application/json",
+                body: JSON.stringify({
+                  error: "Invio email non riuscito. La ricevuta è salvata.",
+                }),
+              });
             receipts[0].mail_status = "sent";
             body = { ok: true };
           }
@@ -129,6 +145,11 @@ try {
     ];
     await page.getByRole("button", { name: "Aggiorna", exact: true }).click();
     await page.getByRole("button", { name: "+ Nuova ricevuta" }).click();
+    assert.ok(
+      await page
+        .getByRole("button", { name: "Emetti e invia via email", exact: true })
+        .isDisabled(),
+    );
     await page.getByLabel("Incasso registrato").selectOption(incomes[0].id);
     await page.getByLabel("Tipo di documento").selectOption("fundraising");
     await page
@@ -136,7 +157,7 @@ try {
       .fill("Agenzia esempio");
     await page.getByLabel("Codice fiscale / partita IVA").fill("12345678901");
     await page.getByLabel("Indirizzo completo").fill("Via Esempio 1, Ischia");
-    await page.getByLabel("Email del versante").fill("prova@example.org");
+    await page.getByLabel("Email del versante").fill("Prova@Example.org");
     await page.getByLabel("Riferimento pagamento").fill("TRN esempio");
     await page
       .getByLabel("Iniziativa, quantità")
@@ -150,6 +171,8 @@ try {
     const downloaded = page.waitForEvent("download");
     await page.getByRole("button", { name: "Scarica anteprima PDF" }).click();
     await downloaded;
+    assert.equal(issues, 0);
+    assert.equal(sends, 0);
     await page
       .getByRole("button", { name: "Emetti ricevuta", exact: true })
       .waitFor({ state: "visible" });
@@ -163,18 +186,45 @@ try {
       ),
     );
     await page
-      .getByRole("button", { name: "Emetti ricevuta", exact: true })
+      .getByRole("button", {
+        name:
+          mode === "archive" ? "Emetti ricevuta" : "Emetti e invia via email",
+        exact: true,
+      })
       .click();
     await page.getByText("Agenzia esempio", { exact: true }).waitFor();
-    assert.equal(sends, 0);
-    await page
-      .getByRole("button", { name: "Invia email", exact: true })
-      .click();
-    await page
-      .getByLabel("Riscrivi l’indirizzo per confermare")
-      .fill("prova@example.org");
-    await page.getByRole("button", { name: "Conferma e invia email" }).click();
-    await page.getByText("Accettata da Brevo", { exact: true }).waitFor();
+    assert.equal(issues, 1);
+    if (mode === "archive") {
+      assert.equal(sends, 0);
+      await page
+        .getByRole("button", { name: "Invia email", exact: true })
+        .click();
+      await page
+        .getByLabel("Riscrivi l’indirizzo per confermare")
+        .fill("prova@example.org");
+      await page
+        .getByRole("button", { name: "Conferma e invia email" })
+        .click();
+    }
+    if (mode === "failure") {
+      await page
+        .getByRole("status")
+        .filter({ hasText: "emessa e salvata" })
+        .waitFor();
+      await page.getByText("Da inviare", { exact: true }).waitFor();
+      assert.equal(receipts.length, 1);
+      assert.equal(
+        await page
+          .getByRole("button", {
+            name: "Emetti e invia via email",
+            exact: true,
+          })
+          .count(),
+        0,
+      );
+    } else {
+      await page.getByText("Accettata da Brevo", { exact: true }).waitFor();
+    }
     assert.equal(sends, 1);
     role = "member";
     await page.reload();
@@ -189,7 +239,7 @@ try {
     await context.close();
   }
   console.log(
-    "Ricevute: desktop e mobile, stato vuoto, anteprima, emissione, conferma invio e permessi verificati.",
+    "Ricevute: desktop e mobile, invio diretto e separato, errore email senza doppia emissione, anteprima e permessi verificati.",
   );
 } finally {
   await browser.close();

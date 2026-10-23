@@ -1,4 +1,4 @@
-import { ContactForm } from "./components/ContactForm";
+import { LazyContactForm } from "./components/LazyContactForm";
 import { contactNotice } from "../lib/legal";
 import { contactMailConfig } from "../lib/contactMail";
 import "./contact-form.css";
@@ -98,7 +98,8 @@ export default async function Home() {
               width="1448"
               height="1086"
               priority
-              sizes="(max-width: 980px) 92vw, 44vw"
+              fetchPriority="high"
+              sizes="(max-width: 620px) 88vw, (max-width: 980px) 84vw, 42vw"
             />
           </div>
           <div className="hero-whisper">
@@ -225,7 +226,7 @@ export default async function Home() {
             alt="Insieme Oltre — L’amore non si misura in cromosomi"
             width="1448"
             height="1086"
-            sizes="(max-width: 980px) 82vw, 38vw"
+            sizes="(max-width: 620px) 76vw, (max-width: 980px) 72vw, 36vw"
           />
         </div>
         <div className="join-copy" data-reveal-stagger>
@@ -234,7 +235,7 @@ export default async function Home() {
           <p className="join-future" data-reveal="fade-up" style={delay(250)}>Il futuro non si aspetta.<br/><em>Si costruisce insieme.</em></p>
           <p data-reveal="fade-up" style={delay(250)}>Se sei una famiglia, vuoi darci una mano o hai un’idea da costruire insieme, scrivici. Ti ricontatteremo per conoscerci e capire insieme il prossimo passo.</p>
           <div data-reveal="fade-up" style={delay(350)}>
-            <ContactForm available={contactNotice.published && Boolean(contactMailConfig())} privacyHref={contactNotice.href} />
+            <LazyContactForm available={contactNotice.published && Boolean(contactMailConfig())} privacyHref={contactNotice.href} />
           </div>
           <p className="contact-direct" data-reveal="fade-up" style={delay(350)}>
             Preferisci scriverci direttamente? Puoi farlo via email.<br/>

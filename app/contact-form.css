@@ -22,3 +22,40 @@
 .join-copy .contact-direct { margin-top: 24px; margin-bottom: 0; font-size: 15px; overflow-wrap: anywhere; }
 .contact-direct a { display: inline-block; margin-top: 6px; color: var(--coral-deep); font-weight: 700; }
 @media (max-width: 600px) { .contact-fields { grid-template-columns: minmax(0, 1fr); } }
+
+
+.contact-form-placeholder { min-height: 420px; }
+.contact-placeholder-line {
+  width: 58%;
+  height: 12px;
+  margin-bottom: 20px;
+  border-radius: 999px;
+  background: rgba(36,49,42,.08);
+}
+.contact-placeholder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.contact-placeholder-grid span {
+  display: block;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(36,49,42,.06);
+}
+.contact-placeholder-grid .contact-placeholder-wide {
+  grid-column: 1 / -1;
+  height: 130px;
+}
+.contact-placeholder-button {
+  width: 180px;
+  height: 50px;
+  margin-top: 22px;
+  border-radius: 999px;
+  background: rgba(230,104,94,.18);
+}
+@media (max-width: 600px) {
+  .contact-form-placeholder { min-height: 520px; }
+  .contact-placeholder-grid { grid-template-columns: minmax(0, 1fr); }
+  .contact-placeholder-grid .contact-placeholder-wide { grid-column: auto; }
+}

@@ -1,0 +1,33 @@
+name: Controlli SEO Insieme Oltre
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/sitemap.ts"
+      - "app/robots.ts"
+      - "app/admin/layout.tsx"
+      - "app/area-soci/layout.tsx"
+      - "app/partecipa/page.tsx"
+      - "lib/legal.ts"
+      - "tests/seo-contract.test.mjs"
+      - ".github/workflows/seo-verify.yml"
+  push:
+    branches: [fix/seo-sitemap-indexability-20261023]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scarica repository
+        uses: actions/checkout@v4
+      - name: Configura Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Installa dipendenze
+        run: npm install --no-audit --no-fund
+      - name: Verifica contratto SEO
+        run: node --test tests/seo-contract.test.mjs
+      - name: Verifica tipi Next
+        run: npx tsc --noEmit

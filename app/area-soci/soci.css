@@ -84,6 +84,24 @@
   margin: 20px 0;
   box-shadow: 0 5px 22px #24342a04;
 }
+.receipt-form {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  margin: 24px 0;
+  background: #f6f8f2;
+  border: 1px solid #dce3d4;
+  border-radius: 12px;
+  max-width: 760px;
+}
+.receipt-form > label { min-width: 0; }
+.receipt-form .soci-check { align-items: flex-start; line-height: 1.6; }
+.receipt-form .soci-check input { flex: 0 0 20px; margin-top: 2px; }
+.receipt-form p { font-size: 14px; line-height: 1.7; }
+@media (max-width: 600px) {
+  .receipt-form { padding: 16px; }
+  .receipt-form .soci-actions button { width: 100%; }
+}
 .soci-login {
   max-width: 480px;
   margin: 40px auto;

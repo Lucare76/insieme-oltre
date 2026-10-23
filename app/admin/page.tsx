@@ -19,6 +19,7 @@ import {
   SESSION_TIMES_KEY,
 } from "./sessionTimeout";
 const ContentEditor = dynamic(() => import("./ContentEditor"));
+const ReceiptsPanel = dynamic(() => import("./ReceiptsPanel"));
 import { AccountingDashboard } from "./AccountingDashboard";
 import { AccessForms, AccessRequests } from "./accessComponents";
 type User = { id: string; name: string; role: AssociationRole };
@@ -488,6 +489,7 @@ export default function AreaSoci() {
               >
                 Contabilità
               </button>
+              {write && <button aria-pressed={tab === "receipts"} onClick={() => void openTab("receipts")}>Ricevute</button>}
               {user.role === "owner" && (
                 <>
                   <button
@@ -535,6 +537,7 @@ export default function AreaSoci() {
                     <strong>Contabilità</strong>
                     <span>Entrate, uscite, cassa e banca</span>
                   </button>
+                  {write && <button onClick={() => void openTab("receipts")}><strong>Ricevute</strong><span>Donazioni, raccolte fondi e invio email</span></button>}
                   {user.role === "owner" && (
                     <>
                       <button onClick={() => void openTab("contents")}>
@@ -558,6 +561,7 @@ export default function AreaSoci() {
               </section>
             )}
             {tab === "contents" && user.role === "owner" && <ContentEditor />}
+            {tab === "receipts" && write && <ReceiptsPanel api={api} />}
             {tab === "requests" && user.role === "owner" && (
               <AccessRequests api={api} onPending={setPending} />
             )}

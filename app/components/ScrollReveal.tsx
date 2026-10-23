@@ -20,7 +20,7 @@ const LIVE = "reveal-live";
 
 /** Eseguito prima che la pagina sia disegnata. Se il componente non parte entro 4 s, toglie il nascondimento. */
 export const REVEAL_BOOT_SCRIPT = `(function(){var d=document.documentElement;
-if(!("IntersectionObserver" in window)||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+if(!("IntersectionObserver" in window)||matchMedia("(prefers-reduced-motion: reduce)").matches||matchMedia("(max-width: 760px)").matches)return;
 d.classList.add("${READY}");
 setTimeout(function(){if(!d.classList.contains("${LIVE}"))d.classList.remove("${READY}")},4000);})();`;
 
@@ -31,7 +31,8 @@ export function ScrollReveal() {
   useEffect(() => {
     const root = document.documentElement;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!("IntersectionObserver" in window) || reduced) {
+    const mobile = window.matchMedia("(max-width: 760px)").matches;
+    if (!("IntersectionObserver" in window) || reduced || mobile) {
       root.classList.remove(READY);
       return;
     }
@@ -39,9 +40,8 @@ export function ScrollReveal() {
     if (!root.classList.contains(READY)) return;
     root.classList.add(LIVE);
 
-    const mobile = window.matchMedia("(max-width: 760px)").matches;
-    const step = mobile ? 70 : 120;
-    const delayScale = mobile ? 0.7 : 1;
+    const step = 120;
+    const delayScale = 1;
 
     // Ritardo complessivo di ogni elemento: il suo --reveal-delay più la posizione nella sequenza del genitore.
     const elements = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));

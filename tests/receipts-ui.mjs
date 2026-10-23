@@ -36,8 +36,10 @@ const browser = await chromium.launch({
   args: ["--no-sandbox", "--disable-dev-shm-usage"],
 });
 try {
-  for (const { width, mode } of [1366, 390].flatMap((width) =>
-    ["archive", "direct", "failure"].map((mode) => ({ width, mode })),
+  for (const { width, mode, source } of [1366, 390].flatMap((width) =>
+    ["archive", "direct", "failure"].flatMap((mode) =>
+      ["new", "existing"].map((source) => ({ width, mode, source })),
+    ),
   )) {
     const context = await browser.newContext({
       viewport: { width, height: 960 },
@@ -82,12 +84,29 @@ try {
             });
           if (input.action === "issue") {
             issues++;
+            assert.equal(input.source, source);
+            if (source === "new") {
+              assert.equal(input.amount, "600");
+              assert.equal(input.movement_id, undefined);
+              incomes.push({
+                id: input.id,
+                date: input.date,
+                amount_cents: 60000,
+                kind: "income",
+                account: "bank",
+                description: input.description,
+                project: input.project,
+                category: "Raccolta fondi",
+                version: 1,
+                cancelled: false,
+              });
+            }
             receipts = [
               {
                 id: input.id,
                 number: 1,
                 issued_on: "2026-10-23",
-                movement_id: input.movement_id,
+                movement_id: source === "new" ? input.id : input.movement_id,
                 data: input,
                 amount_cents: 60000,
                 cancelled: false,
@@ -124,25 +143,26 @@ try {
     await page.getByRole("button", { name: "Ricevute", exact: true }).click();
     await page.getByText("Nessuna ricevuta emessa.", { exact: true }).waitFor();
     assert.ok(
-      await page.getByRole("button", { name: "+ Nuova ricevuta" }).isDisabled(),
+      await page.getByRole("button", { name: "+ Nuova ricevuta" }).isEnabled(),
     );
     assert.equal(sends, 0);
     await page.screenshot({
       path: `/tmp/ricevute-vuoto-${width}.png`,
       fullPage: true,
     });
-    incomes = [
-      {
-        id: "00000000-0000-0000-0000-000000000001",
-        date: "2026-10-20",
-        amount_cents: 60000,
-        kind: "income",
-        account: "bank",
-        description: "Incasso locale simulato",
-        version: 1,
-        cancelled: false,
-      },
-    ];
+    if (source === "existing")
+      incomes = [
+        {
+          id: "00000000-0000-0000-0000-000000000001",
+          date: "2026-10-20",
+          amount_cents: 60000,
+          kind: "income",
+          account: "bank",
+          description: "Incasso locale simulato",
+          version: 1,
+          cancelled: false,
+        },
+      ];
     await page.getByRole("button", { name: "Aggiorna", exact: true }).click();
     await page.getByRole("button", { name: "+ Nuova ricevuta" }).click();
     assert.ok(
@@ -150,7 +170,15 @@ try {
         .getByRole("button", { name: "Emetti e invia via email", exact: true })
         .isDisabled(),
     );
-    await page.getByLabel("Incasso registrato").selectOption(incomes[0].id);
+    if (source === "existing") {
+      await page.getByLabel("Gestione dell’incasso").selectOption("existing");
+      await page.getByLabel("Incasso registrato").selectOption(incomes[0].id);
+    } else {
+      await page.getByLabel("Importo ricevuto").fill("600");
+      await page.getByLabel("Data dell’incasso").fill("2026-10-20");
+      await page.getByLabel("Progetto o iniziativa").fill("Natale");
+      assert.equal(await page.getByLabel("Incasso registrato").count(), 0);
+    }
     await page.getByLabel("Tipo di documento").selectOption("fundraising");
     await page
       .getByLabel("Nome e cognome / ragione sociale")
@@ -173,11 +201,12 @@ try {
     await downloaded;
     assert.equal(issues, 0);
     assert.equal(sends, 0);
+    assert.equal(incomes.length, source === "new" ? 0 : 1);
     await page
       .getByRole("button", { name: "Emetti ricevuta", exact: true })
       .waitFor({ state: "visible" });
     await page.screenshot({
-      path: `/tmp/ricevute-modulo-${width}.png`,
+      path: `/tmp/ricevute-modulo-${source}-${width}.png`,
       fullPage: true,
     });
     assert.ok(
@@ -194,6 +223,7 @@ try {
       .click();
     await page.getByText("Agenzia esempio", { exact: true }).waitFor();
     assert.equal(issues, 1);
+    assert.equal(incomes.length, 1);
     if (mode === "archive") {
       assert.equal(sends, 0);
       await page
@@ -239,7 +269,7 @@ try {
     await context.close();
   }
   console.log(
-    "Ricevute: desktop e mobile, invio diretto e separato, errore email senza doppia emissione, anteprima e permessi verificati.",
+    "Ricevute: desktop e mobile, creazione incasso da zero e collegamento esistente, anteprima senza scritture, invio diretto e separato, errore email senza doppioni e permessi verificati.",
   );
 } finally {
   await browser.close();

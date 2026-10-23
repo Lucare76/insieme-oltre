@@ -255,3 +255,98 @@ test("dati associazione incompleti: emissione bloccata", async () => {
     false,
   );
 });
+test("nuova ricevuta: anteprima senza incassi preesistenti e senza scritture", async () => {
+  mock();
+  const res = await POST(
+    request({
+      ...data,
+      action: "preview",
+      source: "new",
+      amount: "25,50",
+      date: "2026-10-20",
+      confirmed: true,
+    }),
+  );
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get("content-type"), /application\/pdf/);
+  assert.equal(
+    calls.some(
+      (x) =>
+        x.url.includes("association_movements") ||
+        x.url.includes("/rpc/") ||
+        x.url.includes("brevo"),
+    ),
+    false,
+  );
+});
+test("incasso automatico: una sola RPC atomica con importo esatto e conto derivato", async () => {
+  for (const [payment, account, type, category] of [
+    ["cash", "cash", "donation", "Donazioni"],
+    ["bank_transfer", "bank", "fundraising", "Raccolta fondi"],
+    ["card", "bank", "donation", "Donazioni"],
+  ]) {
+    mock();
+    const res = await POST(
+      request({
+        ...data,
+        id,
+        action: "issue",
+        source: "new",
+        amount: "25,50",
+        date: "2026-10-20",
+        payment,
+        type,
+        project: "Natale",
+        confirmed: true,
+      }),
+    );
+    assert.equal(res.status, 200);
+    const writes = calls.filter((x) => x.url.includes("/rpc/"));
+    assert.equal(writes.length, 1);
+    assert.match(writes[0].url, /association_issue_receipt_with_income$/);
+    const args = JSON.parse(writes[0].init.body);
+    assert.equal(args.p_income.amount_cents, 2550);
+    assert.equal(args.p_income.account, account);
+    assert.equal(args.p_income.category, category);
+    assert.equal(args.p_income.project, "Natale");
+    assert.equal(args.p_movement, undefined);
+    assert.equal(
+      calls.some(
+        (x) =>
+          x.url.includes("association_movements") || x.url.includes("brevo"),
+      ),
+      false,
+    );
+  }
+});
+test("incasso automatico: importi o date non validi non registrano nulla", async () => {
+  for (const invalid of [
+    { amount: "0" },
+    { amount: "-5" },
+    { amount: "1.001" },
+    { date: "2199-01-01" },
+    { date: "2026-02-30" },
+    { source: "other" },
+    { confirmed: false },
+    { payment: "other" },
+  ]) {
+    mock();
+    const res = await POST(
+      request({
+        ...data,
+        id,
+        action: "issue",
+        source: "new",
+        amount: "25",
+        date: "2026-10-20",
+        confirmed: true,
+        ...invalid,
+      }),
+    );
+    assert.equal(res.status, 400);
+    assert.equal(
+      calls.some((x) => x.url.includes("/rpc/")),
+      false,
+    );
+  }
+});

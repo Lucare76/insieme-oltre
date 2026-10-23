@@ -8,9 +8,11 @@ import {
 } from "../../../../lib/associationServer";
 import {
   receiptData,
+  receiptIncome,
   receiptTitle,
   type Issuer,
   type Receipt,
+  type ReceiptIncome,
 } from "../../../../lib/receipts";
 import { receiptPdf } from "../../../../lib/receiptPdf";
 import { contactMailConfig } from "../../../../lib/contactMail";
@@ -115,20 +117,43 @@ async function handle(request: Request) {
   }
   const body = await jsonBody(request);
   if (body.action === "preview" || body.action === "issue") {
-    if (!uuid(body.movement_id))
-      throw new AssociationError("Seleziona un incasso.");
-    const [movement] = (await (
-      await service(
-        `/rest/v1/association_movements?id=eq.${body.movement_id}&select=*`,
-      )
-    ).json()) as Movement[];
-    if (!movement || movement.date > today())
+    const source = body.source ?? "existing";
+    if (source !== "new" && source !== "existing")
+      throw new AssociationError("Scegli come registrare l’incasso.");
+    let income: ReceiptIncome | undefined;
+    let movement: Movement;
+    if (source === "new") {
+      try {
+        income = receiptIncome({ ...body, project: body.project ?? "" });
+      } catch (error) {
+        throw new AssociationError((error as Error).message);
+      }
+      movement = {
+        ...income,
+        id: "",
+        version: 1,
+        cancelled: false,
+        cancellation_reason: null,
+      };
+    } else {
+      if (!uuid(body.movement_id))
+        throw new AssociationError("Seleziona un incasso.");
+      const [existing] = (await (
+        await service(
+          `/rest/v1/association_movements?id=eq.${body.movement_id}&select=*`,
+        )
+      ).json()) as Movement[];
+      if (!existing)
+        throw new AssociationError("Seleziona un’entrata già incassata.");
+      movement = existing;
+      if (body.version !== movement.version)
+        throw new AssociationError(
+          "Movimento cambiato. Aggiorna la contabilità.",
+          409,
+        );
+    }
+    if (movement.date > today())
       throw new AssociationError("Seleziona un’entrata già incassata.");
-    if (body.version !== movement.version)
-      throw new AssociationError(
-        "Movimento cambiato. Aggiorna la contabilità.",
-        409,
-      );
     const issuer = issuerConfig();
     let data;
     try {
@@ -176,22 +201,33 @@ async function handle(request: Request) {
     if (!uuid(body.id))
       throw new AssociationError("Identificativo richiesta mancante.");
     const result = await (
-      await service("/rest/v1/rpc/association_issue_receipt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          p_id: body.id,
-          p_movement: movement.id,
-          p_version: movement.version,
-          p_actor: user.id,
-          p_data: data,
-          p_issuer: issuer,
-        }),
-      })
+      await service(
+        source === "new"
+          ? "/rest/v1/rpc/association_issue_receipt_with_income"
+          : "/rest/v1/rpc/association_issue_receipt",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            p_id: body.id,
+            ...(source === "new"
+              ? { p_income: income }
+              : { p_movement: movement.id, p_version: movement.version }),
+            p_actor: user.id,
+            p_data: data,
+            p_issuer: issuer,
+          }),
+        },
+      )
     ).json();
     const r = (Array.isArray(result) ? result[0] : result) as Receipt;
     // Issuance succeeds independently of PDF/network failures; the download can resume later.
-    return reply({ ok: true, id: r.id, number: r.number });
+    return reply({
+      ok: true,
+      id: r.id,
+      number: r.number,
+      movement_id: r.movement_id,
+    });
   }
   const r = await getReceipt(body.id);
   if (body.action === "cancel") {

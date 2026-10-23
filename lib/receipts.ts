@@ -1,4 +1,38 @@
-import { validDate, type Movement } from "./accounting";
+import { parseCents, validDate, type Movement } from "./accounting";
+
+export type ReceiptIncome = Pick<
+  Movement,
+  | "date"
+  | "kind"
+  | "amount_cents"
+  | "account"
+  | "category"
+  | "project"
+  | "description"
+> & { private_note: string };
+export function receiptIncome(body: Record<string, unknown>): ReceiptIncome {
+  const cents = parseCents(body.amount);
+  if (!cents || !validDate(body.date))
+    throw new Error("Verifica importo e data dell’incasso.");
+  if (
+    typeof body.project !== "string" ||
+    body.project.trim().length > 120 ||
+    /[\u0000-\u001f\u007f]/.test(body.project)
+  )
+    throw new Error("Verifica il nome del progetto o dell’iniziativa.");
+  if (typeof body.description !== "string")
+    throw new Error("Inserisci la causale.");
+  return {
+    date: body.date,
+    kind: "income",
+    amount_cents: cents,
+    account: body.payment === "cash" ? "cash" : "bank",
+    category: body.type === "donation" ? "Donazioni" : "Raccolta fondi",
+    project: body.project.trim(),
+    description: body.description.trim(),
+    private_note: "",
+  };
+}
 
 export type ReceiptData = {
   type: "donation" | "fundraising";
@@ -36,7 +70,7 @@ export const receiptTitle = (type: ReceiptData["type"]) =>
     : "Ricevuta di partecipazione alla raccolta fondi";
 export function receiptData(
   body: Record<string, unknown>,
-  movement: Movement,
+  movement: Pick<Movement, "kind" | "cancelled" | "date" | "account">,
 ): ReceiptData {
   const field = (key: string, max: number, required = true) => {
     const value = body[key];

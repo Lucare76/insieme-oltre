@@ -29,6 +29,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState(false);
   const [type, setType] = useState("donation");
+  const [email, setEmail] = useState("");
   const [previewed, setPreviewed] = useState(false);
   const [requestId, setRequestId] = useState("");
   const [sending, setSending] = useState<Receipt | null>(null);
@@ -123,6 +124,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
             setEditing(true);
             setRequestId(crypto.randomUUID());
             setPreviewed(false);
+            setEmail("");
           }}
         >
           + Nuova ricevuta
@@ -170,11 +172,17 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
               (e.nativeEvent as SubmitEvent).submitter?.getAttribute("value") ??
               "preview";
             void run(async () => {
-              if (action === "issue" && !previewed)
+              if (action !== "preview" && !previewed)
                 throw new Error("Scarica prima l’anteprima aggiornata.");
+              const sendImmediately = action === "issue_send";
+              const recipient = email.trim().toLowerCase();
+              if (sendImmediately && (!mailReady || !recipient))
+                throw new Error(
+                  "Inserisci l’email del versante e verifica che l’invio sia configurato.",
+                );
               const res = await post({
                 ...data,
-                action,
+                action: action === "preview" ? "preview" : "issue",
                 id: requestId,
                 version: movement?.version,
                 confirmed: data.confirmed === "on",
@@ -186,9 +194,31 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
                 const result = await res.json();
                 setEditing(false);
                 setRequestId("");
-                await load();
+                if (sendImmediately) {
+                  try {
+                    await post({
+                      action: "send",
+                      id: result.id,
+                      confirm_email: recipient,
+                    });
+                  } catch (error) {
+                    await load().catch(() => undefined);
+                    throw new Error(
+                      `Ricevuta n. ${result.number} emessa e salvata. ${error instanceof Error ? error.message : "Invio email non riuscito."}`,
+                    );
+                  }
+                }
+                let refreshed = true;
+                await load().catch(() => {
+                  refreshed = false;
+                });
                 setMessage(
-                  `Ricevuta n. ${result.number} emessa. Puoi scaricarla e scegliere se inviarla.`,
+                  (sendImmediately
+                    ? `Ricevuta n. ${result.number} emessa. Email con PDF accettata da Brevo per ${recipient}.`
+                    : `Ricevuta n. ${result.number} emessa. Puoi scaricarla e scegliere se inviarla.`) +
+                    (refreshed
+                      ? ""
+                      : " Premi Aggiorna per ricaricare l’archivio."),
                 );
               }
             });
@@ -238,7 +268,13 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
           </label>
           <label>
             Email del versante (facoltativa)
-            <input name="email" type="email" maxLength={254} />
+            <input
+              name="email"
+              type="email"
+              maxLength={254}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </label>
           <label>
             Metodo di pagamento
@@ -274,13 +310,16 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
             <button disabled={busy} type="submit" value="preview">
               Scarica anteprima PDF
             </button>
+            <button disabled={busy || !previewed} type="submit" value="issue">
+              Emetti ricevuta
+            </button>
             <button
               className="primary"
-              disabled={busy || !previewed}
+              disabled={busy || !previewed || !mailReady || !email.trim()}
               type="submit"
-              value="issue"
+              value="issue_send"
             >
-              Emetti ricevuta
+              Emetti e invia via email
             </button>
             <button
               type="button"
@@ -290,6 +329,13 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
               Chiudi
             </button>
           </div>
+          {email.trim() && (
+            <p>
+              Con “Emetti e invia via email”, il PDF sarà inviato a{" "}
+              <strong>{email.trim().toLowerCase()}</strong>. La consegna
+              effettiva si verifica nei log Brevo.
+            </p>
+          )}
         </form>
       )}
       {sending && (

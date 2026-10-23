@@ -17,7 +17,7 @@ Senza i dati ufficiali dell’associazione, la nuova emissione resta disabilitat
 2. In **Ricevute → Nuova ricevuta**, selezionare l’entrata. Data e importo provengono dal movimento; il conto deve corrispondere al metodo di pagamento.
 3. Scegliere **donazione libera** (nessun bene o servizio in cambio) oppure **partecipazione a raccolta fondi** (descrivere iniziativa, beni e quantità).
 4. Compilare il versante, confermare i dati e scaricare l’anteprima. L’anteprima non assegna un numero e non viene archiviata come ricevuta emessa.
-5. Emettere la ricevuta. La numerazione progressiva unica viene assegnata dal database; il numero è visualizzato con l’anno di emissione e **non riparte da 1 ogni anno**. Possono esserci salti tecnici; i numeri non sono riutilizzati.
+5. Scegliere **Emetti ricevuta** per salvarla oppure **Emetti e invia via email** per salvarla e inviare subito il PDF all’indirizzo mostrato nel modulo. L’invio diretto richiede email compilata, servizio configurato e anteprima aggiornata. Se l’invio fallisce, il documento emesso resta in archivio senza creare una seconda ricevuta. La numerazione progressiva unica viene assegnata dal database; il numero è visualizzato con l’anno di emissione e **non riparte da 1 ogni anno**. Possono esserci salti tecnici; i numeri non sono riutilizzati.
 6. Scaricare il PDF con il logo ufficiale. Al primo download o invio, i byte vengono conservati nel database per riutilizzare lo stesso allegato negli accessi successivi.
 7. Se è stata indicata l’email, scegliere **Invia email**, riscrivere l’indirizzo e confermare. Il PDF viene allegato alla mail. L’emissione, da sola, non invia messaggi.
 

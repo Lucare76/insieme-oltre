@@ -1,14 +1,11 @@
-import { EventAnnouncement } from "./components/EventAnnouncement";
-import "./event-announcement.css";
 import { ContactForm } from "./components/ContactForm";
 import { contactNotice } from "../lib/legal";
 import { contactMailConfig } from "../lib/contactMail";
 import "./contact-form.css";
-import AuthHashRedirect from "./AuthHashRedirect";
 import { LegalLinks } from "./components/LegalLinks";
 import { REVEAL_BOOT_SCRIPT, ScrollReveal } from "./components/ScrollReveal";
 import { StoryCard, storyRowStyle } from "./components/StoryCard";
-import { MusicExperience } from "./components/music/MusicExperience";
+import { LazyMusicExperience } from "./components/LazyMusicExperience";
 import { childAccent, isPublished, PHOTO_PATTERN, type ChildStory } from "../lib/children";
 import { photoMoments } from "../lib/musicTimeline";
 import { getHomeContent } from "../lib/siteContent";
@@ -60,7 +57,6 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c") }}
       />
       <ScrollReveal />
-      <AuthHashRedirect />
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Insieme Oltre, torna all'inizio">
           <span className="brand-dot" aria-hidden="true">♥</span>
@@ -77,7 +73,6 @@ export default async function Home() {
 
       <section className="hero" id="top">
         <div className="hero-noise" aria-hidden="true" />
-        <EventAnnouncement />
         <div className="hero-copy">
           <p className="eyebrow" data-reveal="fade-up">{content.hero.eyebrow}</p>
           <h1 data-reveal="title" style={delay(120)}>
@@ -103,6 +98,7 @@ export default async function Home() {
               width="1448"
               height="1086"
               priority
+              sizes="(max-width: 980px) 92vw, 44vw"
             />
           </div>
           <div className="hero-whisper">
@@ -187,7 +183,7 @@ export default async function Home() {
         <span className="music-threshold-star">✦</span>
       </div>
 
-      <MusicExperience
+      <LazyMusicExperience
         names={children.map((child) => ({
           id: child.id,
           name: child.name.trim(),
@@ -229,6 +225,7 @@ export default async function Home() {
             alt="Insieme Oltre — L’amore non si misura in cromosomi"
             width="1448"
             height="1086"
+            sizes="(max-width: 980px) 82vw, 38vw"
           />
         </div>
         <div className="join-copy" data-reveal-stagger>

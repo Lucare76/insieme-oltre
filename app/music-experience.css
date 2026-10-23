@@ -4,6 +4,21 @@
   initial-value: 1;
 }
 
+.music-lazy-shell {
+  min-height: 560px;
+}
+.music-lazy-placeholder {
+  min-height: 560px;
+}
+.music-play-placeholder {
+  cursor: default;
+  pointer-events: none;
+}
+@media (max-width: 760px) {
+  .music-lazy-shell,
+  .music-lazy-placeholder { min-height: 470px; }
+}
+
 /* "Non veniamo da Marte": sezione emozionale della homepage (app/components/music).
    A riposo è una sezione chiara come le altre; quando parte la musica scende piano una "notte" verde salvia
    in cui compaiono nomi, frasi e qualche foto. Solo opacità, piccoli movimenti e nessun effetto vistoso. */

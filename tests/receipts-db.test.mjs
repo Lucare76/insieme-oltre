@@ -15,6 +15,7 @@ test(
       for (const file of [
         "20261020095949_association_accounting.sql",
         "20261023142050_association_receipts.sql",
+        "20261023162320_receipt_with_income.sql",
       ])
         await db.exec(
           await readFile(
@@ -142,6 +143,102 @@ test(
         "select * from public.association_audit where entity='association_receipts'",
       );
       assert.ok(audit.rows.length >= 5);
+      const income = {
+        date: "2026-10-20",
+        kind: "income",
+        amount_cents: 2500,
+        account: "cash",
+        category: "Donazioni",
+        project: "Progetto esempio",
+        description: "Donazione spontanea",
+        private_note: "",
+      };
+      const receiptData = { type: "donation", payment: "cash" };
+      const automaticId = "00000000-0000-0000-0000-000000000005";
+      const automaticIssue = (
+        requestId = automaticId,
+        input = income,
+        issuer = {},
+      ) =>
+        db.query(
+          "select * from public.association_issue_receipt_with_income($1,$2,$3::jsonb,$4::jsonb,$5::jsonb)",
+          [
+            requestId,
+            actor,
+            JSON.stringify(receiptData),
+            issuer === null ? null : JSON.stringify(issuer),
+            JSON.stringify(input),
+          ],
+        );
+      const counts = async () =>
+        (
+          await db.query(
+            "select (select count(*) from public.association_movements) as movements,(select count(*) from public.association_receipts) as receipts,(select count(*) from public.association_audit) as audit",
+          )
+        ).rows[0];
+      const before = await counts();
+      const [created, retried] = await Promise.all([
+        automaticIssue(),
+        automaticIssue(),
+      ]);
+      assert.equal(created.rows[0].id, retried.rows[0].id);
+      assert.equal(created.rows[0].movement_id, retried.rows[0].movement_id);
+      const after = await counts();
+      assert.equal(Number(after.movements), Number(before.movements) + 1);
+      assert.equal(Number(after.receipts), Number(before.receipts) + 1);
+      assert.equal(Number(after.audit), Number(before.audit) + 2);
+      const savedIncome = (
+        await db.query(
+          "select * from public.association_movements where id=$1",
+          [created.rows[0].movement_id],
+        )
+      ).rows[0];
+      assert.equal(savedIncome.account, "cash");
+      assert.equal(savedIncome.category, "Donazioni");
+      assert.equal(savedIncome.project, "Progetto esempio");
+      assert.equal(Number(savedIncome.amount_cents), 2500);
+      await assert.rejects(
+        () => automaticIssue(automaticId, { ...income, amount_cents: 2600 }),
+        /idempotency conflict/,
+      );
+      assert.deepEqual(await counts(), after);
+      // A failed receipt insert must roll back the income and its audit row too.
+      await assert.rejects(
+        () =>
+          automaticIssue("00000000-0000-0000-0000-000000000006", income, null),
+        /null value/,
+      );
+      assert.deepEqual(await counts(), after);
+      await assert.rejects(
+        () =>
+          automaticIssue("00000000-0000-0000-0000-000000000007", {
+            ...income,
+            date: "2199-01-01",
+          }),
+        /invalid income/,
+      );
+      assert.deepEqual(await counts(), after);
+      await assert.rejects(
+        () =>
+          automaticIssue("00000000-0000-0000-0000-000000000008", {
+            ...income,
+            account: "bank",
+          }),
+        /invalid income/,
+      );
+      assert.deepEqual(await counts(), after);
+      await db.exec("reset role");
+      for (const role of ["anon", "authenticated"]) {
+        assert.equal(
+          (
+            await db.query(
+              "select has_function_privilege($1,'public.association_issue_receipt_with_income(uuid,uuid,jsonb,jsonb,jsonb)','execute') as allowed",
+              [role],
+            )
+          ).rows[0].allowed,
+          false,
+        );
+      }
     } finally {
       await db.close();
     }

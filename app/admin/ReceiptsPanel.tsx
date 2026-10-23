@@ -29,6 +29,8 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState(false);
   const [type, setType] = useState("donation");
+  const [source, setSource] = useState("new");
+  const [payment, setPayment] = useState("bank_transfer");
   const [email, setEmail] = useState("");
   const [previewed, setPreviewed] = useState(false);
   const [requestId, setRequestId] = useState("");
@@ -110,8 +112,8 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
           <p className="soci-kicker">DONAZIONI E RACCOLTE FONDI</p>
           <h2>Ricevute</h2>
           <p>
-            Emetti il documento per un incasso registrato, scarica il PDF e
-            invialo via email.
+            Prepara la ricevuta: all’emissione registreremo anche l’incasso.
+            Puoi scaricare il PDF e inviarlo via email.
           </p>
         </div>
         <button disabled={busy} onClick={() => void run(load)}>
@@ -119,12 +121,14 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
         </button>
         <button
           className="primary"
-          disabled={busy || !loaded || !configured || !incomes.length}
+          disabled={busy || !loaded || !configured}
           onClick={() => {
             setEditing(true);
             setRequestId(crypto.randomUUID());
             setPreviewed(false);
             setEmail("");
+            setSource("new");
+            setPayment("bank_transfer");
           }}
         >
           + Nuova ricevuta
@@ -155,9 +159,9 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
         movements.filter((m) => m.kind === "income" && !m.cancelled).length ===
           0 && (
           <p className="accounting-empty">
-            Non ci sono ancora incassi. Quando riceverete un versamento,
-            registrate prima l’entrata in Contabilità: potrete poi emettere la
-            ricevuta da qui.
+            Non ci sono ancora incassi. Puoi preparare la prima ricevuta:
+            l’entrata in Contabilità verrà registrata automaticamente solo
+            quando la emetti. L’anteprima non registra movimenti.
           </p>
         )}
       {editing && (
@@ -182,6 +186,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
                 );
               const res = await post({
                 ...data,
+                source,
                 action: action === "preview" ? "preview" : "issue",
                 id: requestId,
                 version: movement?.version,
@@ -226,19 +231,66 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
         >
           <h3>Nuova ricevuta</h3>
           <label>
-            Incasso registrato
-            <select name="movement_id" required defaultValue="">
-              <option value="" disabled>
-                Seleziona l’entrata
+            Gestione dell’incasso
+            <select value={source} onChange={(e) => setSource(e.target.value)}>
+              <option value="new">
+                Registra automaticamente un nuovo incasso
               </option>
-              {incomes.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.date.split("-").reverse().join("/")} ·{" "}
-                  {money(m.amount_cents)} · {m.description}
-                </option>
-              ))}
+              <option value="existing" disabled={!incomes.length}>
+                Collega un’entrata già registrata
+              </option>
             </select>
           </label>
+          {source === "new" ? (
+            <>
+              <label>
+                Importo ricevuto (€)
+                <input
+                  name="amount"
+                  inputMode="decimal"
+                  required
+                  maxLength={11}
+                  placeholder="Es. 20,00"
+                />
+              </label>
+              <label>
+                Data dell’incasso
+                <input
+                  name="date"
+                  type="date"
+                  required
+                  defaultValue={today}
+                  max={today}
+                />
+              </label>
+              <label>
+                Progetto o iniziativa (facoltativo)
+                <input name="project" maxLength={120} />
+              </label>
+              <p>
+                L’entrata sarà registrata in{" "}
+                {payment === "cash" ? "Cassa" : "Banca"}, nella categoria{" "}
+                {type === "donation" ? "Donazioni" : "Raccolta fondi"}.
+                Compilazione e anteprima non registrano incassi: l’entrata viene
+                creata all’emissione della ricevuta.
+              </p>
+            </>
+          ) : (
+            <label>
+              Incasso registrato
+              <select name="movement_id" required defaultValue="">
+                <option value="" disabled>
+                  Seleziona l’entrata
+                </option>
+                {incomes.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.date.split("-").reverse().join("/")} ·{" "}
+                    {money(m.amount_cents)} · {m.description}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label>
             Tipo di documento
             <select
@@ -278,7 +330,11 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
           </label>
           <label>
             Metodo di pagamento
-            <select name="payment">
+            <select
+              name="payment"
+              value={payment}
+              onChange={(e) => setPayment(e.target.value)}
+            >
               <option value="bank_transfer">Bonifico bancario</option>
               <option value="cash">Contanti</option>
               <option value="card">Carta</option>

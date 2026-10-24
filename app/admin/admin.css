@@ -236,3 +236,8 @@
 /* Specificità maggiore delle regole generiche applicate alle label dell'admin. */
 .admin-card label.admin-photo-picker { display: inline-flex; align-items: center; min-height: 44px; width: fit-content; color: #fff; background: #425a48; font-size: 14px; line-height: 1.25; letter-spacing: normal; text-transform: none; margin: 0; }
 .admin-card label.admin-photo-picker:hover { background: #304437; color: #fff; }
+
+/* Salvataggio immediato sotto l'editor delle storie, senza risalire la pagina. */
+.admin-story-save-footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 22px 0 10px; padding: 18px; background: #f5f0e8; border-radius: 16px; }
+.admin-story-save-footer button { min-height: 46px; }
+.admin-story-save-footer span { color: #425a48; font-size: 13px; }

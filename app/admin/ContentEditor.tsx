@@ -656,6 +656,10 @@ export default function AdminPage() {
                 if (!response.ok || typeof result?.path !== "string") throw new Error(result?.error || "Caricamento non riuscito.");
                 return result.path;
               }} />
+              <div className="admin-story-save-footer">
+                <button type="button" disabled={loading} onClick={saveContent}>{loading ? "Salvataggio…" : "Salva modifiche alle storie"}</button>
+                <span role="status" aria-live="polite">{status}</span>
+              </div>
             </div>
           )}
         </div>

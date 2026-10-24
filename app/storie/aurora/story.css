@@ -39,3 +39,8 @@
    dichiarazioni di Aurora, senza introdurre una sezione genitori fittizia. */
 .aurora-page > article > .aurora-page-prose:last-child { padding-bottom: clamp(80px, 10vw, 140px); }
 .aurora-page > article > .aurora-page-prose:last-child > p:last-child { margin-bottom: 0; }
+
+/* Lo stesso trattamento editoriale per tutte le pagine, indipendentemente dalle foto. */
+.aurora-page-intro { text-align: center; }
+.aurora-page-prose .aurora-page-declaration strong,
+.aurora-page-parents .aurora-page-declaration strong { font-weight: inherit; }

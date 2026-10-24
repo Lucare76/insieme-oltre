@@ -34,3 +34,8 @@
   .aurora-page-pause { min-height: 50vh; }
   .aurora-page-parents { padding-top: 80px; padding-bottom: 100px; }
 }
+
+/* Le storie create dall'admin utilizzano la stessa tipografia e le stesse
+   dichiarazioni di Aurora, senza introdurre una sezione genitori fittizia. */
+.story-standard-prose { padding-bottom: clamp(80px, 10vw, 140px); }
+.story-standard-prose > p:last-child { margin-bottom: 0; }

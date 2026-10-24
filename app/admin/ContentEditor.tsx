@@ -647,7 +647,15 @@ export default function AdminPage() {
                   )}
                 </label>
               ))}
-              <ChildrenEditor items={content.children} onChange={(children) => setContent({ ...content, children })} />
+              <ChildrenEditor items={content.children} onChange={(children) => setContent((current) => ({ ...current, children }))} uploadPhoto={async (file) => {
+                const form = new FormData();
+                form.append("photo", file);
+                const response = await adminFetch("/api/admin/story-photo", { method: "POST", body: form });
+                if (!response) throw new Error("Sessione scaduta. Accedi nuovamente.");
+                const result = await response.json().catch(() => null);
+                if (!response.ok || typeof result?.path !== "string") throw new Error(result?.error || "Caricamento non riuscito.");
+                return result.path;
+              }} />
             </div>
           )}
         </div>

@@ -13,7 +13,8 @@ type StoryPageLayoutProps = {
 };
 
 export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, parents }: StoryPageLayoutProps) {
-  const availablePhotos = photos.filter(Boolean);\n  const hasPause = availablePhotos.length > 1 || Boolean(pause?.lines.some((line) => line.trim()));
+  const availablePhotos = photos.filter(Boolean);
+  const hasPause = availablePhotos.length > 1 || Boolean(pause?.lines.some((line) => line.trim()));
 
   return (
     <main className="aurora-page">

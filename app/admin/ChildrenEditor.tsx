@@ -11,7 +11,6 @@ import {
   childCardTitle,
   childInitial,
   childIssues,
-  hasDedicatedPage,
   newChild,
   slugify,
   type ChildIssue,
@@ -164,23 +163,22 @@ export function ChildrenEditor({ items, onChange }: { items: ChildStory[]; onCha
               </small>
               <Field label={`Slug pagina storia${pending ? " (facoltativo)" : ""}`} value={child.slug} onChange={(slug) => update({ slug: slug.trim() })} issues={issuesFor("slug")}
                 placeholder={slugify(child.name)} hint={`Indirizzo: /storie/${child.slug || slugify(child.name) || "…"}`} />
-              {hasDedicatedPage(child) ? (
-                <p className="admin-hint">La pagina di {child.name} è quella originale, con impaginazione dedicata: il testo si modifica nei campi «Storia di Aurora» qui sopra.</p>
-              ) : (
-                <>
-                  {pending && <p className="admin-hint">Per una storia in arrivo i campi qui sotto sono facoltativi: diventano obbligatori quando scegli «Pubblicata».</p>}
-                  <Field label={`Titolo pagina storia${pending ? " (facoltativo)" : ""}`} value={child.storyTitle} onChange={(storyTitle) => update({ storyTitle })}
-                    issues={issuesFor("storyTitle")} limit={CHILD_LIMITS.storyTitle} />
-                  <Field label={`Testo completo storia${pending ? " (facoltativo)" : ""}`} value={child.storyText} onChange={(storyText) => update({ storyText })}
-                    issues={issuesFor("storyText")} multiline tall
-                    hint={`${charCount(child.storyText.trim())} caratteri (consigliati ${CHILD_LIMITS.storyTextMin}–${CHILD_LIMITS.storyTextMax}). Lascia una riga vuota tra un paragrafo e l’altro; l’ultimo paragrafo diventa la frase finale in evidenza.`} />
-                  {Array.from({ length: CHILD_LIMITS.photos }, (_, index) => (
-                    <Field key={index} label={`Foto ${index + 1} (facoltativa)`} value={child.photos[index] ?? ""} onChange={(path) => setPhoto(index, path)}
-                      issues={index === 0 ? issuesFor("photos") : []} placeholder={`/${child.slug || "nome"}-storia${index ? `-${index + 1}` : ""}.jpg`}
-                      hint={index === 0 ? "Percorso di un file nella cartella public. La prima apre la pagina, le altre formano la galleria." : undefined} />
-                  ))}
-                </>
-              )}
+              <>
+                {pending && <p className="admin-hint">Per una storia in arrivo questi campi sono facoltativi.</p>}
+                {child.slug === "aurora" && (
+                  <p className="admin-hint">Aurora conserva il racconto storico e la sezione dei genitori: se lasci vuoti titolo e testo, sono usati i contenuti originali. Le fotografie si gestiscono qui come per tutte le altre storie.</p>
+                )}
+                <Field label={`Titolo pagina storia${pending ? " (facoltativo)" : ""}`} value={child.storyTitle} onChange={(storyTitle) => update({ storyTitle })}
+                  issues={issuesFor("storyTitle")} limit={CHILD_LIMITS.storyTitle} />
+                <Field label={`Testo completo storia${pending ? " (facoltativo)" : ""}`} value={child.storyText} onChange={(storyText) => update({ storyText })}
+                  issues={issuesFor("storyText")} multiline tall
+                  hint={`${charCount(child.storyText.trim())} caratteri (consigliati ${CHILD_LIMITS.storyTextMin}–${CHILD_LIMITS.storyTextMax}). Lascia una riga vuota tra i paragrafi; l’ultimo è evidenziato. Per Aurora il campo vuoto conserva il testo originale.`} />
+                {Array.from({ length: CHILD_LIMITS.photos }, (_, index) => (
+                  <Field key={index} label={`Foto ${index + 1} (facoltativa)`} value={child.photos[index] ?? ""} onChange={(path) => setPhoto(index, path)}
+                    issues={index === 0 ? issuesFor("photos") : []} placeholder={`/${child.slug || "nome"}-storia${index ? `-${index + 1}` : ""}.jpg`}
+                    hint={index === 0 ? "Percorso di un file nella cartella public. La prima apre la pagina, le altre formano la galleria." : undefined} />
+                ))}
+              </>
             </fieldset>
 
             <button type="button" className="secondary" onClick={() => remove(selectedIndex)}>Rimuovi {child.name || "bambino"}</button>

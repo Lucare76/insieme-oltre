@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { storyParagraphs } from "../../../lib/children";
 import { StoryPageLayout } from "../components/StoryPageLayout";
 import { getHomeContent } from "../../../lib/siteContent";
 import { socialMetadata, storySocialImage } from "../../../lib/seo";
-
-const photoNames = ["aurora-storia.jpg", "aurora-storia-2.jpg", "aurora-storia-3.jpg"];
 
 export const metadata: Metadata = {
   title: "Aurora | Insieme Oltre",
@@ -16,20 +15,22 @@ export const metadata: Metadata = {
     description: "Aurora è Aurora. La sua storia raccontata da mamma e papà.",
     path: "/storie/aurora",
     type: "article",
-    image: storySocialImage(photoNames.map((name) => `/${name}`), "Aurora"),
+    image: storySocialImage([], "Aurora"),
   }),
 };
 
 export default async function AuroraStoryPage() {
-  const photos = photoNames.filter((name) => existsSync(join(process.cwd(), "public", name)));
-  const { auroraStory: story } = await getHomeContent();
+  const { auroraStory: story, children } = await getHomeContent();
+  const aurora = children.find((child) => child.slug === "aurora");
+  const photos = (aurora?.photos ?? []).filter((photo) => /^\/(?:storie\/)?[a-z0-9-]+\.(?:jpg|jpeg|png|webp)$/i.test(photo) && existsSync(join(process.cwd(), "public", photo.slice(1))));
+  const paragraphs = aurora?.storyText.trim() ? storyParagraphs(aurora.storyText) : story.paragraphs;
 
   return (
     <StoryPageLayout
       name="Aurora"
-      subtitle={story.subtitle}
-      paragraphs={story.paragraphs}
-      photos={photos.map((name) => `/${name}`)}
+      subtitle={aurora?.storyTitle.trim() || story.subtitle}
+      paragraphs={paragraphs}
+      photos={photos}
       pause={{ lines: [story.pauseLine1, story.pauseLine2] }}
       parents={{
         title: story.parentsTitle,

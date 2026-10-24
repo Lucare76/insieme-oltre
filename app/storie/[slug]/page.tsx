@@ -45,8 +45,6 @@ export default async function ChildStoryPage({ params }: Props) {
 
   const photos = child.photos.filter((photo) => PHOTO_PATTERN.test(photo) && existsSync(join(process.cwd(), "public", photo.slice(1))));
   const paragraphs = storyParagraphs(child.storyText);
-  const closing = paragraphs.length > 1 ? paragraphs[paragraphs.length - 1] : null;
-  const body = closing ? paragraphs.slice(0, -1) : paragraphs;
 
   return (
     <main className="aurora-page">
@@ -66,8 +64,15 @@ export default async function ChildStoryPage({ params }: Props) {
           {child.storyTitle && <p>{child.storyTitle}</p>}
         </section>
 
-        <section className="aurora-page-prose">
-          {body.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+        <section className="aurora-page-prose story-standard-prose">
+          {paragraphs.map((paragraph, index) => (
+            <p
+              className={paragraphs.length > 1 && index === paragraphs.length - 1 ? "aurora-page-declaration" : undefined}
+              key={index}
+            >
+              {paragraph}
+            </p>
+          ))}
         </section>
 
         {photos.length > 1 && (
@@ -82,11 +87,6 @@ export default async function ChildStoryPage({ params }: Props) {
           </section>
         )}
 
-        {closing && (
-          <section className="aurora-page-parents">
-            <p className="aurora-page-declaration">{closing}</p>
-          </section>
-        )}
       </article>
 
       <footer className="aurora-page-footer">

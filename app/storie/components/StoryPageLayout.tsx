@@ -34,7 +34,7 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
           {subtitle && <p>{subtitle}</p>}
         </section>
 
-        <section className={parents || hasPause ? "aurora-page-prose" : "aurora-page-prose story-standard-prose"}>
+        <section className="aurora-page-prose">
           {paragraphs.map((paragraph, index) => (
             <p className={index === paragraphs.length - 1 ? "aurora-page-declaration" : undefined} key={index}>
               {paragraph}

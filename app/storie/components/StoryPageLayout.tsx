@@ -12,6 +12,15 @@ type StoryPageLayoutProps = {
   parents?: { title: string; paragraphs: string[]; emphasizedIndex?: number };
 };
 
+/** Evidenzia le frasi marcate **così** nel testo dell'admin, senza mostrare gli asterischi. */
+function renderStoryText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
+    part.startsWith("**") && part.endsWith("**")
+      ? <strong key={index}>{part.slice(2, -2)}</strong>
+      : part,
+  );
+}
+
 export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, parents }: StoryPageLayoutProps) {
   const availablePhotos = photos.filter(Boolean);
   const hasPause = availablePhotos.length > 1 || Boolean(pause?.lines.some((line) => line.trim()));
@@ -36,8 +45,8 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
 
         <section className="aurora-page-prose">
           {paragraphs.map((paragraph, index) => (
-            <p className={index === paragraphs.length - 1 ? "aurora-page-declaration" : undefined} key={index}>
-              {paragraph}
+            <p className={index === paragraphs.length - 1 || /^\*\*[^*]+\*\*$/.test(paragraph.trim()) ? "aurora-page-declaration" : undefined} key={index}>
+              {renderStoryText(paragraph)}
             </p>
           ))}
         </section>
@@ -64,7 +73,7 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
             <h2>{parents.title}</h2>
             {parents.paragraphs.map((paragraph, index) => (
               <p className={index === parents.emphasizedIndex ? "aurora-page-declaration" : undefined} key={index}>
-                {paragraph}
+                {renderStoryText(paragraph)}
               </p>
             ))}
           </section>

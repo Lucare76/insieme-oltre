@@ -1,0 +1,82 @@
+import Image from "next/image";
+import Link from "next/link";
+import { LegalLinks } from "../../components/LegalLinks";
+import "../aurora/story.css";
+
+type StoryPageLayoutProps = {
+  name: string;
+  subtitle: string;
+  paragraphs: string[];
+  photos: string[];
+  pause?: { lines: string[] };
+  parents?: { title: string; paragraphs: string[]; emphasizedIndex?: number };
+};
+
+export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, parents }: StoryPageLayoutProps) {
+  const hasPause = photos.length > 1 || Boolean(pause?.lines.some((line) => line.trim()));
+
+  return (
+    <main className="aurora-page">
+      <header className="aurora-page-header">
+        <Link href="/" className="aurora-page-brand">Insieme <em>Oltre</em></Link>
+        <Link href="/#storie" className="aurora-page-back">← Torna alle storie</Link>
+      </header>
+
+      <article>
+        {photos[0] && (
+          <div className="aurora-page-photo aurora-page-photo-opening">
+            <Image src={photos[0]} alt={name} fill sizes="100vw" priority />
+          </div>
+        )}
+        <section className="aurora-page-intro">
+          <h1>{name}</h1>
+          {subtitle && <p>{subtitle}</p>}
+        </section>
+
+        <section className={parents || hasPause ? "aurora-page-prose" : "aurora-page-prose story-standard-prose"}>
+          {paragraphs.map((paragraph, index) => (
+            <p className={index === paragraphs.length - 1 ? "aurora-page-declaration" : undefined} key={index}>
+              {paragraph}
+            </p>
+          ))}
+        </section>
+
+        {hasPause && (
+          <section className="aurora-page-pause" aria-label={pause ? "Una parte della sua storia" : `${name} in fotografia`}>
+            {photos.length > 1 && (
+              <div className="aurora-page-gallery">
+                {photos.slice(1).map((photo, index) => (
+                  <div className="aurora-page-photo aurora-page-photo-pause" key={photo}>
+                    <Image src={photo} alt={`${name}, fotografia ${index + 2}`} fill sizes="(max-width: 620px) 100vw, 500px" />
+                  </div>
+                ))}
+              </div>
+            )}
+            {pause?.lines.length ? <p>{pause.lines.map((line, index) => (
+              <span key={index}>{index > 0 && <br />}{line}</span>
+            ))}</p> : null}
+          </section>
+        )}
+
+        {parents && (
+          <section className="aurora-page-parents">
+            <h2>{parents.title}</h2>
+            {parents.paragraphs.map((paragraph, index) => (
+              <p className={index === parents.emphasizedIndex ? "aurora-page-declaration" : undefined} key={index}>
+                {paragraph}
+              </p>
+            ))}
+          </section>
+        )}
+      </article>
+
+      <footer className="aurora-page-footer">
+        <Link href="/">Insieme Oltre</Link>
+        <div className="aurora-page-footer-end">
+          <span>L’amore non si misura in cromosomi.</span>
+          <LegalLinks className="aurora-page-legal" />
+        </div>
+      </footer>
+    </main>
+  );
+}

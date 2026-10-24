@@ -121,6 +121,18 @@ export async function receiptPdf(receipt: Receipt, preview = false) {
   );
   if (receipt.cancelled)
     line(`Motivo annullamento: ${receipt.cancellation_reason ?? ""}`);
+  y -= 24;
+  // Keep the thank-you message and family signature together.
+  if (y < 140) {
+    page = pdf.addPage([595.28, 841.89]);
+    y = 785;
+  }
+  line(
+    "Ci sono passi che diventano più facili quando qualcuno sceglie di camminare al nostro fianco.",
+    10,
+  );
+  line("Grazie per esserci.", 11, true);
+  line("Le famiglie di Insieme Oltre ODV.", 10);
   pdf.setTitle(
     preview
       ? "Anteprima ricevuta"

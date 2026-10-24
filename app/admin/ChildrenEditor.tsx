@@ -48,7 +48,9 @@ function Field({ label, value, onChange, issues, limit, counted, multiline = fal
   );
 }
 
-export function ChildrenEditor({ items, onChange }: { items: ChildStory[]; onChange: (items: ChildStory[]) => void }) {
+export function ChildrenEditor({ items, onChange, uploadPhoto }: { items: ChildStory[]; onChange: (items: ChildStory[]) => void; uploadPhoto: (file: File) => Promise<string> }) {
+  const [uploading, setUploading] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(items[0]?.id ?? null);
   const selectedIndex = items.findIndex((item) => item.id === selectedId);
   const child = selectedIndex >= 0 ? items[selectedIndex] : null;
@@ -174,10 +176,38 @@ export function ChildrenEditor({ items, onChange }: { items: ChildStory[]; onCha
                   issues={issuesFor("storyText")} multiline tall
                   hint={`${charCount(child.storyText.trim())} caratteri (consigliati ${CHILD_LIMITS.storyTextMin}–${CHILD_LIMITS.storyTextMax}). Lascia una riga vuota tra i paragrafi; l’ultimo è evidenziato. Per Aurora il campo vuoto conserva il testo originale.`} />
                 {Array.from({ length: CHILD_LIMITS.photos }, (_, index) => (
-                  <Field key={index} label={`Foto ${index + 1} (facoltativa)`} value={child.photos[index] ?? ""} onChange={(path) => setPhoto(index, path)}
-                    issues={index === 0 ? issuesFor("photos") : []} placeholder={`/${child.slug || "nome"}-storia${index ? `-${index + 1}` : ""}.jpg`}
-                    hint={index === 0 ? "Percorso di un file nella cartella public. La prima apre la pagina, le altre formano la galleria." : undefined} />
+                  <div key={index} className="admin-photo-upload">
+                    <span className="admin-field-label">Foto {index + 1} (facoltativa)</span>
+                    {child.photos[index] && (
+                      <div>
+                        <a href={child.photos[index]} target="_blank" rel="noreferrer">Visualizza foto {index + 1}</a>
+                        <button type="button" className="secondary" onClick={() => setPhoto(index, "")}>Rimuovi</button>
+                      </div>
+                    )}
+                    <label className="admin-photo-picker">
+                      {uploading === index ? "Caricamento in corso…" : "Carica foto dal dispositivo"}
+                      <input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading !== null}
+                        onChange={async (event) => {
+                          const file = event.target.files?.[0];
+                          if (!file) return;
+                          setUploadError("");
+                          setUploading(index);
+                          try {
+                            const path = await uploadPhoto(file);
+                            setPhoto(index, path);
+                          } catch (error) {
+                            setUploadError(error instanceof Error ? error.message : "Caricamento non riuscito.");
+                          } finally {
+                            setUploading(null);
+                            event.target.value = "";
+                          }
+                        }} />
+                    </label>
+                    <small className="admin-hint">JPG, PNG o WEBP · massimo 5 MB. Dopo il caricamento premi «Salva testi» per pubblicare.</small>
+                    {index === 0 && issuesFor("photos").map((issue) => <small className="admin-issue error" key={issue.message}>{issue.message}</small>)}
+                  </div>
                 ))}
+                {uploadError && <p role="alert" className="admin-issue error">{uploadError}</p>}
               </>
             </fieldset>
 

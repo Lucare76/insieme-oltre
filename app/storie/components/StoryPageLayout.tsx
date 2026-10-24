@@ -13,7 +13,8 @@ type StoryPageLayoutProps = {
 };
 
 export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, parents }: StoryPageLayoutProps) {
-  const hasPause = photos.length > 1 || Boolean(pause?.lines.some((line) => line.trim()));
+  const availablePhotos = photos.filter(Boolean);
+  const hasPause = availablePhotos.length > 1 || Boolean(pause?.lines.some((line) => line.trim()));
 
   return (
     <main className="aurora-page">
@@ -23,9 +24,9 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
       </header>
 
       <article>
-        {photos[0] && (
+        {availablePhotos[0] && (
           <div className="aurora-page-photo aurora-page-photo-opening">
-            <Image src={photos[0]} alt={name} fill sizes="100vw" priority />
+            <Image src={availablePhotos[0]} alt={name} fill sizes="100vw" priority />
           </div>
         )}
         <section className="aurora-page-intro">
@@ -33,7 +34,7 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
           {subtitle && <p>{subtitle}</p>}
         </section>
 
-        <section className={parents || hasPause ? "aurora-page-prose" : "aurora-page-prose story-standard-prose"}>
+        <section className="aurora-page-prose">
           {paragraphs.map((paragraph, index) => (
             <p className={index === paragraphs.length - 1 ? "aurora-page-declaration" : undefined} key={index}>
               {paragraph}
@@ -43,9 +44,9 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
 
         {hasPause && (
           <section className="aurora-page-pause" aria-label={pause ? "Una parte della sua storia" : `${name} in fotografia`}>
-            {photos.length > 1 && (
+            {availablePhotos.length > 1 && (
               <div className="aurora-page-gallery">
-                {photos.slice(1).map((photo, index) => (
+                {availablePhotos.slice(1).map((photo, index) => (
                   <div className="aurora-page-photo aurora-page-photo-pause" key={photo}>
                     <Image src={photo} alt={`${name}, fotografia ${index + 2}`} fill sizes="(max-width: 620px) 100vw, 500px" />
                   </div>

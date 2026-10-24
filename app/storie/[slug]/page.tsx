@@ -40,7 +40,7 @@ export default async function ChildStoryPage({ params }: Props) {
   const child = await findStory((await params).slug);
   if (!child) notFound();
 
-  const photos = child.photos.filter((photo) => PHOTO_PATTERN.test(photo) && existsSync(join(process.cwd(), "public", photo.slice(1))));
+  const photos = child.photos.filter((photo) => PHOTO_PATTERN.test(photo) && (photo.startsWith("/api/storie/foto/") || existsSync(join(process.cwd(), "public", photo.slice(1)))));
   const paragraphs = storyParagraphs(child.storyText);
 
   return (

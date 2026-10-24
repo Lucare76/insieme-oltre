@@ -38,7 +38,7 @@ export const CHILD_LIMITS = {
 /** Bambini con una pagina impaginata a mano (app/storie/<slug>): il loro testo completo si modifica altrove. */
 export const DEDICATED_STORY_PAGES = ["aurora"];
 
-export const PHOTO_PATTERN = /^\/(?:storie\/)?[a-z0-9-]+\.(?:jpg|jpeg|png|webp)$/i;
+export const PHOTO_PATTERN = /^(?:\/api\/storie\/foto\/[a-f0-9-]{36}\.(?:jpg|png|webp)|\/(?:storie\/)?[a-z0-9-]+\.(?:jpg|jpeg|png|webp))$/i;
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const charCount = (text: string) => [...text].length;

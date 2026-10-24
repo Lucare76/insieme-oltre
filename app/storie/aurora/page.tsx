@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default async function AuroraStoryPage() {
   const { auroraStory: story, children } = await getHomeContent();
   const aurora = children.find((child) => child.slug === "aurora");
-  const photos = (aurora?.photos ?? []).filter((photo) => /^\/(?:storie\/)?[a-z0-9-]+\.(?:jpg|jpeg|png|webp)$/i.test(photo) && existsSync(join(process.cwd(), "public", photo.slice(1))));
+  const photos = (aurora?.photos ?? []).filter((photo) => PHOTO_PATTERN.test(photo) && (photo.startsWith("/api/storie/foto/") || existsSync(join(process.cwd(), "public", photo.slice(1)))));
   const paragraphs = aurora?.storyText.trim() ? storyParagraphs(aurora.storyText) : story.paragraphs;
 
   return (

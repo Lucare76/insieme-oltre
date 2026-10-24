@@ -26,11 +26,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Formato immagine non valido." }, { status: 400 });
 
   const filename = randomUUID() + "." + ext;
-  const response = await fetch(`${url}/storage/v1/object/${BUCKET}/${filename}`, {
+  let response = await fetch(`${url}/storage/v1/object/${BUCKET}/${filename}`, {
     method: "POST",
     headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": file.type, "x-upsert": "false" },
     body: bytes,
   });
-  if (!response.ok) return NextResponse.json({ error: "Caricamento non riuscito. Verifica che il bucket privato story-photos sia stato creato su Supabase." }, { status: 502 });
+  if (!response.ok && response.status === 404) {
+    const create = await fetch(`${url}/storage/v1/bucket`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ id: BUCKET, name: BUCKET, public: false, file_size_limit: MAX_BYTES, allowed_mime_types: [...TYPES.keys()] }),
+    });
+    if (create.ok || create.status === 409) {
+      response = await fetch(`${url}/storage/v1/object/${BUCKET}/${filename}`, {
+        method: "POST",
+        headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": file.type, "x-upsert": "false" },
+        body: bytes,
+      });
+    }
+  }
+  if (!response.ok) return NextResponse.json({ error: "Caricamento non riuscito. Controlla la configurazione di Supabase Storage." }, { status: 502 });
   return NextResponse.json({ path: `/api/storie/foto/${filename}` });
 }

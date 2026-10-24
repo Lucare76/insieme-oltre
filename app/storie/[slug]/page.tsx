@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import Image from "next/image";
-import Link from "next/link";
-import { LegalLinks } from "../../components/LegalLinks";
+import { StoryPageLayout } from "../components/StoryPageLayout";
 import { notFound } from "next/navigation";
 import { PHOTO_PATTERN, hasDedicatedPage, isPublished, storyParagraphs } from "../../../lib/children";
 import { getHomeContent } from "../../../lib/siteContent";
 import { socialMetadata, storySocialImage } from "../../../lib/seo";
-import "../aurora/story.css";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -47,55 +44,11 @@ export default async function ChildStoryPage({ params }: Props) {
   const paragraphs = storyParagraphs(child.storyText);
 
   return (
-    <main className="aurora-page">
-      <header className="aurora-page-header">
-        <Link href="/" className="aurora-page-brand">Insieme <em>Oltre</em></Link>
-        <Link href="/#storie" className="aurora-page-back">← Torna alle storie</Link>
-      </header>
-
-      <article>
-        {photos[0] && (
-          <div className="aurora-page-photo aurora-page-photo-opening">
-            <Image src={photos[0]} alt={child.name} fill sizes="100vw" priority />
-          </div>
-        )}
-        <section className="aurora-page-intro">
-          <h1>{child.name}</h1>
-          {child.storyTitle && <p>{child.storyTitle}</p>}
-        </section>
-
-        <section className="aurora-page-prose story-standard-prose">
-          {paragraphs.map((paragraph, index) => (
-            <p
-              className={paragraphs.length > 1 && index === paragraphs.length - 1 ? "aurora-page-declaration" : undefined}
-              key={index}
-            >
-              {paragraph}
-            </p>
-          ))}
-        </section>
-
-        {photos.length > 1 && (
-          <section className="aurora-page-pause" aria-label={`${child.name} in fotografia`}>
-            <div className="aurora-page-gallery">
-              {photos.slice(1).map((photo, index) => (
-                <div className="aurora-page-photo aurora-page-photo-pause" key={photo}>
-                  <Image src={photo} alt={`${child.name}, fotografia ${index + 2}`} fill sizes="(max-width: 620px) 100vw, 500px" />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-      </article>
-
-      <footer className="aurora-page-footer">
-        <Link href="/">Insieme Oltre</Link>
-        <div className="aurora-page-footer-end">
-          <span>L’amore non si misura in cromosomi.</span>
-          <LegalLinks className="aurora-page-legal" />
-        </div>
-      </footer>
-    </main>
+    <StoryPageLayout
+      name={child.name}
+      subtitle={child.storyTitle}
+      paragraphs={paragraphs}
+      photos={photos}
+    />
   );
 }

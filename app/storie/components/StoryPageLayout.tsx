@@ -14,7 +14,7 @@ type StoryPageLayoutProps = {
 
 /** Evidenzia le frasi marcate **così** nel testo dell'admin, senza mostrare gli asterischi. */
 function renderStoryText(text: string) {
-  return text.split(/(\\*\\*[^*]+\\*\\*)/g).map((part, index) =>
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
     part.startsWith("**") && part.endsWith("**")
       ? <strong key={index}>{part.slice(2, -2)}</strong>
       : part,
@@ -45,7 +45,7 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
 
         <section className="aurora-page-prose">
           {paragraphs.map((paragraph, index) => (
-            <p className={index === paragraphs.length - 1 || /^\\*\\*[^*]+\\*\\*$/.test(paragraph.trim()) ? "aurora-page-declaration" : undefined} key={index}>
+            <p className={index === paragraphs.length - 1 || /^\*\*[^*]+\*\*$/.test(paragraph.trim()) ? "aurora-page-declaration" : undefined} key={index}>
               {renderStoryText(paragraph)}
             </p>
           ))}

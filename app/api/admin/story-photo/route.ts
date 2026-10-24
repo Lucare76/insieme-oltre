@@ -25,26 +25,45 @@ export async function POST(request: Request) {
   if (!(ext === "jpg" && jpeg || ext === "png" && png || ext === "webp" && webp))
     return NextResponse.json({ error: "Formato immagine non valido." }, { status: 400 });
 
+  // Il bucket viene verificato prima dell'upload: Storage può rispondere 400
+  // (non solo 404) quando un bucket non esiste.
+  const storageHeaders = { apikey: key, Authorization: `Bearer ${key}` };
+  const bucketCheck = await fetch(`${url}/storage/v1/bucket/${BUCKET}`, {
+    headers: storageHeaders,
+    cache: "no-store",
+  });
+  if (bucketCheck.status === 404 || bucketCheck.status === 400) {
+    const created = await fetch(`${url}/storage/v1/bucket`, {
+      method: "POST",
+      headers: { ...storageHeaders, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: BUCKET,
+        name: BUCKET,
+        public: false,
+        file_size_limit: MAX_BYTES,
+        allowed_mime_types: [...TYPES.keys()],
+      }),
+    });
+    if (!created.ok && created.status !== 409) {
+      const details = await created.json().catch(() => null);
+      console.error("story-photo: bucket creation failed", created.status, details?.error ?? details?.message ?? "");
+      return NextResponse.json({ error: "Archivio foto non disponibile. Controllare i permessi Storage della chiave Supabase.", code: "bucket_create_failed" }, { status: 502 });
+    }
+  } else if (!bucketCheck.ok) {
+    console.error("story-photo: bucket check failed", bucketCheck.status);
+    return NextResponse.json({ error: "Impossibile verificare l'archivio foto su Supabase.", code: "bucket_check_failed" }, { status: 502 });
+  }
+
   const filename = randomUUID() + "." + ext;
-  let response = await fetch(`${url}/storage/v1/object/${BUCKET}/${filename}`, {
+  const response = await fetch(`${url}/storage/v1/object/${BUCKET}/${filename}`, {
     method: "POST",
-    headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": file.type, "x-upsert": "false" },
+    headers: { ...storageHeaders, "Content-Type": file.type, "x-upsert": "false" },
     body: bytes,
   });
-  if (!response.ok && response.status === 404) {
-    const create = await fetch(`${url}/storage/v1/bucket`, {
-      method: "POST",
-      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ id: BUCKET, name: BUCKET, public: false, file_size_limit: MAX_BYTES, allowed_mime_types: [...TYPES.keys()] }),
-    });
-    if (create.ok || create.status === 409) {
-      response = await fetch(`${url}/storage/v1/object/${BUCKET}/${filename}`, {
-        method: "POST",
-        headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": file.type, "x-upsert": "false" },
-        body: bytes,
-      });
-    }
+  if (!response.ok) {
+    const details = await response.json().catch(() => null);
+    console.error("story-photo: upload failed", response.status, details?.error ?? details?.message ?? "");
+    return NextResponse.json({ error: "Caricamento fallito nell'archivio foto.", code: "storage_upload_failed" }, { status: 502 });
   }
-  if (!response.ok) return NextResponse.json({ error: "Caricamento non riuscito. Controlla la configurazione di Supabase Storage." }, { status: 502 });
   return NextResponse.json({ path: `/api/storie/foto/${filename}` });
 }

@@ -232,3 +232,7 @@
 .admin-photo-picker:has(input:disabled) { opacity: .65; cursor: wait; }
 .admin-photo-picker input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 .admin-photo-picker:focus-within { outline: 3px solid #d17f75; outline-offset: 3px; }
+
+/* Specificità maggiore delle regole generiche applicate alle label dell'admin. */
+.admin-card label.admin-photo-picker { display: inline-flex; align-items: center; min-height: 44px; width: fit-content; color: #fff; background: #425a48; font-size: 14px; line-height: 1.25; letter-spacing: normal; text-transform: none; margin: 0; }
+.admin-card label.admin-photo-picker:hover { background: #304437; color: #fff; }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { storyParagraphs } from "../../../lib/children";
+import { PHOTO_PATTERN, storyParagraphs } from "../../../lib/children";
 import { StoryPageLayout } from "../components/StoryPageLayout";
 import { getHomeContent } from "../../../lib/siteContent";
 import { socialMetadata, storySocialImage } from "../../../lib/seo";

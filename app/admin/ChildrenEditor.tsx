@@ -48,7 +48,9 @@ function Field({ label, value, onChange, issues, limit, counted, multiline = fal
   );
 }
 
-export function ChildrenEditor({ items, onChange, uploadPhoto }: { items: ChildStory[]; onChange: (items: ChildStory[]) => void; uploadPhoto: (file: File) => Promise<string> }) {\n  const [uploading, setUploading] = useState<number | null>(null);\n  const [uploadError, setUploadError] = useState("");
+export function ChildrenEditor({ items, onChange, uploadPhoto }: { items: ChildStory[]; onChange: (items: ChildStory[]) => void; uploadPhoto: (file: File) => Promise<string> }) {
+  const [uploading, setUploading] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(items[0]?.id ?? null);
   const selectedIndex = items.findIndex((item) => item.id === selectedId);
   const child = selectedIndex >= 0 ? items[selectedIndex] : null;

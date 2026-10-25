@@ -114,7 +114,7 @@ export default function WhatsAppPanel({ api, owner }: { api: Api; owner: boolean
   }
   return <section className={"wa-panel" + (selected ? " wa-chat-active" : "")} aria-label="Casella WhatsApp">
     <header className="wa-heading">
-      <div><p className="soci-kicker">VICINI, ANCHE DA QUI</p><h2>WhatsApp</h2><p>Uno spazio per ascoltare e rispondere, insieme.</p></div>
+      <div className="wa-brand"><span className="wa-brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M25 14.5a10 10 0 0 1-14.4 9L5 25l1.5-5.6A10 10 0 1 1 25 14.5Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M11 15h.1M16 15h.1M21 15h.1" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg></span><div><p className="soci-kicker">INSIEME OLTRE · WHATSAPP</p><h2>Un filo diretto.</h2><p>Ogni conversazione è un piccolo passo, insieme.</p></div></div>
       <button disabled={busy} onClick={() => void load()}>Aggiorna</button>
       {owner && <button aria-expanded={showOperators} onClick={() => void run(async () => { if (!showOperators) await loadOperators(); setShowOperators(!showOperators); })}>Operatori</button>}
     </header>
@@ -127,23 +127,23 @@ export default function WhatsAppPanel({ api, owner }: { api: Api; owner: boolean
     </section>}
     {inbox && <><div className="wa-summary">
       <span className={inbox.connected ? "wa-connected" : ""}>{inbox.connected ? "Meta configurato" : "Numero da collegare"}</span>
-      <span>{inbox.usage.reserved} / {inbox.limit} invii nel mese · {inbox.usage.delivered} consegnati</span>
+      <span className="wa-usage"><strong>{inbox.usage.reserved}</strong> / {inbox.limit} invii nel mese <span aria-hidden="true">·</span> {inbox.usage.delivered} consegnati</span>
       {supportsNotifications && <button disabled={notifications} onClick={() => void run(async () => { const permission = await Notification.requestPermission(); const enabled = permission === "granted"; notifyRef.current = enabled; setNotifications(enabled); setNotice(enabled ? "Avvisi attivi mentre questa casella è aperta. Non sono notifiche a browser chiuso." : "Notifiche non abilitate dal browser."); })}>{notifications ? "Avvisi attivi" : "Attiva avvisi"}</button>}
     </div>
     {!inbox.connected && <p className="wa-notice">La casella è pronta per il collegamento. Quando avremo il numero, completeremo l’attivazione su Meta.</p>}
     {inbox.connected && !inbox.send_enabled && <p className="wa-notice">Ricezione configurata. L’invio è ancora disattivato.</p>}
     {inbox.usage.reserved >= inbox.limit * .8 && <p className="wa-alert">Stai raggiungendo il limite interno mensile. Include gli invii in attesa o con esito incerto; non è una fattura Meta.</p>}
     <div className={"wa-workspace" + (selected ? " wa-show-chat" : "")}>
-      <aside className="wa-list" aria-label="Conversazioni">
-        <label>Cerca nome o numero<input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cerca nelle conversazioni caricate" /></label>
-        <label>Mostra<select value={filter} onChange={e => setFilter(e.target.value)}>
-          <option value="all">Tutte</option><option value="unread">Non lette</option><option value="open">Da gestire</option><option value="assigned">In gestione</option><option value="closed">Chiuse</option>
-        </select></label>
+      <aside className="wa-list" aria-label="Conversazioni"><div className="wa-list-heading"><div><p>UNO SPAZIO PER ASCOLTARE</p><h3>Conversazioni</h3></div><span>{inbox.conversations.length}</span></div>
+        <label>Cerca nome o numero<input value={search} onChange={e => setSearch(e.target.value)} placeholder="Un nome, un numero…" /></label>
+        <div className="wa-filters" role="group" aria-label="Filtra le conversazioni">
+          {[["all", "Tutte"], ["unread", "Non lette"], ["open", "Da gestire"], ["assigned", "In gestione"], ["closed", "Chiuse"]].map(([value, label]) => <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}>{label}</button>)}
+        </div>
         <div className="wa-conversation-list">
           {!visible.length && <div className="wa-empty"><strong>Qui cominciano le conversazioni.</strong><p>{inbox.conversations.length ? "Nessun risultato in questa pagina." : "Quando qualcuno ci scriverà, troverai qui il suo messaggio."}</p></div>}
-          {visible.map(c => <button key={c.id} className={"wa-conversation" + (c.id === selected ? " wa-selected" : "")} aria-pressed={c.id === selected} onClick={() => { setMessages([]); setSelected(c.id); setNow(Date.now()); setError(""); }}>
+          {visible.map(c => <button key={c.id} className={"wa-conversation" + (c.id === selected ? " wa-selected" : "") + (c.unread_count > 0 ? " wa-unread" : "")} aria-pressed={c.id === selected} onClick={() => { setMessages([]); setSelected(c.id); setNow(Date.now()); setError(""); }}>
             <span className="wa-avatar" aria-hidden="true">{(c.contact_name || "+").slice(0, 1).toUpperCase()}</span>
-            <span className="wa-conversation-copy"><strong>{c.contact_name || "+" + c.wa_id}</strong><small>{statusLabel[c.status]}{c.assigned_to === inbox.user_id ? " · Tu" : c.assigned_to ? " · Altro operatore" : ""}</small><span>{c.last_preview}</span><small>{dateLabel(c.last_message_at)}</small></span>
+            <span className="wa-conversation-copy"><strong>{c.contact_name || "+" + c.wa_id}</strong><small className={"wa-status wa-status-" + c.status}>{statusLabel[c.status]}{c.assigned_to === inbox.user_id ? " · Tu" : c.assigned_to ? " · Altro operatore" : ""}</small><span>{c.last_preview}</span><small>{dateLabel(c.last_message_at)}</small></span>
             {c.unread_count > 0 && <span className="wa-badge" aria-label={c.unread_count + " messaggi non letti"}>{c.unread_count}</span>}
           </button>)}
         </div>
@@ -151,7 +151,7 @@ export default function WhatsAppPanel({ api, owner }: { api: Api; owner: boolean
       </aside>
       <section className="wa-chat" aria-label="Messaggi">
         {!conversation ? <div className="wa-empty wa-welcome"><span aria-hidden="true">💬</span><h3>Un messaggio può avvicinare.</h3><p>Scegli una conversazione per leggerla e prenderla in gestione.</p></div> : <>
-          <header className="wa-chat-header"><button className="wa-back" onClick={() => setSelected(null)} aria-label="Torna alle conversazioni">←</button><div><h3>{conversation.contact_name || "+" + conversation.wa_id}</h3><p>+{conversation.wa_id} · {statusLabel[conversation.status]}</p></div></header>
+          <header className="wa-chat-header"><button className="wa-back" onClick={() => setSelected(null)} aria-label="Torna alle conversazioni">‹</button><span className="wa-avatar wa-chat-avatar" aria-hidden="true">{(conversation.contact_name || "+").slice(0, 1).toUpperCase()}</span><div><h3>{conversation.contact_name || "+" + conversation.wa_id}</h3><p>+{conversation.wa_id} · {statusLabel[conversation.status]}</p></div></header>
           <div className="wa-chat-actions">
             {conversation.assigned_to === null && <button disabled={busy} onClick={() => void run(() => manage("assigned"))}>Prendi in gestione</button>}
             {mine && <button disabled={busy} onClick={() => void run(() => manage("open"))}>Lascia disponibile</button>}
@@ -161,7 +161,7 @@ export default function WhatsAppPanel({ api, owner }: { api: Api; owner: boolean
           </div>
           <p className={"wa-window" + (!canReply ? " wa-window-closed" : "")}>{canReply ? "Puoi rispondere fino al " + dateLabel(new Date(expires).toISOString()) : "Finestra chiusa: per rispondere occorre un nuovo messaggio della persona."}</p>
           {error && <p className="wa-alert wa-chat-feedback" role="alert">{error}</p>}
-          <div className="wa-messages" role="log" aria-label="Cronologia della conversazione" aria-live="polite">
+          <div className="wa-messages" role="log" aria-label="Cronologia della conversazione" aria-live="polite"><span className="wa-history-label">La vostra conversazione</span>
             {hasOlder && messages[0] && <button disabled={busy} onClick={() => void run(async () => {
               const first = messages[0]; const data = await (await api("whatsapp?conversation=" + selected + "&before=" + encodeURIComponent(first.created_at) + "&before_id=" + first.id)).json();
               generation.current++; olderLoaded.current = true; setMessages(current => [...data.items, ...current]); setHasOlder(data.has_more);
@@ -189,7 +189,7 @@ export default function WhatsAppPanel({ api, owner }: { api: Api; owner: boolean
           }}>
             <label htmlFor="wa-reply">La tua risposta</label><textarea id="wa-reply" value={draft} maxLength={4096} rows={2} disabled={busy || blocked}
               onChange={e => { const value = e.target.value; setDrafts(current => ({ ...current, [selected!]: value })); }} placeholder={blocked ? "Invio non disponibile" : "Scrivi con calma…"} />
-            <div><small>{draft.length}/4096 · Invio soltanto in risposta</small><button className="primary" disabled={busy || blocked || !draft.trim()}>{busy ? "Attendi…" : "Invia risposta"}</button></div>
+            <div><small>{draft.length}/4096 · Invio soltanto in risposta</small><button className="primary wa-send" disabled={busy || blocked || !draft.trim()}><span>{busy ? "Attendi…" : "Invia risposta"}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 4 17 8-17 8 3-8-3-8Zm3 8h14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div>
           </form>
         </>}
       </section>

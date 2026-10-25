@@ -1,0 +1,4 @@
+.whatsapp-cta { position: fixed; right: 20px; bottom: max(22px, env(safe-area-inset-bottom)); z-index: 40; display: inline-flex; align-items: center; gap: 9px; padding: 14px 19px; min-height: 48px; background: #416a4b; color: white; border-radius: 32px; box-shadow: 0 5px 22px #25382c30; text-decoration: none; font: 600 14px Arial, sans-serif; }
+.whatsapp-cta:hover { background: #31543a; }
+.whatsapp-cta:focus-visible { outline: 3px solid #ffa619; outline-offset: 4px; }
+@media(max-width: 620px) { .whatsapp-cta { right: 12px; bottom: max(16px, env(safe-area-inset-bottom)); padding: 12px 16px; font-size: 13px; } }

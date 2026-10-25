@@ -1,3 +1,4 @@
+import { WhatsAppCta } from "./components/WhatsAppCta";
 import { LazyContactForm } from "./components/LazyContactForm";
 import { contactNotice } from "../lib/legal";
 import { contactMailConfig } from "../lib/contactMail";
@@ -244,6 +245,7 @@ export default async function Home() {
         </div>
       </section>
 
+      <WhatsAppCta />
       <footer>
         <div className="footer-brand">
           <span>Insieme <em>Oltre</em></span>
@@ -257,3 +259,4 @@ export default async function Home() {
     </main>
   );
 }
+

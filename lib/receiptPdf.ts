@@ -115,10 +115,6 @@ export async function receiptPdf(receipt: Receipt, preview = false) {
     "Non attesta automaticamente il diritto a detrazioni o deduzioni fiscali.",
   );
   y -= 18;
-  line(
-    "Documento generato elettronicamente; non contiene una firma digitale.",
-    9,
-  );
   if (receipt.cancelled)
     line(`Motivo annullamento: ${receipt.cancellation_reason ?? ""}`);
   y -= 24;

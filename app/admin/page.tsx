@@ -20,6 +20,7 @@ import {
 } from "./sessionTimeout";
 const ContentEditor = dynamic(() => import("./ContentEditor"));
 const ReceiptsPanel = dynamic(() => import("./ReceiptsPanel"));
+const WhatsAppPanel = dynamic(() => import("./WhatsAppPanel"));
 import { AccountingDashboard } from "./AccountingDashboard";
 import { AccessForms, AccessRequests } from "./accessComponents";
 type User = { id: string; name: string; role: AssociationRole };
@@ -74,6 +75,7 @@ export default function AreaSoci() {
   const [newDate, setNewDate] = useState("");
   const [tab, setTab] = useState("home");
   const [contentVisited, setContentVisited] = useState(false);
+  const [whatsappAllowed, setWhatsappAllowed] = useState(false);
   const [pending, setPending] = useState(0);
   const [editing, setEditing] = useState<Item | null | undefined>(undefined);
   const [year, setYear] = useState("");
@@ -105,6 +107,7 @@ export default function AreaSoci() {
     localStorage.removeItem(SESSION_TIMES_KEY);
     sessionStorage.removeItem("insieme_oltre_association_v1");
     setUser(null);
+    setWhatsappAllowed(false);
     setContentVisited(false);
     setItems([]);
     setDataLoaded(false);
@@ -189,7 +192,7 @@ export default function AreaSoci() {
         const b = await res.json();
         if (res.status === 401 || (res.status === 403 && path === "me"))
           clear();
-        throw new Error(b.error || "Operazione non riuscita.");
+        throw Object.assign(new Error(b.error || "Operazione non riuscita."), { status: res.status });
       }
       return res;
     },
@@ -301,6 +304,14 @@ export default function AreaSoci() {
       window.removeEventListener("keydown", activity);
     };
   }, [clear]);
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    queueMicrotask(() => { void api("whatsapp?view=access").then(r => r.json()).then(data => {
+      if (active) setWhatsappAllowed(Boolean(data.allowed));
+    }).catch(() => { if (active) setWhatsappAllowed(user.role === "owner"); }); });
+    return () => { active = false; };
+  }, [api, user]);
   async function run(action: () => Promise<void>) {
     setBusy(true);
     setMessage("");
@@ -408,7 +419,7 @@ export default function AreaSoci() {
       </main>
     );
   return (
-    <main className="soci">
+    <main className={"soci" + (tab === "whatsapp" ? " soci-whatsapp" : "")}>
       <div className="soci-shell">
         <header className="soci-header">
           <Link href="/">
@@ -492,6 +503,7 @@ export default function AreaSoci() {
               >
                 Contabilità
               </button>
+              {whatsappAllowed && <button aria-pressed={tab === "whatsapp"} onClick={() => void openTab("whatsapp")}>WhatsApp</button>}
               {write && <button aria-pressed={tab === "receipts"} onClick={() => void openTab("receipts")}>Ricevute</button>}
               {user.role === "owner" && (
                 <>
@@ -541,6 +553,7 @@ export default function AreaSoci() {
                     <strong>Contabilità</strong>
                     <span>Entrate, uscite, cassa e banca</span>
                   </button>
+                  {whatsappAllowed && <button onClick={() => void openTab("whatsapp")}><strong>WhatsApp</strong><span>Conversazioni e risposte dell’associazione</span></button>}
                   {write && <button onClick={() => void openTab("receipts")}><strong>Ricevute</strong><span>Donazioni, raccolte fondi e invio email</span></button>}
                   {user.role === "owner" && (
                     <>
@@ -566,6 +579,7 @@ export default function AreaSoci() {
               </section>
             )}
             {contentVisited && user.role === "owner" && <div hidden={tab !== "contents" && tab !== "stories"}><ContentEditor section={tab === "stories" ? "stories" : "contents"} /></div>}
+            {tab === "whatsapp" && whatsappAllowed && <WhatsAppPanel api={api} owner={user.role === "owner"} />}
             {tab === "receipts" && write && <ReceiptsPanel api={api} />}
             {tab === "requests" && user.role === "owner" && (
               <AccessRequests api={api} onPending={setPending} />
@@ -1338,3 +1352,4 @@ export default function AreaSoci() {
     </main>
   );
 }
+

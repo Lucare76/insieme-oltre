@@ -7,7 +7,7 @@ const base=process.env.WA_UI_URL || "http://127.0.0.1:3101";
 const actor="00000000-0000-0000-0000-000000000001", chat="00000000-0000-0000-0000-000000000002";
 try {
   for(const viewport of [{width:390,height:844},{width:1280,height:900}]) {
-    const page=await browser.newPage({viewport});
+    const page=await browser.newPage({viewport, isMobile: viewport.width < 700, hasTouch: viewport.width < 700});
     const errors=[];page.on("pageerror",e=>errors.push(e.message));
     let assigned=false,version=1,sendCount=0;
     const incoming={id:"00000000-0000-0000-0000-000000000005",conversation_id:chat,direction:"in",body:"Buongiorno! Vorrei conoscere le attività di Insieme Oltre.",type:"text",sent_at:new Date().toISOString(),created_at:new Date().toISOString(),state:"received"};
@@ -38,6 +38,7 @@ try {
     await page.goto(base+"/admin");
     await page.getByRole("button",{name:"WhatsApp",exact:true}).click();
     await page.getByRole("button",{name:/Maria/}).waitFor();
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,"nessun overflow nell’elenco");
     await page.screenshot({path:"../tmp/whatsapp-list-"+viewport.width+".png",fullPage:true});
     await page.getByRole("button",{name:/Maria/}).click();
     await page.getByRole("log").getByText(incoming.body,{exact:true}).waitFor();

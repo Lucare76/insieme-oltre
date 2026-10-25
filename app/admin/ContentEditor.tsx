@@ -190,7 +190,7 @@ function latestTimes(memory: SessionTimes | null): SessionTimes | null {
   return stored.lastActivityAt >= memory.lastActivityAt ? stored : memory;
 }
 
-export default function AdminPage() {
+export default function AdminPage({ section = "contents" }: { section?: "contents" | "stories" }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -604,7 +604,7 @@ export default function AdminPage() {
       <section className="admin-shell">
         <div className="admin-heading">
           <p>Insieme Oltre</p>
-          <h1>Pannello testi</h1>
+          <h1>{section === "stories" ? "Storie delle famiglie" : "Contenuti del sito"}</h1>
           <span>{status}</span>
         </div>
 
@@ -613,7 +613,7 @@ export default function AdminPage() {
 
         <div className="admin-card admin-editor">
           <div className="admin-toolbar">
-            <button disabled={loading} onClick={saveContent}>Salva testi</button>
+            <button disabled={loading} onClick={saveContent}>{loading ? "Salvataggio…" : "Salva tutte le modifiche"}</button>
             <button type="button" className="secondary" onClick={toggleEditor}>
               {jsonMode ? "Editor semplice" : "Editor avanzato JSON"}
             </button>
@@ -630,8 +630,13 @@ export default function AdminPage() {
               />
             </label>
           ) : (
-            <div className="admin-grid">
-              {fields.map((field) => (
+            <div>
+              <p>Il salvataggio comprende le modifiche a entrambe le sezioni. L’editor JSON contiene tutti i contenuti.</p>
+              {Object.entries({ meta: "Visibilità sui motori di ricerca", nav: "Menu", hero: "Apertura della homepage", emotionalOpening: "Da dove nasce", manifesto: "Il nostro manifesto", pillars: "Cosa facciamo", auroraStory: "La storia di Aurora", stories: "Presentazione delle storie in homepage", numbers: "Numeri", promise: "Il nostro impegno", join: "Partecipa", footer: "Piè di pagina" }).filter(([key]) => section === "stories" ? key === "auroraStory" : key !== "auroraStory").map(([key, title]) => (
+                <details className="admin-content-section" key={key}>
+                  <summary>{title}</summary>
+                  <div className="admin-grid">
+              {fields.filter((field) => field.path.startsWith(key + ".")).map((field) => (
                 <label key={field.path}>
                   {field.label}
                   {field.multiline ? (
@@ -647,6 +652,10 @@ export default function AdminPage() {
                   )}
                 </label>
               ))}
+                  </div>
+                </details>
+              ))}
+              <div hidden={section !== "stories"}>
               <ChildrenEditor items={content.children} onChange={(children) => setContent((current) => ({ ...current, children }))} uploadPhoto={async (file) => {
                 const form = new FormData();
                 form.append("photo", file);
@@ -656,8 +665,9 @@ export default function AdminPage() {
                 if (!response.ok || typeof result?.path !== "string") throw new Error(result?.error || "Caricamento non riuscito.");
                 return result.path;
               }} />
+              </div>
               <div className="admin-story-save-footer">
-                <button type="button" disabled={loading} onClick={saveContent}>{loading ? "Salvataggio…" : "Salva modifiche alle storie"}</button>
+                <button type="button" disabled={loading} onClick={saveContent}>{loading ? "Salvataggio…" : "Salva tutte le modifiche"}</button>
                 <span role="status" aria-live="polite">{status}</span>
               </div>
             </div>

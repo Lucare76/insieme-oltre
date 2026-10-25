@@ -241,3 +241,12 @@
 .admin-story-save-footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 22px 0 10px; padding: 18px; background: #f5f0e8; border-radius: 16px; }
 .admin-story-save-footer button { min-height: 46px; }
 .admin-story-save-footer span { color: #425a48; font-size: 13px; }
+
+/* Backoffice: sezioni dei contenuti e salvataggio raggiungibile. */
+.admin-content-section { margin: 16px 0; border: 1px solid #d8d4ca; border-radius: 16px; padding: 18px; }
+.admin-content-section summary { cursor: pointer; font-weight: 700; font-size: 18px; }
+.admin-content-section[open] summary { margin-bottom: 20px; }
+.admin-story-save-footer { position: sticky; bottom: 12px; z-index: 5; box-shadow: 0 4px 20px #24312a20; }
+.admin-editor [hidden] { display: none; }
+
+.admin-toolbar { position: sticky; top: 8px; z-index: 6; padding: 12px; border-radius: 16px; background: #fffdf9; box-shadow: 0 4px 20px #24312a20; }

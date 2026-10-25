@@ -73,6 +73,7 @@ export default function AreaSoci() {
   const [busy, setBusy] = useState(false);
   const [newDate, setNewDate] = useState("");
   const [tab, setTab] = useState("home");
+  const [contentVisited, setContentVisited] = useState(false);
   const [pending, setPending] = useState(0);
   const [editing, setEditing] = useState<Item | null | undefined>(undefined);
   const [year, setYear] = useState("");
@@ -104,6 +105,7 @@ export default function AreaSoci() {
     localStorage.removeItem(SESSION_TIMES_KEY);
     sessionStorage.removeItem("insieme_oltre_association_v1");
     setUser(null);
+    setContentVisited(false);
     setItems([]);
     setDataLoaded(false);
     setMembers([]);
@@ -380,6 +382,7 @@ export default function AreaSoci() {
     );
   }
   async function openTab(value: string) {
+    if (value === "contents" || value === "stories") setContentVisited(true);
     setTab(value);
     await run(async () => {
       if (value === "register") await load();
@@ -502,8 +505,9 @@ export default function AreaSoci() {
                     aria-pressed={tab === "contents"}
                     onClick={() => void openTab("contents")}
                   >
-                    Gestione sito
+                    Contenuti del sito
                   </button>
+                  <button aria-pressed={tab === "stories"} onClick={() => void openTab("stories")}>Storie delle famiglie</button>
                   <button
                     aria-pressed={tab === "members"}
                     onClick={() => void openTab("members")}
@@ -541,9 +545,10 @@ export default function AreaSoci() {
                   {user.role === "owner" && (
                     <>
                       <button onClick={() => void openTab("contents")}>
-                        <strong>Gestione sito</strong>
-                        <span>Testi e storie dei bambini</span>
+                        <strong>Contenuti del sito</strong>
+                        <span>Testi della homepage, divisi per sezione</span>
                       </button>
+                      <button onClick={() => void openTab("stories")}><strong>Storie delle famiglie</strong><span>Racconti, pubblicazione e fotografie</span></button>
                       <button onClick={() => void openTab("requests")}>
                         <strong>
                           Richieste di accesso{" "}
@@ -560,7 +565,7 @@ export default function AreaSoci() {
                 </div>
               </section>
             )}
-            {tab === "contents" && user.role === "owner" && <ContentEditor />}
+            {contentVisited && user.role === "owner" && <div hidden={tab !== "contents" && tab !== "stories"}><ContentEditor section={tab === "stories" ? "stories" : "contents"} /></div>}
             {tab === "receipts" && write && <ReceiptsPanel api={api} />}
             {tab === "requests" && user.role === "owner" && (
               <AccessRequests api={api} onPending={setPending} />

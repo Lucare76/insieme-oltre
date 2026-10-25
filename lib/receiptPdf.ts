@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -9,10 +9,11 @@ export async function receiptPdf(receipt: Receipt, preview = false) {
   pdf.registerFontkit(fontkit);
   const asset = (name: string) =>
     readFile(path.join(process.cwd(), "lib/receipt-assets", name));
-  const [regularBytes, boldBytes, logoBytes] = await Promise.all([
+  const [regularBytes, boldBytes, logoBytes, thanksBytes] = await Promise.all([
     asset("DejaVuSans.ttf"),
     asset("DejaVuSans-Bold.ttf"),
     asset("logo.png"),
+    asset("thank-you.pdf"),
   ]);
   const regular = await pdf.embedFont(regularBytes, { subset: true });
   const bold = await pdf.embedFont(boldBytes, { subset: true });
@@ -69,7 +70,7 @@ export async function receiptPdf(receipt: Receipt, preview = false) {
     }
   };
   const dims = logo.scale(Math.min(135 / logo.width, 80 / logo.height));
-  page.drawImage(logo, { x: 54, y: y - dims.height, ...dims });
+  page.drawImage(logo, { x: (page.getWidth() - dims.width) / 2, y: y - dims.height, ...dims });
   y -= dims.height + 30;
   line(receipt.issuer.name, 16, true);
   line(`Codice fiscale: ${receipt.issuer.tax_code}`);
@@ -90,8 +91,8 @@ export async function receiptPdf(receipt: Receipt, preview = false) {
   y -= 20;
   line("RICEVUTO DA", 10, true);
   line(receipt.data.name, 13, true);
-  line(`Codice fiscale / P. IVA: ${receipt.data.tax_code}`);
-  line(receipt.data.address);
+  if (receipt.data.tax_code) line(`Codice fiscale / P. IVA: ${receipt.data.tax_code}`);
+  if (receipt.data.address) line(receipt.data.address);
   y -= 16;
   line(
     `Importo ricevuto: ${(receipt.amount_cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" })}`,
@@ -114,7 +115,6 @@ export async function receiptPdf(receipt: Receipt, preview = false) {
     "Non attesta automaticamente il diritto a detrazioni o deduzioni fiscali.",
   );
   y -= 18;
-  line(`Per l’associazione: ${receipt.issuer.representative}`);
   line(
     "Documento generato elettronicamente; non contiene una firma digitale.",
     9,
@@ -122,33 +122,15 @@ export async function receiptPdf(receipt: Receipt, preview = false) {
   if (receipt.cancelled)
     line(`Motivo annullamento: ${receipt.cancellation_reason ?? ""}`);
   y -= 24;
-  // Keep the thank-you card together, using the site’s cream/coral palette.
-  const cardHeight = 132;
+  // Embed a vector illustration: the complete thank-you stays sharp in print.
+  const [thanks] = await pdf.embedPdf(thanksBytes);
+  const cardWidth = 487;
+  const cardHeight = cardWidth * thanks.height / thanks.width;
   if (y - cardHeight < 54) {
     page = pdf.addPage([595.28, 841.89]);
     y = 785;
   }
-  // Times is the embedded serif alternative to the site’s Georgia/Times stack.
-  const quoteFont = await pdf.embedFont(StandardFonts.TimesRomanItalic);
-  const thanksFont = await pdf.embedFont(StandardFonts.TimesRomanBold);
-  const coral = rgb(230 / 255, 104 / 255, 94 / 255);
-  const ink = rgb(36 / 255, 49 / 255, 42 / 255);
-  page.drawRectangle({
-    x: 54, y: y - cardHeight, width: 487, height: cardHeight,
-    color: rgb(248 / 255, 243 / 255, 234 / 255),
-  });
-  page.drawRectangle({
-    x: 54, y: y - cardHeight, width: 3, height: cardHeight, color: coral,
-  });
-  const centered = (text: string, baseline: number, size: number, font: typeof regular, color = ink) =>
-    page.drawText(text, {
-      x: 54 + (487 - font.widthOfTextAtSize(text, size)) / 2,
-      y: baseline, size, font, color,
-    });
-  centered("Ci sono passi che diventano più facili", y - 28, 14, quoteFont);
-  centered("quando qualcuno sceglie di camminare al nostro fianco.", y - 48, 14, quoteFont);
-  centered("Grazie per esserci.", y - 82, 20, thanksFont, coral);
-  centered("Le famiglie di Insieme Oltre ODV.", y - 108, 10, regular);
+  page.drawPage(thanks, { x: 54, y: y - cardHeight, width: cardWidth, height: cardHeight });
   pdf.setTitle(
     preview
       ? "Anteprima ricevuta"

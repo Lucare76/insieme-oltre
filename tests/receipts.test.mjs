@@ -350,3 +350,11 @@ test("incasso automatico: importi o date non validi non registrano nulla", async
     );
   }
 });
+
+test("email obbligatoria; codice fiscale e indirizzo del donatore facoltativi", () => {
+  const minimal = receiptData({ ...data, tax_code: "", address: "" }, movement);
+  assert.equal(minimal.tax_code, "");
+  assert.equal(minimal.address, "");
+  for (const email of ["", "   ", "nonvalida"])
+    assert.throws(() => receiptData({ ...data, email }, movement));
+});

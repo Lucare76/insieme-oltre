@@ -101,17 +101,17 @@ export function receiptData(
     throw new Error(
       "Il metodo di pagamento deve corrispondere al conto del movimento.",
     );
-  const email = field("email", 254, false).toLowerCase();
+  const email = field("email", 254).toLowerCase();
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     throw new Error("Indirizzo email non valido.");
-  const tax_code = field("tax_code", 16).toUpperCase();
-  if (!/^(?:[0-9]{11}|[A-Z0-9]{16})$/.test(tax_code))
+  const tax_code = field("tax_code", 16, false).toUpperCase();
+  if (tax_code && !/^(?:[0-9]{11}|[A-Z0-9]{16})$/.test(tax_code))
     throw new Error("Verifica codice fiscale o partita IVA.");
   return {
     type: body.type as ReceiptData["type"],
     name: field("name", 120),
     tax_code,
-    address: field("address", 240),
+    address: field("address", 240, false),
     email,
     description: field("description", 400),
     payment,

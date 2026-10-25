@@ -311,17 +311,18 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
             <input name="name" required maxLength={120} />
           </label>
           <label>
-            Codice fiscale / partita IVA
-            <input name="tax_code" required minLength={11} maxLength={16} />
+            Codice fiscale / partita IVA (facoltativo)
+            <input name="tax_code" minLength={11} maxLength={16} />
           </label>
           <label>
-            Indirizzo completo
-            <input name="address" required maxLength={240} />
+            Indirizzo completo (facoltativo)
+            <input name="address" maxLength={240} />
           </label>
           <label>
-            Email del versante (facoltativa)
+            Email del versante (obbligatoria)
             <input
               name="email"
+              required
               type="email"
               maxLength={254}
               value={email}

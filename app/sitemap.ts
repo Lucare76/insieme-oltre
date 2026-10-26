@@ -14,5 +14,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const legal = legalPages.map((page) => ({ url: `${siteUrl}${page.href}`, changeFrequency: "yearly" as const, priority: 0.2 }));
 
-  return [{ url: siteUrl, changeFrequency: "monthly", priority: 1 }, ...stories, ...legal];
+  return [
+    { url: siteUrl, changeFrequency: "monthly", priority: 1 },
+    { url: `${siteUrl}/associazione`, changeFrequency: "yearly", priority: 0.8 },
+    ...stories,
+    ...legal,
+  ];
 }

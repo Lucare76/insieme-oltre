@@ -1,0 +1,56 @@
+/* Pagina /associazione: stessa base delle pagine informative (header e footer di story.css, titoli come legal.css). */
+.association { max-width: 1080px; margin: 0 auto; padding: 0 32px clamp(90px, 12vw, 150px); }
+.association-intro { max-width: 820px; padding: clamp(80px, 12vw, 150px) 0 clamp(48px, 7vw, 80px); }
+.association-kicker { margin: 0 0 18px; font-size: 12px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; color: #c95249; }
+.association-intro h1 { margin: 0; font: 400 clamp(54px, 8vw, 104px)/1 Georgia, serif; }
+.association-lead { margin: 30px 0 0; font: italic clamp(21px, 2.4vw, 28px)/1.45 Georgia, serif; color: #556158; }
+
+.association-section { padding-top: clamp(56px, 8vw, 96px); }
+.association-section h2 { position: relative; margin: 0 0 24px; padding-top: 22px; font: 400 clamp(30px, 3.6vw, 44px)/1.2 Georgia, serif; }
+.association-section h2::before { content: ""; position: absolute; top: 0; left: 0; width: 36px; height: 2px; border-radius: 2px; background: #e6685e; opacity: .7; }
+.association-section p { margin: 0 0 20px; font-size: clamp(17px, 1.6vw, 19px); line-height: 1.75; }
+.association-section a { color: #c95249; text-decoration: underline; text-underline-offset: 3px; }
+.association-section-intro { max-width: 640px; color: #556158; }
+
+.association-split { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(32px, 6vw, 80px); align-items: start; }
+.association-split h2 { margin-bottom: 20px; }
+
+.association-list { margin: 0; padding: 0; list-style: none; }
+.association-split .association-list { padding-top: clamp(0px, 4vw, 44px); }
+.association-list li { position: relative; padding: 10px 0 10px 26px; border-bottom: 1px solid rgba(36,49,42,.08); font-size: clamp(17px, 1.6vw, 19px); line-height: 1.6; }
+.association-list li::before { content: "♥"; position: absolute; left: 0; top: 13px; font-size: 11px; color: #e6685e; }
+
+/* Le card riprendono quelle di "Cosa facciamo" in homepage, più basse e senza movimento: qui si legge. */
+.association-activities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 12px; }
+.association-activity { padding: 28px 28px 24px; border-radius: 26px; background: #f5efe6; border: 1px solid rgba(36,49,42,.06); }
+.association-activity-number { font-size: 11px; letter-spacing: .15em; color: #e6685e; font-weight: 800; }
+.association-activity h3 { margin: 26px 0 10px; font: 500 clamp(24px, 2.4vw, 30px)/1.15 Georgia, serif; }
+.association-section .association-activity p { margin: 0; font-size: 15px; line-height: 1.6; color: #556158; }
+
+.association-board { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 14px; }
+.association-board li { display: flex; flex-direction: column; gap: 8px; padding: 22px 24px; border: 1px solid rgba(36,49,42,.12); border-radius: 22px; background: #fff; }
+.association-board-name { font: 400 clamp(22px, 2.2vw, 26px)/1.2 Georgia, serif; }
+.association-board-role { font-size: 11px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; color: #70876c; }
+
+.association-closing { grid-template-columns: 1fr 1fr; }
+.association-details { margin: 0; border: 1px solid rgba(36,49,42,.12); border-radius: 18px; overflow: hidden; background: #fff; }
+.association-details div { display: grid; grid-template-columns: 130px 1fr; gap: 16px; padding: 14px 22px; border-top: 1px solid rgba(36,49,42,.08); font-size: 15px; line-height: 1.6; }
+.association-details div:first-child { border-top: 0; }
+.association-details dt { font-size: 11px; font-weight: 750; letter-spacing: .08em; line-height: 2.2; text-transform: uppercase; color: #556158; }
+.association-details dd { margin: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 980px) {
+  .association-activities { grid-template-columns: repeat(2, 1fr); }
+  .association-split, .association-closing { grid-template-columns: 1fr; gap: 8px; }
+  .association-split .association-list { padding-top: 0; }
+  .association-closing { gap: 24px; }
+}
+
+@media (max-width: 620px) {
+  .association { padding-left: 22px; padding-right: 22px; }
+  /* "L’associazione" è una parola lunga sola: a 360px il corpo minimo di legal.css sforerebbe. */
+  .association-intro h1 { font-size: clamp(40px, 12.8vw, 54px); }
+  .association-activities { grid-template-columns: 1fr; }
+  .association-activity { padding: 24px 22px 22px; }
+  .association-details div { grid-template-columns: 1fr; gap: 2px; padding: 12px 18px; }
+}

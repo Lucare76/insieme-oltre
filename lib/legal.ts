@@ -8,8 +8,8 @@ export type LegalPage = {
 export const privacyPolicy: LegalPage = {
   href: "/privacy-policy",
   label: "Privacy Policy",
-  // Da attivare solo quando la pagina esiste con i dati reali dell'associazione (titolare, sede, C.F., contatti).
-  published: false,
+  // Titolare, sede, C.F. e contatti dall'atto costitutivo (lib/association.ts).
+  published: true,
 };
 
 export const cookiePolicy: LegalPage = {

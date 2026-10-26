@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalLinks } from "../components/LegalLinks";
+import { FooterLinks } from "../components/FooterLinks";
+import { InstitutionalLine } from "../components/InstitutionalLine";
 import { privacyPolicy } from "../../lib/legal";
 import { socialMetadata } from "../../lib/seo";
 import "../storie/aurora/story.css";
@@ -118,7 +119,7 @@ export default function CookiePolicyPage() {
           <h2>Cookie e strumenti utilizzati</h2>
           <p>
             Sul sito pubblico: <strong>nessun cookie</strong> e nessun dato salvato nel localStorage o nel sessionStorage del
-            browser. L’unico strumento di memorizzazione presente riguarda l’area amministrativa:
+            browser. Gli unici strumenti di memorizzazione presenti riguardano l’area amministrativa:
           </p>
           <div className="legal-table-wrap">
             <table className="legal-table">
@@ -133,11 +134,18 @@ export default function CookiePolicyPage() {
               </thead>
               <tbody>
                 <tr>
-                  <th scope="row" data-label="Nome"><code>insieme_oltre_admin_token</code></th>
-                  <td data-label="Fornitore">Insieme Oltre (il token di accesso è emesso dal servizio di autenticazione Supabase)</td>
+                  <th scope="row" data-label="Nome"><code>insieme_oltre_admin_session</code></th>
+                  <td data-label="Fornitore">Insieme Oltre (i token di accesso sono emessi dal servizio di autenticazione Supabase)</td>
                   <td data-label="Finalità">Mantenere autenticato l’amministratore nell’area riservata</td>
                   <td data-label="Categoria">Tecnico, strettamente necessario. Non è un cookie: è un dato nel localStorage del browser, usato solo nell’area amministrativa</td>
-                  <td data-label="Durata">Fino all’uscita dall’area riservata (“Esci”) o alla cancellazione dei dati del browser. Il token smette di essere valido alla scadenza fissata da Supabase Auth</td>
+                  <td data-label="Durata">Fino all’uscita dall’area riservata (“Esci”). La sessione scade dopo 60 minuti di inattività o al massimo 8 ore dall’accesso; un dato scaduto viene cancellato al successivo accesso all’area riservata</td>
+                </tr>
+                <tr>
+                  <th scope="row" data-label="Nome"><code>insieme_oltre_admin_session_times</code></th>
+                  <td data-label="Fornitore">Insieme Oltre</td>
+                  <td data-label="Finalità">Ricordare l’orario di accesso e dell’ultima attività, per chiudere la sessione dopo l’inattività</td>
+                  <td data-label="Categoria">Tecnico, strettamente necessario. Contiene solo due orari, nessun dato personale. È un dato nel localStorage, usato solo nell’area amministrativa</td>
+                  <td data-label="Durata">Come la sessione</td>
                 </tr>
               </tbody>
             </table>
@@ -185,7 +193,7 @@ export default function CookiePolicyPage() {
           <p>La versione aggiornata sarà sempre disponibile su questa pagina.</p>
           <p className="legal-updated">Ultimo aggiornamento: ottobre 2026</p>
           <p>
-            Per maggiori informazioni sul trattamento dei dati personali sarà disponibile anche la{" "}
+            Per maggiori informazioni sul trattamento dei dati personali {privacyPolicy.published ? "è" : "sarà"} disponibile anche la{" "}
             {privacyPolicy.published
               ? <Link href={privacyPolicy.href}><strong>Privacy Policy di Insieme Oltre</strong></Link>
               : <strong>Privacy Policy di Insieme Oltre</strong>}
@@ -198,7 +206,8 @@ export default function CookiePolicyPage() {
         <Link href="/">Insieme Oltre</Link>
         <div className="aurora-page-footer-end">
           <span>L’amore non si misura in cromosomi.</span>
-          <LegalLinks className="aurora-page-legal" />
+          <FooterLinks className="aurora-page-legal" />
+          <InstitutionalLine className="aurora-page-institutional" />
         </div>
       </footer>
     </main>

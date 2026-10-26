@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { Metadata } from "next";
-import { association } from "./association";
 import { PHOTO_PATTERN } from "./children";
 import { siteUrl } from "./siteUrl";
 
@@ -62,23 +61,11 @@ export function storySocialImage(photos: string[], name: string): SocialImage | 
   return photo ? { url: photo, alt: name } : undefined;
 }
 
-/** Solo dati certi, presi dall'atto costitutivo: niente telefono o social finché non sono definitivi. */
+/** Solo dati certi: niente indirizzo, telefono, social o dati legali finché non sono definitivi. */
 export const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: SITE_NAME,
-  legalName: association.name,
-  taxID: association.taxCode,
-  foundingDate: association.foundedOnIso,
-  email: association.email,
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: association.address.street,
-    postalCode: association.address.postalCode,
-    addressLocality: association.address.city,
-    addressRegion: association.address.province,
-    addressCountry: "IT",
-  },
   url: siteUrl,
   logo: `${siteUrl}/insieme-oltre-logo.png`,
   description: homeDescription,

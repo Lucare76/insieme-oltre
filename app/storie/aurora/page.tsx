@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import Image from "next/image";
 import Link from "next/link";
-import { FooterLinks } from "../../components/FooterLinks";
+import { LegalLinks } from "../../components/LegalLinks";
 import { InstitutionalLine } from "../../components/InstitutionalLine";
 import { getHomeContent } from "../../../lib/siteContent";
 import { socialMetadata, storySocialImage } from "../../../lib/seo";
@@ -77,7 +77,7 @@ export default async function AuroraStoryPage() {
         <Link href="/">Insieme Oltre</Link>
         <div className="aurora-page-footer-end">
           <span>L’amore non si misura in cromosomi.</span>
-          <FooterLinks className="aurora-page-legal" />
+          <LegalLinks className="aurora-page-legal" />
           <InstitutionalLine className="aurora-page-institutional" />
         </div>
       </footer>

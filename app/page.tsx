@@ -1,5 +1,5 @@
 import AuthHashRedirect from "./AuthHashRedirect";
-import { FooterLinks } from "./components/FooterLinks";
+import { LegalLinks } from "./components/LegalLinks";
 import { InstitutionalLine } from "./components/InstitutionalLine";
 import { REVEAL_BOOT_SCRIPT, ScrollReveal } from "./components/ScrollReveal";
 import { StoryCard, storyRowStyle } from "./components/StoryCard";
@@ -12,7 +12,6 @@ import type { Metadata } from "next";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import Image from "next/image";
-import Link from "next/link";
 import type { CSSProperties } from "react";
 import "./home-motion.css";
 
@@ -67,7 +66,6 @@ export default async function Home() {
           <a href="#cosa-facciamo">Cosa facciamo</a>
           <a href="#storie">Storie</a>
           <a href="#futuro">Il futuro</a>
-          <Link href="/associazione">L’associazione</Link>
         </nav>
         <a className="header-cta" href="#unisciti">{content.nav.cta}</a>
       </header>
@@ -236,7 +234,7 @@ export default async function Home() {
         <div className="footer-brand">
           <span>Insieme <em>Oltre</em></span>
           <small>{content.footer.slogan}</small>
-          <FooterLinks className="footer-legal" />
+          <LegalLinks className="footer-legal" />
         </div>
         <p>{content.footer.note}</p>
         <a href="#top">{content.footer.backTop}</a>

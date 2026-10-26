@@ -25,8 +25,7 @@
 .aurora-page-legal a { text-decoration: underline; text-decoration-color: rgba(36,49,42,.2); text-underline-offset: 3px; }
 .aurora-page-legal a:hover, .aurora-page-legal a:focus-visible { color: #c95249; text-decoration-color: currentColor; }
 /* `footer .x`: globals.css nasconde `footer p` sotto i 980px. */
-footer .aurora-page-institutional { display: block; margin: 6px 0 0; font-size: 11px; line-height: 1.8; }
-.aurora-page-institutional a:hover, .aurora-page-institutional a:focus-visible { color: #c95249; }
+footer .aurora-page-institutional { display: block; margin: 0; font-size: 11px; line-height: 1.8; }
 @media (max-width: 620px) {
   .aurora-page-header, .aurora-page-footer { padding: 22px; }
   .aurora-page-footer { flex-direction: column; align-items: flex-start; }

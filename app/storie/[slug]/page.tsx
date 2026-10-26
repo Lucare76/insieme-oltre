@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import Image from "next/image";
 import Link from "next/link";
-import { FooterLinks } from "../../components/FooterLinks";
+import { LegalLinks } from "../../components/LegalLinks";
 import { InstitutionalLine } from "../../components/InstitutionalLine";
 import { notFound } from "next/navigation";
 import { PHOTO_PATTERN, hasDedicatedPage, isPublished, storyParagraphs } from "../../../lib/children";
@@ -94,7 +94,7 @@ export default async function ChildStoryPage({ params }: Props) {
         <Link href="/">Insieme Oltre</Link>
         <div className="aurora-page-footer-end">
           <span>L’amore non si misura in cromosomi.</span>
-          <FooterLinks className="aurora-page-legal" />
+          <LegalLinks className="aurora-page-legal" />
           <InstitutionalLine className="aurora-page-institutional" />
         </div>
       </footer>

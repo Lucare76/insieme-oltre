@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LegalLinks } from "../../components/LegalLinks";
+import { InstitutionalLine } from "../../components/InstitutionalLine";
 import "../aurora/story.css";
 
 type StoryPageLayoutProps = {
@@ -85,8 +86,11 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
         <div className="aurora-page-footer-end">
           <span>L’amore non si misura in cromosomi.</span>
           <LegalLinks className="aurora-page-legal" />
+          <InstitutionalLine className="aurora-page-institutional" />
         </div>
       </footer>
     </main>
   );
 }
+
+

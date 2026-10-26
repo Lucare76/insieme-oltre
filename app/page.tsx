@@ -4,6 +4,7 @@ import { contactNotice } from "../lib/legal";
 import { contactMailConfig } from "../lib/contactMail";
 import "./contact-form.css";
 import { LegalLinks } from "./components/LegalLinks";
+import { InstitutionalLine } from "./components/InstitutionalLine";
 import { REVEAL_BOOT_SCRIPT, ScrollReveal } from "./components/ScrollReveal";
 import { StoryCard, storyRowStyle } from "./components/StoryCard";
 import { LazyMusicExperience } from "./components/LazyMusicExperience";
@@ -251,6 +252,7 @@ export default async function Home() {
           <span>Insieme <em>Oltre</em></span>
           <small>{content.footer.slogan}</small>
           <LegalLinks className="footer-legal" />
+          <InstitutionalLine className="footer-institutional" />
           <a href="/admin">Area soci</a>
         </div>
         <p>{content.footer.note}</p>
@@ -259,4 +261,6 @@ export default async function Home() {
     </main>
   );
 }
+
+
 

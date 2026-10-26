@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalLinks } from "../components/LegalLinks";
+import { InstitutionalLine } from "../components/InstitutionalLine";
 import { privacyPolicy } from "../../lib/legal";
 import { socialMetadata } from "../../lib/seo";
 import "../storie/aurora/story.css";
@@ -199,6 +200,7 @@ export default function CookiePolicyPage() {
         <div className="aurora-page-footer-end">
           <span>L’amore non si misura in cromosomi.</span>
           <LegalLinks className="aurora-page-legal" />
+          <InstitutionalLine className="aurora-page-institutional" />
         </div>
       </footer>
     </main>

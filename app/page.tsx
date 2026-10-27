@@ -15,12 +15,16 @@ import { homeSocialDescription, homeSocialTitle, organizationJsonLd, socialMetad
 import type { Metadata } from "next";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import type { CSSProperties } from "react";
 import "./home-motion.css";
 
 const logoTopSrc = "/insieme-oltre-logo-top.png";
 const logoFullSrc = "/insieme-oltre-logo.png";
+const heroLogoSizes = "(max-width: 620px) 88vw, (max-width: 980px) 84vw, 42vw";
+const { props: heroLogoProps } = getImageProps({
+  src: logoTopSrc, alt: "", width: 1448, height: 1086, sizes: heroLogoSizes,
+});
 
 /** Al massimo una foto per bambino e solo quante ne servono alla canzone: le foto restano facoltative. */
 function musicPhotos(children: ChildStory[]) {
@@ -52,6 +56,9 @@ export default async function Home() {
 
   return (
     <main>
+      {/* On mobile the LCP is the title; reserve logo preload priority for the desktop hero. */}
+      <link rel="preload" as="image" media="(min-width: 761px)"
+        imageSrcSet={heroLogoProps.srcSet} imageSizes={heroLogoProps.sizes} fetchPriority="high" />
       {/* Prima di disegnare la pagina: attiva le animazioni d'ingresso solo se possono partire davvero. */}
       <script dangerouslySetInnerHTML={{ __html: REVEAL_BOOT_SCRIPT }} />
       <script
@@ -99,9 +106,7 @@ export default async function Home() {
               alt=""
               width="1448"
               height="1086"
-              priority
-              fetchPriority="high"
-              sizes="(max-width: 620px) 88vw, (max-width: 980px) 84vw, 42vw"
+              sizes={heroLogoSizes}
             />
           </div>
           <div className="hero-whisper">

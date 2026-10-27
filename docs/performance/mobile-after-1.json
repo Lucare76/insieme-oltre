@@ -1,0 +1,268 @@
+{
+  "lighthouseVersion": "13.5.0",
+  "fetchTime": "2026-10-27T12:17:11.905Z",
+  "requestedUrl": "http://127.0.0.1:3033/",
+  "finalDisplayedUrl": "http://127.0.0.1:3033/",
+  "environment": {
+    "networkUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Mobile Safari/537.36",
+    "hostUserAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.0 Safari/537.36",
+    "benchmarkIndex": 2380,
+    "credits": {}
+  },
+  "configSettings": {
+    "output": [
+      "json"
+    ],
+    "maxWaitForFcp": 30000,
+    "maxWaitForLoad": 45000,
+    "pauseAfterFcpMs": 1000,
+    "pauseAfterLoadMs": 1000,
+    "networkQuietThresholdMs": 1000,
+    "cpuQuietThresholdMs": 1000,
+    "formFactor": "mobile",
+    "throttling": {
+      "rttMs": 150,
+      "throughputKbps": 1638.4,
+      "requestLatencyMs": 562.5,
+      "downloadThroughputKbps": 1474.5600000000002,
+      "uploadThroughputKbps": 675,
+      "cpuSlowdownMultiplier": 4
+    },
+    "throttlingMethod": "simulate",
+    "screenEmulation": {
+      "mobile": true,
+      "width": 412,
+      "height": 823,
+      "deviceScaleFactor": 1.75,
+      "disabled": false
+    },
+    "emulatedUserAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Mobile Safari/537.36",
+    "auditMode": false,
+    "gatherMode": false,
+    "clearStorageTypes": [
+      "file_systems",
+      "shader_cache",
+      "service_workers",
+      "cache_storage"
+    ],
+    "disableStorageReset": false,
+    "debugNavigation": false,
+    "channel": "cli",
+    "usePassiveGathering": false,
+    "disableFullPageScreenshot": false,
+    "skipAboutBlank": false,
+    "blankPage": "about:blank",
+    "ignoreStatusCode": false,
+    "locale": "en-US",
+    "blockedUrlPatterns": null,
+    "additionalTraceCategories": null,
+    "extraHeaders": null,
+    "precomputedLanternData": null,
+    "onlyAudits": null,
+    "onlyCategories": [
+      "performance"
+    ],
+    "skipAudits": null
+  },
+  "categories": {
+    "performance": {
+      "score": 0.97
+    }
+  },
+  "audits": {
+    "first-contentful-paint": {
+      "id": "first-contentful-paint",
+      "score": 1,
+      "numericValue": 914.0630000000001,
+      "displayValue": "0.9\u00a0s"
+    },
+    "largest-contentful-paint": {
+      "id": "largest-contentful-paint",
+      "score": 0.93,
+      "numericValue": 2304.063,
+      "displayValue": "2.3\u00a0s"
+    },
+    "total-blocking-time": {
+      "id": "total-blocking-time",
+      "score": 0.95,
+      "numericValue": 140,
+      "displayValue": "140\u00a0ms"
+    },
+    "cumulative-layout-shift": {
+      "id": "cumulative-layout-shift",
+      "score": 1,
+      "numericValue": 0,
+      "displayValue": "0"
+    },
+    "unused-javascript": {
+      "id": "unused-javascript",
+      "title": "Reduce unused JavaScript",
+      "description": "Reduce unused JavaScript and defer loading scripts until they are required to decrease bytes consumed by network activity. [Learn how to reduce unused JavaScript](https://developer.chrome.com/docs/lighthouse/performance/unused-javascript/).",
+      "score": 0,
+      "scoreDisplayMode": "metricSavings",
+      "numericValue": 300,
+      "numericUnit": "millisecond",
+      "displayValue": "Est savings of 54\u00a0KiB",
+      "metricSavings": {
+        "FCP": 0,
+        "LCP": 300
+      },
+      "details": {
+        "type": "opportunity",
+        "headings": [
+          {
+            "key": "url",
+            "valueType": "url",
+            "subItemsHeading": {
+              "key": "source",
+              "valueType": "code"
+            },
+            "label": "URL"
+          },
+          {
+            "key": "totalBytes",
+            "valueType": "bytes",
+            "subItemsHeading": {
+              "key": "sourceBytes"
+            },
+            "label": "Transfer Size"
+          },
+          {
+            "key": "wastedBytes",
+            "valueType": "bytes",
+            "subItemsHeading": {
+              "key": "sourceWastedBytes"
+            },
+            "label": "Est Savings"
+          }
+        ],
+        "items": [
+          {
+            "url": "http://127.0.0.1:3033/_next/static/chunks/0gn5ktngxcbgf.js",
+            "totalBytes": 71636,
+            "wastedBytes": 29666,
+            "wastedPercent": 41.41148513467469
+          },
+          {
+            "url": "http://127.0.0.1:3033/_next/static/chunks/21wn4t8g-luw_.js",
+            "totalBytes": 43818,
+            "wastedBytes": 25356,
+            "wastedPercent": 57.86721449248296
+          }
+        ],
+        "overallSavingsMs": 300,
+        "overallSavingsBytes": 55022,
+        "sortedBy": [
+          "wastedBytes"
+        ],
+        "debugData": {
+          "type": "debugdata",
+          "metricSavings": {
+            "FCP": 0,
+            "LCP": 300
+          }
+        }
+      },
+      "guidanceLevel": 1
+    },
+    "lcp-breakdown-insight": {
+      "id": "lcp-breakdown-insight",
+      "title": "LCP breakdown",
+      "description": "Each [subpart has specific improvement strategies](https://developer.chrome.com/docs/performance/insights/lcp-breakdown). Ideally, most of the LCP time should be spent on loading the resources, not within delays.",
+      "score": 1,
+      "scoreDisplayMode": "informative",
+      "metricSavings": {
+        "LCP": 0
+      },
+      "details": {
+        "type": "list",
+        "items": [
+          {
+            "type": "table",
+            "headings": [
+              {
+                "key": "label",
+                "valueType": "text",
+                "label": "Subpart"
+              },
+              {
+                "key": "duration",
+                "valueType": "ms",
+                "label": "Duration"
+              }
+            ],
+            "items": [
+              {
+                "subpart": "timeToFirstByte",
+                "label": "Time to first byte",
+                "duration": 19.066
+              },
+              {
+                "subpart": "elementRenderDelay",
+                "label": "Element render delay",
+                "duration": 179.404
+              }
+            ]
+          },
+          {
+            "type": "node",
+            "lhId": "page-0-SPAN",
+            "path": "1,HTML,1,BODY,1,MAIN,4,SECTION,1,DIV,1,H1,1,SPAN",
+            "selector": "section#top > div.hero-copy > h1 > span",
+            "boundingRect": {
+              "top": 320,
+              "bottom": 449,
+              "left": 20,
+              "right": 392,
+              "width": 372,
+              "height": 129
+            },
+            "snippet": "<span>",
+            "nodeLabel": "in cromosomi."
+          }
+        ]
+      },
+      "guidanceLevel": 3
+    },
+    "lcp-discovery-insight": {
+      "id": "lcp-discovery-insight",
+      "score": null
+    },
+    "network-requests": {
+      "scripts": [
+        {
+          "url": "http://127.0.0.1:3033/_next/static/chunks/3s6nzrbk-8mnv.js",
+          "transferSize": 2425
+        },
+        {
+          "url": "http://127.0.0.1:3033/_next/static/chunks/3450qyhportkm.js",
+          "transferSize": 9427
+        },
+        {
+          "url": "http://127.0.0.1:3033/_next/static/chunks/0gn5ktngxcbgf.js",
+          "transferSize": 72016
+        },
+        {
+          "url": "http://127.0.0.1:3033/_next/static/chunks/21wn4t8g-luw_.js",
+          "transferSize": 44198
+        },
+        {
+          "url": "http://127.0.0.1:3033/_next/static/chunks/turbopack-2oqi9gz948x76.js",
+          "transferSize": 4699
+        },
+        {
+          "url": "http://127.0.0.1:3033/_next/static/chunks/3fntmmi971322.js",
+          "transferSize": 4057
+        },
+        {
+          "url": "http://127.0.0.1:3033/_next/static/chunks/0kezf2n1xy5ns.js",
+          "transferSize": 764
+        },
+        {
+          "url": "http://127.0.0.1:3033/_next/static/chunks/3yuqww65o8olr.js",
+          "transferSize": 9824
+        }
+      ]
+    }
+  }
+}

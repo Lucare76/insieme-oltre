@@ -9,6 +9,7 @@
 .legal-section h2 { position: relative; margin: 0 0 24px; padding-top: 22px; font: 400 clamp(28px, 3.4vw, 40px)/1.2 Georgia, serif; }
 .legal-section h2::before { content: ""; position: absolute; top: 0; left: 0; width: 36px; height: 2px; border-radius: 2px; background: #e6685e; opacity: .7; }
 .legal-section p { margin: 0 0 20px; font-size: clamp(17px, 1.6vw, 19px); line-height: 1.75; }
+.legal-section h3 { margin: 32px 0 14px; font: 600 clamp(19px, 1.8vw, 22px)/1.35 Georgia, serif; }
 .legal-section strong { font-weight: 700; }
 .legal-section a { color: #c95249; text-decoration: underline; text-underline-offset: 3px; }
 

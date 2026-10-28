@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: homeTitle,
   description: homeDescription,
   metadataBase: new URL(siteUrl),
+  // La preview serve alla revisione: non deve competere con il dominio pubblico.
+  ...(process.env.VERCEL_ENV === "preview" ? { robots: { index: false, follow: false } } : {}),
   ...socialMetadata({ title: homeSocialTitle, description: homeSocialDescription }),
 };
 

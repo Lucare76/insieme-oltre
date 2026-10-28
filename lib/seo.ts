@@ -11,10 +11,10 @@ export const SITE_NAME = "Insieme Oltre";
 export const SLOGAN = "L’amore non si misura in cromosomi.";
 
 /** Title per i motori di ricerca: descrittivo. Lo slogan resta nell'anteprima social. */
-export const homeTitle = "Insieme Oltre | Associazione famiglie e inclusione a Ischia";
+export const homeTitle = "Sindrome di Down e inclusione a Ischia | Insieme Oltre";
 export const homeSocialTitle = "Insieme Oltre | L’amore non si misura in cromosomi";
 export const homeDescription =
-  "Insieme Oltre nasce a Ischia per le persone con trisomia 21 e altre disabilità intellettive o relazionali, per le loro famiglie e per l’inclusione nella comunità.";
+  "A Ischia, Insieme Oltre riunisce famiglie e persone con sindrome di Down (trisomia 21) e altre disabilità intellettive o relazionali, per costruire inclusione.";
 export const homeSocialDescription =
   "A Ischia, storie, ascolto e nuove possibilità per persone con trisomia 21 e le loro famiglie.";
 

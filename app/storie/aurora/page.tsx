@@ -7,7 +7,7 @@ import { getHomeContent } from "../../../lib/siteContent";
 import { socialMetadata, storySocialImage } from "../../../lib/seo";
 
 export const metadata: Metadata = {
-  title: "Aurora | Insieme Oltre",
+  title: "Aurora: la sua storia raccontata da mamma e papà | Insieme Oltre",
   description: "Aurora è Aurora. La sua storia raccontata da mamma e papà.",
   alternates: { canonical: "/storie/aurora" },
   ...socialMetadata({

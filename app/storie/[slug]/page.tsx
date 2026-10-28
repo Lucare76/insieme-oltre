@@ -5,6 +5,7 @@ import { StoryPageLayout } from "../components/StoryPageLayout";
 import { notFound } from "next/navigation";
 import { PHOTO_PATTERN, hasDedicatedPage, isPublished, storyParagraphs } from "../../../lib/children";
 import { getHomeContent } from "../../../lib/siteContent";
+import { storySeoCopy } from "../../../lib/storySeo";
 import { socialMetadata, storySocialImage } from "../../../lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -21,9 +22,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!child) return {};
 
   const path = `/storie/${child.slug}`;
-  const description = child.storyTitle || child.cardSubtitle;
+  const { title, description } = storySeoCopy(child);
   return {
-    title: `${child.name} | Insieme Oltre`,
+    title,
     description,
     alternates: { canonical: path },
     ...socialMetadata({

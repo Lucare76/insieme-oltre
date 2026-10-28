@@ -85,6 +85,7 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
         <Link href="/">Insieme Oltre</Link>
         <div className="aurora-page-footer-end">
           <span>L’amore non si misura in cromosomi.</span>
+          <Link href="/chi-siamo">Conosci l’associazione Insieme Oltre a Ischia</Link>
           <LegalLinks className="aurora-page-legal" />
           <InstitutionalLine className="aurora-page-institutional" />
         </div>

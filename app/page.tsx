@@ -18,6 +18,7 @@ import { join } from "node:path";
 import Image, { getImageProps } from "next/image";
 import type { CSSProperties } from "react";
 import "./home-motion.css";
+import "./association-links.css";
 
 const logoTopSrc = "/insieme-oltre-logo-top.png";
 const logoFullSrc = "/insieme-oltre-logo.png";
@@ -72,7 +73,7 @@ export default async function Home() {
           <span>Insieme <em>Oltre</em></span>
         </a>
         <nav aria-label="Navigazione principale">
-          <a href="#manifesto">Chi siamo</a>
+          <a href="/chi-siamo">Chi siamo</a>
           <a href="#cosa-facciamo">Cosa facciamo</a>
           <a href="#storie">Storie</a>
           <a href="#futuro">Il futuro</a>
@@ -133,12 +134,14 @@ export default async function Home() {
 
       <section className="manifesto section" id="manifesto">
         <div className="section-kicker" data-reveal="fade-up">{content.manifesto.kicker}</div>
+        <p className="association-context">Insieme Oltre è un’associazione di famiglie a Ischia, accanto alle persone con sindrome di Down (trisomia 21) e altre disabilità intellettive o relazionali.</p>
         <div className="manifesto-grid">
           <h2 data-reveal="fade-left" style={delay(100)}>{content.manifesto.titleLine1}<br/><em>{content.manifesto.titleLine2}</em></h2>
           <div className="manifesto-text" data-reveal-stagger>
             {content.manifesto.paragraphs.map((paragraph) => (
               <p key={paragraph} data-reveal="fade-right" style={delay(220)}>{paragraph}</p>
             ))}
+            <p><a className="association-text-link" href="/chi-siamo">Conosci l’associazione e il nostro progetto a Ischia <span aria-hidden="true">→</span></a></p>
             <HeartLine />
           </div>
         </div>
@@ -258,6 +261,7 @@ export default async function Home() {
           <small>{content.footer.slogan}</small>
           <LegalLinks className="footer-legal" />
           <InstitutionalLine className="footer-institutional" />
+          <a className="footer-legal" href="/chi-siamo">Chi siamo</a>
           <a href="/admin">Area soci</a>
         </div>
         <p>{content.footer.note}</p>

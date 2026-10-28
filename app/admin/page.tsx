@@ -22,6 +22,11 @@ const ContentEditor = dynamic(() => import("./ContentEditor"));
 const ReceiptsPanel = dynamic(() => import("./ReceiptsPanel"));
 const WhatsAppPanel = dynamic(() => import("./WhatsAppPanel"));
 import { AccountingDashboard } from "./AccountingDashboard";
+import { MovementLedger } from "./MovementLedger";
+import {
+  defaultMovementFilters,
+  filterMovements,
+} from "../../lib/movementFilters";
 import { AccessForms, AccessRequests } from "./accessComponents";
 type User = { id: string; name: string; role: AssociationRole };
 type Session = {
@@ -78,16 +83,10 @@ export default function AreaSoci() {
   const [whatsappAllowed, setWhatsappAllowed] = useState(false);
   const [pending, setPending] = useState(0);
   const [editing, setEditing] = useState<Item | null | undefined>(undefined);
-  const [year, setYear] = useState("");
+  const [filters, setFilters] = useState(defaultMovementFilters);
   const [reportYear, setReportYear] = useState(() => today().slice(0, 4));
-  const [accountFilter, setAccountFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [kindFilter, setKindFilter] = useState("");
   const [movementKind, setMovementKind] = useState("income");
   const [movementAccount, setMovementAccount] = useState("bank");
-  const [search, setSearch] = useState("");
-  const [project, setProject] = useState("");
-  const [showCancelled, setShowCancelled] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [audit, setAudit] = useState<Audit[]>([]);
   const [memberEdit, setMemberEdit] = useState<Member | null>(null);
@@ -359,21 +358,7 @@ export default function AreaSoci() {
     });
   }
   const write = user?.role !== "member";
-  const filtered = items.filter(
-    (x) =>
-      (!year || x.date.startsWith(year)) &&
-      (!project || x.project === project) &&
-      (!accountFilter ||
-        x.account === accountFilter ||
-        x.kind === "transfer") &&
-      (!categoryFilter || x.category === categoryFilter) &&
-      (!kindFilter || x.kind === kindFilter) &&
-      (showCancelled || !x.cancelled) &&
-      `${x.description} ${x.category} ${x.project}`
-        .toLowerCase()
-        .includes(search.toLowerCase()),
-  );
-  const period = balances(filtered);
+  const filtered = filterMovements(items, filters);
   const projects = [
     ...new Set(items.map((x) => x.project).filter(Boolean)),
   ].sort();
@@ -402,6 +387,67 @@ export default function AreaSoci() {
       if (value === "audit")
         setAudit((await (await api("audit")).json()).items);
     });
+  }
+  function exportCsv() {
+    download(
+      new Blob(
+        [
+          "﻿" +
+            [
+              [
+                "Data",
+                "Tipo",
+                "Importo EUR",
+                "Conto",
+                "Categoria",
+                "Iniziativa",
+                "Causale",
+                "Stato",
+              ],
+              ...filtered.map((x) => [
+                dateLabel(x.date),
+                kindLabels[x.kind],
+                (x.amount_cents / 100).toFixed(2).replace(".", ","),
+                x.kind === "transfer"
+                  ? x.account === "bank"
+                    ? "Banca → Cassa"
+                    : "Cassa → Banca"
+                  : x.account === "bank"
+                    ? "Banca"
+                    : "Cassa",
+                x.category,
+                x.project,
+                x.description,
+                x.cancelled ? "Annullato" : "Attivo",
+              ]),
+            ]
+              .map((row) => row.map(csvCell).join(";"))
+              .join("\r\n"),
+        ],
+        { type: "text/csv;charset=utf-8" },
+      ),
+      "insieme-oltre-movimenti.csv",
+    );
+  }
+  function editMovement(item: Item) {
+    setMovementKind(item.kind);
+    setMovementAccount(item.account);
+    setEditing(item);
+    setDocumentItem(null);
+  }
+  function cancelMovement(item: Item) {
+    const reason = window.prompt(
+      "Motivo dell’annullamento (10–500 caratteri):",
+    );
+    if (reason)
+      void run(async () => {
+        await post("movements", {
+          id: item.id,
+          version: item.version,
+          cancel_reason: reason,
+        });
+        await load();
+      });
   }
   async function openDocuments(item: Item) {
     setDocumentItem(item);
@@ -798,268 +844,21 @@ export default function AreaSoci() {
                     </div>
                   </form>
                 )}
-                <section className="soci-card">
-                  <div className="soci-filters">
-                    <label>
-                      Anno
-                      <select
-                        value={year}
-                        onChange={(e) => setYear(e.target.value)}
-                      >
-                        <option value="">Tutti gli anni</option>
-                        {years.map((x) => (
-                          <option key={x}>{x}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Iniziativa
-                      <select
-                        value={project}
-                        onChange={(e) => setProject(e.target.value)}
-                      >
-                        <option value="">Tutte le iniziative</option>
-                        {projects.map((x) => (
-                          <option key={x}>{x}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Conto
-                      <select
-                        value={accountFilter}
-                        onChange={(e) => setAccountFilter(e.target.value)}
-                      >
-                        <option value="">Cassa e banca</option>
-                        <option value="cash">Cassa contanti</option>
-                        <option value="bank">Conto bancario</option>
-                      </select>
-                    </label>
-                    <label>
-                      Tipo
-                      <select
-                        value={kindFilter}
-                        onChange={(e) => setKindFilter(e.target.value)}
-                      >
-                        <option value="">Tutti i tipi</option>
-                        {Object.entries(kindLabels).map(([v, l]) => (
-                          <option key={v} value={v}>
-                            {l}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Categoria
-                      <select
-                        value={categoryFilter}
-                        onChange={(e) => setCategoryFilter(e.target.value)}
-                      >
-                        <option value="">Tutte le categorie</option>
-                        {[...new Set(items.map((x) => x.category))]
-                          .sort()
-                          .map((c) => (
-                            <option key={c}>{c}</option>
-                          ))}
-                      </select>
-                    </label>
-                    <label>
-                      Cerca
-                      <input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Causale o categoria"
-                      />
-                    </label>
-                    <label className="soci-check">
-                      <input
-                        type="checkbox"
-                        checked={showCancelled}
-                        onChange={(e) => setShowCancelled(e.target.checked)}
-                      />
-                      Mostra annullati
-                    </label>
-                  </div>
-                  <p>
-                    <strong>Entrate filtrate: {money(period.income)}</strong> ·
-                    Uscite: {money(period.expense)} · Differenza:{" "}
-                    {money(period.income - period.expense)}
-                  </p>
-                  <p className="accounting-muted">
-                    I filtri riguardano il registro e il CSV; il cruscotto
-                    mantiene i saldi complessivi. I trasferimenti compaiono in
-                    entrambi i conti.
-                  </p>
-                  <button
-                    onClick={() => {
-                      setYear("");
-                      setProject("");
-                      setSearch("");
-                      setAccountFilter("");
-                      setCategoryFilter("");
-                      setKindFilter("");
-                      setShowCancelled(false);
-                    }}
-                  >
-                    Azzera filtri
-                  </button>{" "}
-                  <button
-                    onClick={() =>
-                      download(
-                        new Blob(
-                          [
-                            "\uFEFF" +
-                              [
-                                [
-                                  "Data",
-                                  "Tipo",
-                                  "Importo EUR",
-                                  "Conto",
-                                  "Categoria",
-                                  "Iniziativa",
-                                  "Causale",
-                                  "Stato",
-                                ],
-                                ...filtered.map((x) => [
-                                  dateLabel(x.date),
-                                  kindLabels[x.kind],
-                                  (x.amount_cents / 100)
-                                    .toFixed(2)
-                                    .replace(".", ","),
-                                  x.kind === "transfer"
-                                    ? x.account === "bank"
-                                      ? "Banca → Cassa"
-                                      : "Cassa → Banca"
-                                    : x.account === "bank"
-                                      ? "Banca"
-                                      : "Cassa",
-                                  x.category,
-                                  x.project,
-                                  x.description,
-                                  x.cancelled ? "Annullato" : "Attivo",
-                                ]),
-                              ]
-                                .map((row) => row.map(csvCell).join(";"))
-                                .join("\r\n"),
-                          ],
-                          { type: "text/csv;charset=utf-8" },
-                        ),
-                        "insieme-oltre-movimenti.csv",
-                      )
-                    }
-                  >
-                    Esporta i movimenti filtrati (CSV)
-                  </button>
-                  <div className="soci-table-wrap">
-                    <table>
-                      <caption>
-                        {filtered.length} movimenti · gli annullati sono esclusi
-                        dai totali
-                      </caption>
-                      <thead>
-                        <tr>
-                          <th>Data</th>
-                          <th>Causale</th>
-                          <th>Categoria / iniziativa</th>
-                          <th>Conto</th>
-                          <th>Importo</th>
-                          {write && <th>Operazioni</th>}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filtered.slice(0, 500).map((item) => (
-                          <tr
-                            key={item.id}
-                            className={item.cancelled ? "cancelled" : ""}
-                          >
-                            <td>{dateLabel(item.date)}</td>
-                            <td>
-                              <strong>{item.description}</strong>
-                              <small>
-                                {kindLabels[item.kind]}
-                                {item.cancelled
-                                  ? " · Annullato: " + item.cancellation_reason
-                                  : ""}
-                              </small>
-                            </td>
-                            <td>
-                              {item.category}
-                              <small>{item.project}</small>
-                            </td>
-                            <td>
-                              {item.account === "bank" ? "Banca" : "Cassa"}
-                              {item.kind === "transfer"
-                                ? item.account === "bank"
-                                  ? " → Cassa"
-                                  : " → Banca"
-                                : ""}
-                            </td>
-                            <td
-                              className={
-                                item.kind === "expense" ? "expense" : ""
-                              }
-                            >
-                              {item.kind === "expense" ? "−" : ""}
-                              {money(item.amount_cents)}
-                            </td>
-                            {write && (
-                              <td>
-                                <div className="soci-row-actions">
-                                  {!item.cancelled && (
-                                    <>
-                                      <button
-                                        disabled={busy}
-                                        onClick={() => {
-                                          setMovementKind(item.kind);
-                                          setMovementAccount(item.account);
-                                          setEditing(item);
-                                          setDocumentItem(null);
-                                        }}
-                                      >
-                                        Correggi
-                                      </button>
-                                      <button
-                                        disabled={busy}
-                                        onClick={() => {
-                                          const reason = window.prompt(
-                                            "Motivo dell’annullamento (10–500 caratteri):",
-                                          );
-                                          if (reason)
-                                            void run(async () => {
-                                              await post("movements", {
-                                                id: item.id,
-                                                version: item.version,
-                                                cancel_reason: reason,
-                                              });
-                                              await load();
-                                            });
-                                        }}
-                                      >
-                                        Annulla
-                                      </button>
-                                    </>
-                                  )}
-                                  <button
-                                    onClick={() => void openDocuments(item)}
-                                  >
-                                    Documenti
-                                  </button>
-                                </div>
-                              </td>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {!filtered.length && <p>Nessun movimento trovato.</p>}
-                    {filtered.length > 500 && (
-                      <p>
-                        Mostrati i primi 500: restringi i filtri o esporta
-                        l’elenco completo.
-                      </p>
-                    )}
-                  </div>
-                </section>
+                <MovementLedger
+                  items={items}
+                  filtered={filtered}
+                  loaded={dataLoaded}
+                  write={write}
+                  busy={busy}
+                  years={years}
+                  projects={projects}
+                  filters={filters}
+                  onFilters={setFilters}
+                  onExport={exportCsv}
+                  onEdit={editMovement}
+                  onCancel={cancelMovement}
+                  onDocuments={(item) => void openDocuments(item)}
+                />
                 {documentItem && write && (
                   <section className="soci-card">
                     <h3>Documenti · {documentItem.description}</h3>

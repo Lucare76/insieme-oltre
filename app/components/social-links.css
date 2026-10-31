@@ -1,0 +1,42 @@
+.social-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+  color: var(--ink, #24312a);
+}
+.social-links-label {
+  margin-right: 2px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-soft, #556158);
+}
+.social-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line, rgba(36,49,42,.14));
+  border-radius: 50%;
+  background: var(--paper, #fffdf9);
+  color: inherit;
+  text-decoration: none;
+  transition: color .2s ease, border-color .2s ease;
+}
+.social-links a:hover {
+  color: var(--coral-deep, #c95249);
+  border-color: currentColor;
+}
+.social-links a:focus-visible {
+  outline: 2px solid var(--ink, #24312a);
+  outline-offset: 4px;
+}
+.social-links svg { display: block; flex: none; }
+/* Keep the story footer readable when the social row is added on phones. */
+@media (max-width: 620px) {
+  .aurora-page .aurora-page-footer { flex-direction: column; align-items: flex-start; }
+  .aurora-page-footer .aurora-page-footer-end { align-items: flex-start; text-align: left; max-width: 100%; }
+}

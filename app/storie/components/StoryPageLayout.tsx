@@ -1,3 +1,4 @@
+import { SocialLinks } from "../../components/SocialLinks";
 import Image from "next/image";
 import Link from "next/link";
 import { LegalLinks } from "../../components/LegalLinks";
@@ -85,6 +86,7 @@ export function StoryPageLayout({ name, subtitle, paragraphs, photos, pause, par
         <Link href="/">Insieme Oltre</Link>
         <div className="aurora-page-footer-end">
           <span>L’amore non si misura in cromosomi.</span>
+          <SocialLinks />
           <LegalLinks className="aurora-page-legal" />
           <InstitutionalLine className="aurora-page-institutional" />
         </div>

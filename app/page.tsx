@@ -1,3 +1,4 @@
+import { SocialLinks } from "./components/SocialLinks";
 import { WhatsAppCta } from "./components/WhatsAppCta";
 import { LazyContactForm } from "./components/LazyContactForm";
 import { contactNotice } from "../lib/legal";
@@ -256,6 +257,7 @@ export default async function Home() {
         <div className="footer-brand">
           <span>Insieme <em>Oltre</em></span>
           <small>{content.footer.slogan}</small>
+          <SocialLinks />
           <LegalLinks className="footer-legal" />
           <InstitutionalLine className="footer-institutional" />
           <a href="/admin">Area soci</a>

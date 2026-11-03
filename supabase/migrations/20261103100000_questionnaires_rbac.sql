@@ -35,7 +35,8 @@ begin
  select to_jsonb(m) into previous from public.association_members m where user_id=(p_member->>'user_id')::uuid for update;
  if previous is null then raise exception 'approve a request first'; end if;
  update public.association_members set name=p_member->>'name',username=p_member->>'username',role=p_member->>'role',
-  psychologist=coalesce((p_member->>'psychologist')::boolean,false),active=(p_member->>'active')::boolean
+  -- Senza il campo (pannello della versione precedente) il ruolo Psicologa resta invariato.
+  psychologist=coalesce((p_member->>'psychologist')::boolean,psychologist),active=(p_member->>'active')::boolean
  where user_id=(p_member->>'user_id')::uuid;
  select to_jsonb(m) into result from public.association_members m where user_id=(p_member->>'user_id')::uuid;
  insert into public.association_audit(entity,entity_id,actor_id,action,before_data,after_data) values('association_members',(p_member->>'user_id')::uuid,p_actor,'permissions',previous,result);

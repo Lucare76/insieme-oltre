@@ -39,8 +39,15 @@ test(
       // Revoca e cumulo dei ruoli tramite la funzione esistente.
       await db.query("select public.association_save_member($1,$2)", [owner, { user_id: psy, name: "Dott.ssa Test", username: "psicologa", role: "member", psychologist: true, active: true }]);
       assert.equal((await one(db, "select role from public.association_members where user_id=$1", [psy])).role, "member");
+      // Compatibilità con il codice in produzione: chiamate senza i nuovi parametri.
+      await db.query("select public.association_save_member($1,$2)", [owner, { user_id: psy, name: "Dott.ssa Test", username: "psicologa", role: "member", active: true }]);
+      assert.equal((await one(db, "select psychologist from public.association_members where user_id=$1", [psy])).psychologist, true, "il vecchio pannello non azzera il ruolo Psicologa");
+      const old = (await one(db, "select public.association_submit_access($1,$2,$3) as id", ["Socio Vecchio", "old@example.org", "vecchio"])).id;
+      await db.query("select public.association_review_access(p_id=>$1,p_actor=>$2,p_action=>'claim')", [old, owner]);
+      await db.query("select public.association_review_access(p_id=>$1,p_actor=>$2,p_action=>'approve',p_user=>$3,p_role=>'member')", [old, owner, socio]);
+      assert.deepEqual(await one(db, "select role,psychologist from public.association_members where user_id=$1", [socio]), { role: "member", psychologist: false });
       await assert.rejects(() => db.query("select public.association_save_member($1,$2)", [owner, { user_id: psy, name: "X", username: "psicologa", role: "none", psychologist: false, active: true }]));
-      assert.equal((await one(db, "select count(*)::int n from public.association_audit where entity='association_members'")).n, 1);
+      assert.equal((await one(db, "select count(*)::int n from public.association_audit where entity='association_members'")).n, 2);
       await db.exec("reset role");
       for (const role of ["anon", "authenticated"]) {
         await db.exec("set role " + role);

@@ -1,0 +1,25 @@
+.qs-page .participa-header{justify-content:center}
+.qs-intro{padding-bottom:28px}
+.qs-title{font:normal clamp(36px,6vw,64px)/1.05 Georgia,serif;letter-spacing:-.03em;margin:16px 0;overflow-wrap:anywhere}
+.qs-description{max-width:680px;color:#536456;font-size:18px;line-height:1.65;white-space:pre-line}
+.qs-form legend{line-height:1.4;overflow-wrap:anywhere}
+.qs-required{color:#c95249}
+.qs-form fieldset.qs-invalid legend{color:#a12329}
+.qs-form fieldset.qs-invalid textarea,.qs-form fieldset.qs-invalid .qs-choices label{border-color:#d1665c}
+.qs-choices{display:grid;grid-template-columns:1fr;gap:10px}
+.qs-choices label{min-height:56px;font-size:17px}
+.qs-choices input{width:22px;height:22px}
+/* Nessun limite di caratteri: il campo cresce con il testo. */
+.qs-form textarea{min-height:140px;font-size:17px;line-height:1.6;field-sizing:content;max-height:none;overflow-wrap:anywhere}
+.qs-clear{justify-self:start;background:none;border:0;color:#7a4036;text-decoration:underline;font:inherit;font-size:14px;padding:8px 0;cursor:pointer}
+.qs-restored{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:#eef3ec;border:1px solid #c9d6c7;border-radius:14px;padding:14px 16px;color:#2d4b36}
+.qs-restored button{background:#fff;border:1px solid #b9c6b8;border-radius:99px;padding:10px 16px;font:inherit;font-size:14px;min-height:44px;cursor:pointer}
+.qs-notice{margin:24px 0 8px;background:#f8f4ec;border-radius:14px;padding:14px 18px;line-height:1.65;color:#435046}
+.qs-notice summary{cursor:pointer;font-weight:700;min-height:32px}
+.qs-notice a{text-decoration:underline}
+.qs-form .participa-consent input{width:22px;height:22px;margin-top:2px}
+.qs-error{font-weight:700;margin:0 0 14px}
+.qs-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.qs-page .participa-thanks h2{font:normal 40px Georgia,serif}
+.qs-preview{border:2px dashed #d4ccc1;border-radius:24px;padding:clamp(16px,4vw,36px);background:#fffdf9}
+@media(max-width:620px){.qs-description{font-size:16px}.qs-choices label{font-size:16px}}

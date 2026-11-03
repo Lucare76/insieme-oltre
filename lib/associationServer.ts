@@ -31,6 +31,9 @@ export async function service(path: string, init: RequestInit = {}) {
         "Il movimento è stato modificato da un'altra persona. Ricarica i dati.",
         409,
       );
+    // Errori dei questionari: messaggi scritti nelle funzioni SQL, sicuri da mostrare.
+    if (typeof body.code === "string" && /^QS\d{3}$/.test(body.code))
+      throw new AssociationError(String(body.message), Number(body.code.slice(2)));
     throw new AssociationError(
       "Operazione non riuscita. Verifica la configurazione dell'area soci.",
       503,
@@ -51,23 +54,31 @@ export async function identity(token: string) {
     throw new AssociationError("Sessione scaduta. Accedi nuovamente.", 401);
   const user = (await response.json()) as { id: string; email?: string };
   if (user.email?.toLowerCase() === allowedAdminEmail())
-    return { id: user.id, name: "Luca", role: "owner" as AssociationRole };
+    return {
+      id: user.id,
+      name: "Luca",
+      role: "owner" as AssociationRole,
+      psychologist: false,
+    };
   const responseRole = await service(
-    `/rest/v1/association_members?user_id=eq.${encodeURIComponent(user.id)}&select=user_id,name,role,active,activated_at`,
+    `/rest/v1/association_members?user_id=eq.${encodeURIComponent(user.id)}&select=user_id,name,role,psychologist,active,activated_at`,
   );
   const [member] = (await responseRole.json()) as {
     name: string;
     role: AssociationRole;
+    psychologist?: boolean;
     active: boolean;
     activated_at: string | null;
   }[];
+  const psychologist = member?.psychologist === true;
   if (
     !member?.active ||
     !member.activated_at ||
-    !["accountant", "member"].includes(member.role)
+    !(["accountant", "member"].includes(member.role) ||
+      (member.role === "none" && psychologist))
   )
     throw new AssociationError("Accesso all'associazione non abilitato.", 403);
-  return { id: user.id, name: member.name, role: member.role };
+  return { id: user.id, name: member.name, role: member.role, psychologist };
 }
 export async function authorize(
   request: Request,
@@ -77,6 +88,9 @@ export async function authorize(
   const token = bearerToken(request);
   if (!token) throw new AssociationError("Accedi all'area riservata.", 401);
   const user = await identity(token);
+  // Chi ha solo il ruolo Psicologa non accede a contabilità, ricevute, WhatsApp o gestione.
+  if (user.role === "none")
+    throw new AssociationError("Non hai accesso a questa sezione.", 403);
   if ((write && user.role === "member") || (owner && user.role !== "owner"))
     throw new AssociationError(
       "Non hai i permessi per questa operazione.",
@@ -84,7 +98,7 @@ export async function authorize(
     );
   return user;
 }
-export async function jsonBody(request: Request) {
+export async function jsonBody(request: Request, maxBytes = 16000) {
   if (!request.headers.get("content-type")?.startsWith("application/json"))
     throw new AssociationError("Formato non valido.", 415);
   const reader = request.body?.getReader();
@@ -95,7 +109,7 @@ export async function jsonBody(request: Request) {
     const next = await reader.read();
     if (next.done) break;
     bytes += next.value.byteLength;
-    if (bytes > 16000) {
+    if (bytes > maxBytes) {
       await reader.cancel();
       throw new AssociationError("Richiesta troppo grande.", 413);
     }

@@ -89,13 +89,18 @@ async function handle(request: Request, path: string[]) {
     if (token) await signOutAdmin(token);
     return reply({ ok: true });
   }
+  if (route === "me" && request.method === "GET") {
+    // Il profilo è leggibile anche da chi ha solo il ruolo Psicologa: serve al reindirizzamento.
+    const token = bearerToken(request);
+    if (!token) throw new AssociationError("Accedi all'area riservata.", 401);
+    return reply({ user: await identity(token) });
+  }
   const write = request.method !== "GET";
   const user = await authorize(
     request,
     write,
     route === "members" || route === "audit",
   );
-  if (route === "me" && !write) return reply({ user });
   if (route === "movements" && request.method === "GET") {
     const items: Record<string, unknown>[] = [];
     // Paginazione esplicita: nessun totale calcolato su liste troncate da PostgREST.
@@ -166,14 +171,20 @@ async function handle(request: Request, path: string[]) {
   }
   if (route === "members" && request.method === "GET") {
     const res = await service(
-      "/rest/v1/association_members?select=user_id,name,email,username,role,active,activated_at&order=name&limit=1000",
+      "/rest/v1/association_members?select=user_id,name,email,username,role,psychologist,active,activated_at&order=name&limit=1000",
     );
     return reply({ items: await res.json() });
   }
   if (route === "members" && request.method === "POST") {
     const b = await jsonBody(request);
-    if (!["member", "accountant"].includes(String(b.role)))
-      throw new AssociationError("Ruolo non valido.");
+    if (
+      !["member", "accountant", "none"].includes(String(b.role)) ||
+      typeof b.psychologist !== "boolean" ||
+      (b.role === "none" && !b.psychologist)
+    )
+      throw new AssociationError(
+        "Ruolo non valido: assegna almeno un permesso.",
+      );
     const name = text(b.name, 120, true);
     const email = text(b.email, 254, true).toLowerCase();
     if (
@@ -208,6 +219,7 @@ async function handle(request: Request, path: string[]) {
           email,
           username,
           role: b.role,
+          psychologist: b.psychologist,
           active: b.active,
         },
       }),

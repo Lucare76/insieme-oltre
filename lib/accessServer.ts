@@ -385,7 +385,11 @@ export async function handleAccess(
       });
       return { ok: true };
     }
-    if (!["accountant", "member"].includes(String(b.role)))
+    const psychologist = b.psychologist === true;
+    if (
+      !["accountant", "member", "none"].includes(String(b.role)) ||
+      (b.role === "none" && !psychologist)
+    )
       throw new AssociationError("Scegli un ruolo valido.");
     if (!accessMailReady())
       throw new AssociationError(
@@ -410,6 +414,7 @@ export async function handleAccess(
         p_action: "approve",
         p_user: link.id,
         p_role: b.role,
+        p_psychologist: psychologist,
       });
       committed = true;
       try {

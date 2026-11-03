@@ -1,4 +1,4 @@
-export type AssociationRole = "owner" | "accountant" | "member";
+export type AssociationRole = "owner" | "accountant" | "member" | "none";
 export type Movement = {
   id: string;
   date: string;
@@ -22,7 +22,14 @@ export const roleLabels = {
   owner: "Admin principale",
   accountant: "Amministratore contabile",
   member: "Socio",
+  none: "Senza accesso contabile",
 };
+/** Etichetta completa: i ruoli sono cumulabili (es. Psicologa + Socio). */
+export function accessLabel(user: { role: AssociationRole; psychologist?: boolean }) {
+  const labels = user.role === "none" ? [] : [roleLabels[user.role]];
+  if (user.psychologist && user.role !== "owner") labels.push("Psicologa");
+  return labels.join(" + ") || roleLabels.none;
+}
 export const categories = [
   "Quote associative",
   "Donazioni",

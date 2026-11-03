@@ -2,12 +2,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
+  accessLabel,
   balances,
   categories,
   csvCell,
   kindLabels,
-  roleLabels,
   type AssociationRole,
   type Movement,
 } from "../../lib/accounting";
@@ -28,7 +29,12 @@ import {
   filterMovements,
 } from "../../lib/movementFilters";
 import { AccessForms, AccessRequests } from "./accessComponents";
-type User = { id: string; name: string; role: AssociationRole };
+type User = {
+  id: string;
+  name: string;
+  role: AssociationRole;
+  psychologist?: boolean;
+};
 type Session = {
   access_token: string;
   refresh_token?: string;
@@ -40,7 +46,8 @@ type Member = {
   user_id: string;
   name: string;
   email: string;
-  role: "member" | "accountant";
+  role: "member" | "accountant" | "none";
+  psychologist: boolean;
   active: boolean;
   username: string | null;
   activated_at: string | null;
@@ -71,6 +78,7 @@ function download(blob: Blob, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export default function AreaSoci() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [items, setItems] = useState<Item[]>([]);
@@ -222,6 +230,10 @@ export default function AreaSoci() {
           const res = await api("me");
           const data = await res.json();
           if (active) {
+            if (data.user.role === "none") {
+              router.replace("/admin/questionari");
+              return;
+            }
             setUser(data.user);
             if (data.user.role === "owner") {
               const requests = await (await api("access/requests")).json();
@@ -248,7 +260,7 @@ export default function AreaSoci() {
     return () => {
       active = false;
     };
-  }, [api, load, clear]);
+  }, [api, load, clear, router]);
   useEffect(() => {
     const activity = () => {
       if (!session.current) return;
@@ -345,6 +357,11 @@ export default function AreaSoci() {
       lastActivity.current = Date.now();
       localStorage.setItem(KEY, JSON.stringify(session.current));
       storeSessionTimes({ loginAt: Date.now(), lastActivityAt: Date.now() });
+      // Con il solo ruolo Psicologa si entra direttamente nell’area questionari.
+      if (b.user.role === "none") {
+        router.replace("/admin/questionari");
+        return;
+      }
       setUser(b.user);
       setTab("home");
       if (b.user.role === "owner") {
@@ -481,7 +498,7 @@ export default function AreaSoci() {
             <h1>Area riservata</h1>
             <p>
               {user
-                ? `${user.name} · ${roleLabels[user.role]}`
+                ? `${user.name} · ${accessLabel(user)}`
                 : "Uno spazio riservato per i conti dell’associazione."}
             </p>
           </div>
@@ -551,6 +568,7 @@ export default function AreaSoci() {
               </button>
               {whatsappAllowed && <button aria-pressed={tab === "whatsapp"} onClick={() => void openTab("whatsapp")}>WhatsApp</button>}
               {write && <button aria-pressed={tab === "receipts"} onClick={() => void openTab("receipts")}>Ricevute</button>}
+              {(user.role === "owner" || user.psychologist) && <Link href="/admin/questionari">Questionari →</Link>}
               {user.role === "owner" && (
                 <>
                   <button
@@ -601,6 +619,7 @@ export default function AreaSoci() {
                   </button>
                   {whatsappAllowed && <button onClick={() => void openTab("whatsapp")}><strong>WhatsApp</strong><span>Conversazioni e risposte dell’associazione</span></button>}
                   {write && <button onClick={() => void openTab("receipts")}><strong>Ricevute</strong><span>Donazioni, raccolte fondi e invio email</span></button>}
+                  {(user.role === "owner" || user.psychologist) && <Link className="soci-menu-link" href="/admin/questionari"><strong>Questionari</strong><span>Incontri, QR code e risultati</span></Link>}
                   {user.role === "owner" && (
                     <>
                       <button onClick={() => void openTab("contents")}>
@@ -972,6 +991,7 @@ export default function AreaSoci() {
                       void run(async () => {
                         await post("members", {
                           ...form,
+                          psychologist: form.psychologist === "on",
                           active: form.active === "true",
                           ...(memberEdit
                             ? { user_id: memberEdit.user_id }
@@ -1025,7 +1045,18 @@ export default function AreaSoci() {
                           <option value="accountant">
                             Amministratore contabile
                           </option>
+                          <option value="none">
+                            Nessun accesso alla contabilità
+                          </option>
                         </select>
+                      </label>
+                      <label className="soci-check">
+                        <input
+                          type="checkbox"
+                          name="psychologist"
+                          defaultChecked={memberEdit.psychologist}
+                        />
+                        Psicologa — gestione dei questionari
                       </label>
                       <label>
                         Stato
@@ -1061,7 +1092,7 @@ export default function AreaSoci() {
                         <strong>{m.name}</strong>
                         <small>
                           {m.email} · {m.username ?? "Nome utente da assegnare"}{" "}
-                          · {roleLabels[m.role]} ·{" "}
+                          · {accessLabel(m)} ·{" "}
                           {m.active
                             ? m.activated_at
                               ? "Attivo"

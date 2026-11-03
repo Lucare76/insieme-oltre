@@ -200,10 +200,16 @@ function RequestCard({
   item: AccessRequest;
   busy: boolean;
   emailReady: boolean;
-  onReview: (id: string, action: string, role?: string) => void;
+  onReview: (
+    id: string,
+    action: string,
+    role?: string,
+    psychologist?: boolean,
+  ) => void;
   onNotify: (id: string) => void;
 }) {
   const [role, setRole] = useState("member");
+  const [psychologist, setPsychologist] = useState(false);
   const pending = item.status === "pending" || item.status === "processing";
   const initials = item.name
     .trim()
@@ -285,7 +291,7 @@ function RequestCard({
           className="access-decision"
           onSubmit={(e) => {
             e.preventDefault();
-            onReview(item.id, "approve", role);
+            onReview(item.id, "approve", role, psychologist);
           }}
         >
           <div className="access-decision-title">
@@ -303,15 +309,29 @@ function RequestCard({
           >
             <option value="member">Socio — consultazione</option>
             <option value="accountant">Amministratore contabile</option>
+            <option value="none">Nessun accesso alla contabilità</option>
           </select>
+          <label className="access-role-extra">
+            <input
+              type="checkbox"
+              checked={psychologist}
+              onChange={(e) => setPsychologist(e.target.checked)}
+              disabled={busy}
+            />
+            Psicologa — gestione dei questionari
+          </label>
           <p className="access-role-help">
             {role === "member"
               ? "Può consultare entrate, uscite e saldi. Non può modificare i conti."
-              : "Può registrare e correggere i movimenti e gestire i giustificativi."}
+              : role === "accountant"
+                ? "Può registrare e correggere i movimenti e gestire i giustificativi."
+                : "Nessuna sezione economica o amministrativa."}
+            {psychologist &&
+              " Può creare e pubblicare questionari e leggerne i risultati."}
           </p>
           <button
             className="primary access-approve"
-            disabled={busy || !emailReady}
+            disabled={busy || !emailReady || (role === "none" && !psychologist)}
           >
             <AccessIcon name="check" />
             {busy ? "Operazione in corso…" : "Approva e invia invito"}
@@ -433,9 +453,14 @@ export function AccessRequests({
       })
     ).json();
   }
-  function review(id: string, kind: string, role?: string) {
+  function review(
+    id: string,
+    kind: string,
+    role?: string,
+    psychologist?: boolean,
+  ) {
     void action(async () => {
-      const b = await post("review", { id, action: kind, role });
+      const b = await post("review", { id, action: kind, role, psychologist });
       await load();
       return (
         b.warning ??

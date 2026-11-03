@@ -385,12 +385,23 @@
   gap: 16px;
   margin-top: 25px;
 }
-.soci-menu-cards button {
+.soci-menu-cards button,
+.soci-menu-cards .soci-menu-link {
   text-align: left;
   padding: 25px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+.soci-menu-cards .soci-menu-link {
+  border: 1px solid #b9c6b8;
+  border-radius: 10px;
+  background: #fff;
+  color: #263e2e;
+  text-decoration: none;
+}
+.soci-menu-cards .soci-menu-link:hover {
+  background: #eef3ec;
 }
 .soci-menu-cards strong {
   font-size: 21px;
@@ -761,6 +772,20 @@
   line-height: 1.65;
   min-height: 37px;
   margin: 12px 0 20px;
+}
+.soci .access-decision .access-role-extra {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 12px 0 0;
+  font-size: 12px;
+  min-height: 44px;
+}
+.soci .access-decision .access-role-extra input {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  margin: 0;
 }
 .soci .access-decision .access-approve {
   display: flex;

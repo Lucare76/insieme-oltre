@@ -230,7 +230,6 @@ export default function AreaSoci() {
           const res = await api("me");
           const data = await res.json();
           if (active) {
-            if (data.user.role === "president") { router.replace("/admin/libri-sociali"); return; }
             if (data.user.role === "none") {
               router.replace("/admin/questionari");
               return;
@@ -359,7 +358,6 @@ export default function AreaSoci() {
       localStorage.setItem(KEY, JSON.stringify(session.current));
       storeSessionTimes({ loginAt: Date.now(), lastActivityAt: Date.now() });
       // Con il solo ruolo Psicologa si entra direttamente nell’area questionari.
-      if (b.user.role === "president") { router.replace("/admin/libri-sociali"); return; }
       if (b.user.role === "none") {
         router.replace("/admin/questionari");
         return;
@@ -376,7 +374,7 @@ export default function AreaSoci() {
       }
     });
   }
-  const write = user?.role !== "member";
+  const write = user?.role === "owner" || user?.role === "accountant";
   const filtered = filterMovements(items, filters);
   const projects = [
     ...new Set(items.map((x) => x.project).filter(Boolean)),
@@ -568,6 +566,7 @@ export default function AreaSoci() {
               >
                 Contabilità
               </button>
+              {user.role === "president" && <Link href="/admin/libri-sociali">Libri sociali →</Link>}
               {whatsappAllowed && <button aria-pressed={tab === "whatsapp"} onClick={() => void openTab("whatsapp")}>WhatsApp</button>}
               {write && <button aria-pressed={tab === "receipts"} onClick={() => void openTab("receipts")}>Ricevute</button>}
               {(user.role === "owner" || user.psychologist) && <Link href="/admin/questionari">Questionari →</Link>}
@@ -620,6 +619,7 @@ export default function AreaSoci() {
                     <strong>Contabilità</strong>
                     <span>Entrate, uscite, cassa e banca</span>
                   </button>
+                  {user.role === "president" && <Link className="soci-menu-link" href="/admin/libri-sociali"><strong>Libri sociali</strong><span>Soci, volontari, verbali e PDF</span></Link>}
                   {whatsappAllowed && <button onClick={() => void openTab("whatsapp")}><strong>WhatsApp</strong><span>Conversazioni e risposte dell’associazione</span></button>}
                   {write && <button onClick={() => void openTab("receipts")}><strong>Ricevute</strong><span>Donazioni, raccolte fondi e invio email</span></button>}
                   {(user.role === "owner" || user.psychologist) && <Link className="soci-menu-link" href="/admin/questionari"><strong>Questionari</strong><span>Incontri, QR code e risultati</span></Link>}

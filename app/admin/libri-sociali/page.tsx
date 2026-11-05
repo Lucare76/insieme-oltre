@@ -26,7 +26,7 @@ export default function Page(){
   let active=true;
   (async()=>{try{
    const me=await (await api("/api/associazione/me")).json();
-   if(me.user.role!=="owner")throw new Error("Accesso riservato all'amministratore principale.");
+   if(!["owner","president"].includes(me.user.role))throw new Error("Accesso riservato all'amministratore principale.");
    const list=await (await api("/api/associazione/libri-sociali?kind="+kind)).json();
    if(active){setAuthorized(true);setItems(list.items);setError("");}
   }catch(e){if(active)setError(e instanceof Error?e.message:"Accesso negato");}})();

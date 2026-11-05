@@ -1,4 +1,4 @@
-export type AssociationRole = "owner" | "accountant" | "member" | "none";
+export type AssociationRole = "owner" | "president" | "accountant" | "member" | "none";
 export type Movement = {
   id: string;
   date: string;
@@ -20,6 +20,7 @@ export const kindLabels = {
 };
 export const roleLabels = {
   owner: "Admin principale",
+  president: "Presidente",
   accountant: "Amministratore contabile",
   member: "Socio",
   none: "Senza accesso contabile",

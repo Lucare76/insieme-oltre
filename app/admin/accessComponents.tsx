@@ -309,6 +309,7 @@ function RequestCard({
           >
             <option value="member">Socio — consultazione</option>
             <option value="accountant">Amministratore contabile</option>
+            <option value="president">Presidente — libri sociali</option>
             <option value="none">Nessun accesso alla contabilità</option>
           </select>
           <label className="access-role-extra">
@@ -325,7 +326,9 @@ function RequestCard({
               ? "Può consultare entrate, uscite e saldi. Non può modificare i conti."
               : role === "accountant"
                 ? "Può registrare e correggere i movimenti e gestire i giustificativi."
-                : "Nessuna sezione economica o amministrativa."}
+                : role === "president"
+                  ? "Gestisce libri sociali e PDF, senza accesso alla contabilità."
+                  : "Nessuna sezione economica o amministrativa."}
             {psychologist &&
               " Può creare e pubblicare questionari e leggerne i risultati."}
           </p>

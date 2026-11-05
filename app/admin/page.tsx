@@ -46,7 +46,7 @@ type Member = {
   user_id: string;
   name: string;
   email: string;
-  role: "member" | "accountant" | "none";
+  role: "member" | "accountant" | "president" | "none";
   psychologist: boolean;
   active: boolean;
   username: string | null;
@@ -374,7 +374,7 @@ export default function AreaSoci() {
       }
     });
   }
-  const write = user?.role !== "member";
+  const write = user?.role === "owner" || user?.role === "accountant";
   const filtered = filterMovements(items, filters);
   const projects = [
     ...new Set(items.map((x) => x.project).filter(Boolean)),
@@ -566,6 +566,7 @@ export default function AreaSoci() {
               >
                 Contabilità
               </button>
+              {user.role === "president" && <Link href="/admin/libri-sociali">Libri sociali →</Link>}
               {whatsappAllowed && <button aria-pressed={tab === "whatsapp"} onClick={() => void openTab("whatsapp")}>WhatsApp</button>}
               {write && <button aria-pressed={tab === "receipts"} onClick={() => void openTab("receipts")}>Ricevute</button>}
               {(user.role === "owner" || user.psychologist) && <Link href="/admin/questionari">Questionari →</Link>}
@@ -596,6 +597,7 @@ export default function AreaSoci() {
                   >
                     Storico operazioni
                   </button>
+                  <Link href="/admin/libri-sociali">Libri sociali e registro volontari →</Link>
                   <Link href="/admin/partecipazioni">
                     Le idee delle famiglie →
                   </Link>
@@ -617,6 +619,7 @@ export default function AreaSoci() {
                     <strong>Contabilità</strong>
                     <span>Entrate, uscite, cassa e banca</span>
                   </button>
+                  {user.role === "president" && <Link className="soci-menu-link" href="/admin/libri-sociali"><strong>Libri sociali</strong><span>Soci, volontari, verbali e PDF</span></Link>}
                   {whatsappAllowed && <button onClick={() => void openTab("whatsapp")}><strong>WhatsApp</strong><span>Conversazioni e risposte dell’associazione</span></button>}
                   {write && <button onClick={() => void openTab("receipts")}><strong>Ricevute</strong><span>Donazioni, raccolte fondi e invio email</span></button>}
                   {(user.role === "owner" || user.psychologist) && <Link className="soci-menu-link" href="/admin/questionari"><strong>Questionari</strong><span>Incontri, QR code e risultati</span></Link>}
@@ -1045,6 +1048,7 @@ export default function AreaSoci() {
                           <option value="accountant">
                             Amministratore contabile
                           </option>
+                          <option value="president">Presidente — libri sociali</option>
                           <option value="none">
                             Nessun accesso alla contabilità
                           </option>

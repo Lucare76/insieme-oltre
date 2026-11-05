@@ -100,13 +100,15 @@ async function handle(request: Request, path: string[]) {
     request,
     write,
     route === "members" || route === "audit",
+    false,
+    route === "movements" && request.method === "GET",
   );
   if (route === "movements" && request.method === "GET") {
     const items: Record<string, unknown>[] = [];
     // Paginazione esplicita: nessun totale calcolato su liste troncate da PostgREST.
     for (let offset = 0; ; offset += 500) {
       const res = await service(
-        `/rest/v1/association_movements?select=${fields}${user.role === "member" ? "" : ",private_note"}&order=date.desc,id&offset=${offset}&limit=500`,
+        `/rest/v1/association_movements?select=${fields}${["member", "president"].includes(user.role) ? "" : ",private_note"}&order=date.desc,id&offset=${offset}&limit=500`,
       );
       const page = await res.json();
       items.push(...page);
@@ -178,7 +180,7 @@ async function handle(request: Request, path: string[]) {
   if (route === "members" && request.method === "POST") {
     const b = await jsonBody(request);
     if (
-      !["member", "accountant", "none"].includes(String(b.role)) ||
+      !["member", "accountant", "president", "none"].includes(String(b.role)) ||
       typeof b.psychologist !== "boolean" ||
       (b.role === "none" && !b.psychologist)
     )

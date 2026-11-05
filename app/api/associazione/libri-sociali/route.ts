@@ -11,8 +11,8 @@ const cleaned = (x:unknown,max:number,required=false) => {
  return x.trim();
 };
 async function handle(request:Request){
- // Solo owner: registri con dati personali; account "socio" e "contabile" NON equivalgono a incarico a gestirli.
- const actor = await authorize(request,false,true);
+ // Solo owner e presidente: gli account di soci e contabili non danno accesso ai registri.
+ const actor = await authorize(request, false, false, true);
  const params = new URL(request.url).searchParams;
  const kind = params.get("kind");
  if(request.method==="GET"){

@@ -74,7 +74,7 @@ export async function identity(token: string) {
   if (
     !member?.active ||
     !member.activated_at ||
-    !(["accountant", "member"].includes(member.role) ||
+    !(["accountant", "member", "president"].includes(member.role) ||
       (member.role === "none" && psychologist))
   )
     throw new AssociationError("Accesso all'associazione non abilitato.", 403);
@@ -84,14 +84,15 @@ export async function authorize(
   request: Request,
   write = false,
   owner = false,
+  registers = false,
 ) {
   const token = bearerToken(request);
   if (!token) throw new AssociationError("Accedi all'area riservata.", 401);
   const user = await identity(token);
   // Chi ha solo il ruolo Psicologa non accede a contabilità, ricevute, WhatsApp o gestione.
-  if (user.role === "none")
+  if (user.role === "none" || (user.role === "president" && !registers))
     throw new AssociationError("Non hai accesso a questa sezione.", 403);
-  if ((write && user.role === "member") || (owner && user.role !== "owner"))
+  if ((write && user.role === "member") || (owner && user.role !== "owner") || (registers && !["owner","president"].includes(user.role)))
     throw new AssociationError(
       "Non hai i permessi per questa operazione.",
       403,

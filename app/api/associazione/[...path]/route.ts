@@ -178,7 +178,7 @@ async function handle(request: Request, path: string[]) {
   if (route === "members" && request.method === "POST") {
     const b = await jsonBody(request);
     if (
-      !["member", "accountant", "none"].includes(String(b.role)) ||
+      !["member", "accountant", "president", "none"].includes(String(b.role)) ||
       typeof b.psychologist !== "boolean" ||
       (b.role === "none" && !b.psychologist)
     )

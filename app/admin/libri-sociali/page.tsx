@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SignedDocumentsPanel from "./SignedDocumentsPanel";
 import "../../area-soci/soci.css";
 
 type Kind = "soci"|"volontari"|"assemblee"|"direttivo";
@@ -58,7 +59,7 @@ export default function Page(){
   {authorized&&<><section className="soci-card">
    {(Object.keys(labels) as Kind[]).map(k=><button key={k} type="button" aria-pressed={kind===k} onClick={()=>{setKind(k);setData(initial);}}>{labels[k]}</button>)}
    <h2>{labels[kind]}</h2>
-   <p>Registro indipendente dagli account di accesso. Solo l'amministratore principale può visualizzarlo.</p>
+   <p>Registro indipendente dagli account di accesso. Solo Admin e Presidente possono visualizzarlo.</p>
    <button disabled={busy} type="button" onClick={()=>void pdf()}>Genera PDF con logo</button>
    <p><small>Il PDF non sostituisce l'approvazione dei verbali né la vidimazione del registro volontari.</small></p>
    <h3>Registrazioni: {items.length}</h3>
@@ -71,6 +72,6 @@ export default function Page(){
     <label>Verbale<textarea required rows={8} value={data.content} onChange={e=>setData({...data,content:e.target.value})}/></label>
     <label><input type="checkbox" checked={data.approved} onChange={e=>setData({...data,approved:e.target.checked})}/> Già approvato</label></>}
    <button className="primary" type="submit" disabled={busy}>Salva</button>
-  </form></section></>}
+  </form></section><SignedDocumentsPanel kind={kind}/></>}
  </div></main>;
 }

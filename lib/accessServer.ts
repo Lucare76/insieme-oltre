@@ -387,7 +387,7 @@ export async function handleAccess(
     }
     const psychologist = b.psychologist === true;
     if (
-      !["accountant", "member", "none"].includes(String(b.role)) ||
+      !["accountant", "member", "president", "none"].includes(String(b.role)) ||
       (b.role === "none" && !psychologist)
     )
       throw new AssociationError("Scegli un ruolo valido.");

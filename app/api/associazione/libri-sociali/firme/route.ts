@@ -82,6 +82,14 @@ async function handle(request:Request){
   if(!/\/ByteRange\s*\[/.test(raw) || !/\/Contents\s*</.test(raw))
    throw new AssociationError("Non è stata rilevata una struttura di firma PDF. Esporta la firma Aruba nel formato PAdES.");
   if(checksum(bytes)===origin.sha256)throw new AssociationError("Il file coincide con l'originale non firmato.");
+  // PAdES incrementale: il PDF deve contenere intatti i byte della versione originaria.
+  // Questo è controllo di provenienza, NON verifica del certificato di firma.
+  const originalFile=await service("/storage/v1/object/"+bucket+"/"+origin.object_path);
+  const originalBytes=new Uint8Array(await originalFile.arrayBuffer());
+  if(originalBytes.byteLength!==origin.file_bytes || checksum(originalBytes)!==origin.sha256)
+   throw new AssociationError("Controllo integrità originale non riuscito.",503);
+  if(bytes.byteLength<=originalBytes.byteLength || !Buffer.from(bytes.subarray(0,originalBytes.byteLength)).equals(Buffer.from(originalBytes)))
+   throw new AssociationError("Il documento firmato non conserva il PDF originale. Firma in PAdES con Aruba Sign senza modificare il file.");
   const saved=await store(origin.kind,"signed","firmato-"+origin.kind+"-"+origin.id.slice(0,8)+".pdf",bytes,user.id,origin.id);
   return reply({ok:true,id:saved.id,verification:"not_verified",message:"PDF archiviato. La validità della firma deve essere verificata con Aruba Sign o un verificatore qualificato."},201);
  }

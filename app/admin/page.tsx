@@ -46,7 +46,7 @@ type Member = {
   user_id: string;
   name: string;
   email: string;
-  role: "member" | "accountant" | "none";
+  role: "member" | "accountant" | "president" | "none";
   psychologist: boolean;
   active: boolean;
   username: string | null;
@@ -230,6 +230,7 @@ export default function AreaSoci() {
           const res = await api("me");
           const data = await res.json();
           if (active) {
+            if (data.user.role === "president") { router.replace("/admin/libri-sociali"); return; }
             if (data.user.role === "none") {
               router.replace("/admin/questionari");
               return;
@@ -358,6 +359,7 @@ export default function AreaSoci() {
       localStorage.setItem(KEY, JSON.stringify(session.current));
       storeSessionTimes({ loginAt: Date.now(), lastActivityAt: Date.now() });
       // Con il solo ruolo Psicologa si entra direttamente nell’area questionari.
+      if (b.user.role === "president") { router.replace("/admin/libri-sociali"); return; }
       if (b.user.role === "none") {
         router.replace("/admin/questionari");
         return;
@@ -1046,6 +1048,7 @@ export default function AreaSoci() {
                           <option value="accountant">
                             Amministratore contabile
                           </option>
+                          <option value="president">Presidente — libri sociali</option>
                           <option value="none">
                             Nessun accesso alla contabilità
                           </option>

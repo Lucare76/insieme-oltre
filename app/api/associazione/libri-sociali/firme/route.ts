@@ -100,6 +100,7 @@ async function handle(request:Request){
   if(offset>=9750)throw new AssociationError("Registro troppo grande per archiviazione.",413);
  }
  if(!items.length)throw new AssociationError("Il registro è vuoto: inserisci i dati prima di preparare la versione definitiva.");
+ if(!people(kind) && items.some(item=>item.approved!==true))throw new AssociationError("Sono presenti verbali non approvati. Completa prima l’approvazione, oppure prepara una versione separata.");
  const bytes=await socialRegisterPdf(kind,items);
  if(bytes.length>8388608)throw new AssociationError("Il documento supera gli 8 MB.",413);
  const saved=await store(kind,"original","originale-"+kind+"-"+randomUUID().slice(0,8)+".pdf",bytes,user.id,null);

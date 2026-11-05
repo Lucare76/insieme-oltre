@@ -24,7 +24,7 @@ function isPdf(b:Uint8Array){
 }
 async function put(objectPath:string,bytes:Uint8Array){
  await service("/storage/v1/object/"+bucket+"/"+objectPath,{
-  method:"POST",headers:{"Content-Type":"application/pdf","x-upsert":"false"},body:Buffer.from(bytes)
+  method:"POST",headers:{"Content-Type":"application/pdf","x-upsert":"false"},body:new Uint8Array(bytes)
  });
 }
 async function insert(kind:RegisterKind,stage:"original"|"signed",path:string,filename:string,bytes:Uint8Array,actor:string,source_id:string|null){
@@ -58,7 +58,7 @@ async function handle(request:Request){
    const file=await service("/storage/v1/object/"+bucket+"/"+row.object_path);
    const bytes=new Uint8Array(await file.arrayBuffer());
    if(bytes.length!==row.file_bytes || checksum(bytes)!==row.sha256)throw new AssociationError("Integrità archivio non verificata: download sospeso.",503);
-   return new Response(bytes,{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Disposition":'attachment; filename="'+row.filename+'"'}});
+   return new Response(new Uint8Array(bytes),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Disposition":'attachment; filename="'+row.filename+'"'}});
   }
   const kind=params.get("kind");
   if(!validKind(kind))throw new AssociationError("Registro non valido.");

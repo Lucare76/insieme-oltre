@@ -596,6 +596,7 @@ export default function AreaSoci() {
                   >
                     Storico operazioni
                   </button>
+                  <Link href="/admin/libri-sociali">Libri sociali e registro volontari →</Link>
                   <Link href="/admin/partecipazioni">
                     Le idee delle famiglie →
                   </Link>

@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import SignedDocumentsPanel from "./SignedDocumentsPanel";
+import MinuteDistribution from "./MinuteDistribution";
 import "../../area-soci/soci.css";
 
 type Kind = "soci"|"volontari"|"assemblee"|"direttivo";
 const labels: Record<Kind,string> = {soci:"Libro soci",volontari:"Registro volontari",assemblee:"Verbali assemblee",direttivo:"Verbali direttivo"};
-type Entry = {id:string;full_name?:string;title?:string;admitted_on?:string;meeting_on?:string};
+type Entry = {id:string;full_name?:string;title?:string;admitted_on?:string;meeting_on?:string;approved?:boolean};
 const initial = {full_name:"",admitted_on:"",birth_date:"",fiscal_code:"",ended_on:"",notes:"",insurance_reference:"",meeting_on:"",title:"",attendees:"",content:"",approved:false};
 export default function Page(){
  const [kind,setKind]=useState<Kind>("soci");
@@ -72,6 +73,6 @@ export default function Page(){
     <label>Verbale<textarea required rows={8} value={data.content} onChange={e=>setData({...data,content:e.target.value})}/></label>
     <label><input type="checkbox" checked={data.approved} onChange={e=>setData({...data,approved:e.target.checked})}/> Già approvato</label></>}
    <button className="primary" type="submit" disabled={busy}>Salva</button>
-  </form></section><SignedDocumentsPanel kind={kind}/></>}
+  </form></section><SignedDocumentsPanel kind={kind}/>{kind==="assemblee"&&<MinuteDistribution minutes={items}/>}</>}
  </div></main>;
 }

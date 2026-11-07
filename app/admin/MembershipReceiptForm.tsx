@@ -176,6 +176,28 @@ export default function MembershipReceiptForm({ api, onClose }: { api: Api; onCl
           </label>
           {!data.fees.length && <p>Nessuna quota associativa risulta registrata per l'anno scelto.</p>}
           <button type="submit" disabled={busy || !feeId}>Scarica ricevuta PDF</button>
+          {selectedFee && <div>
+            {selectedFee.mail_status
+              ? <p role="status">Invio già registrato: {selectedFee.mail_status==="sent" ? "Accettato da Brevo" : selectedFee.mail_status==="failed" ? "Non accettato" : "Esito da verificare"} · {selectedFee.mail_recipient}. Non inviare una seconda volta senza verifica.</p>
+              : selectedFee.email
+                ? <>
+                    <p>Indirizzo destinatario: <strong>{selectedFee.email}</strong></p>
+                    <label className="soci-check"><input type="checkbox" checked={confirmSend} onChange={e=>setConfirmSend(e.target.checked)}/> Confermo il destinatario e autorizzo l'invio della ricevuta PDF.</label>
+                    <button type="button" disabled={busy||!confirmSend} onClick={()=>void (async()=>{
+                      setBusy(true);setMessage("");
+                      try{
+                        await sendReceipt(selectedFee.id,selectedFee.email);
+                        await load();setFeeId(selectedFee.id);
+                        setMessage("Ricevuta accettata da Brevo per "+selectedFee.email+". La consegna finale si verifica nei log.");
+                      }catch(e){
+                        await load().catch(()=>undefined);setFeeId(selectedFee.id);
+                        setMessage((e instanceof Error?e.message:"Invio non riuscito.")+" Prima di ritentare verifica lo storico di invio.");
+                      }finally{setBusy(false);setConfirmSend(false);}
+                    })()}>Invia ricevuta via email</button>
+                  </>
+                : <p>Email non associata a questo socio. Completa la rubrica ufficiale dei Libri sociali prima dell'invio.</p>
+            }
+          </div>}
         </>
       )}
       {message && !restricted && <p role="status" className="soci-message">{message}</p>}

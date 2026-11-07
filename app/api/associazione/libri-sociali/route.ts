@@ -6,6 +6,17 @@ const kinds = ["soci","volontari","assemblee","direttivo"] as const;
 const isKind = (x: unknown): x is RegisterKind => typeof x==="string" && kinds.some(k=>k===x);
 const people = (k:RegisterKind) => k==="soci"||k==="volontari";
 const reply = (obj:unknown,status=200) => Response.json(obj,{status,headers:privateHeaders});
+// La data di nascita non è un movimento contabile: validDate() rifiuta gli anni
+// prima del 2000. Qui accettiamo anche i soci nati nel secolo scorso.
+const validBirthDate = (value: unknown): value is string => {
+ if(typeof value!=="string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value))return false;
+ const year=Number(value.slice(0,4));
+ if(year<1900 || year>2199)return false;
+ const date=new Date(value+"T12:00:00Z");
+ if(date.toJSON()?.slice(0,10)!==value)return false;
+ const today=new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Rome",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+ return value<=today;
+};
 const cleaned = (x:unknown,max:number,required=false) => {
  if(typeof x!=="string" || x.length>max || (required && !x.trim()) || /[\u0000-\u001f]/.test(x.replace(/\n/g,""))) throw new AssociationError("Controlla i dati inseriti.");
  return x.trim();
@@ -40,7 +51,7 @@ async function handle(request:Request){
  const table=people(body.kind)?"association_register_people":"association_register_minutes";
  let data:Record<string,unknown>;
  if(people(body.kind)){
-  if(!validDate(body.admitted_on) || (body.ended_on && (!validDate(body.ended_on)||body.ended_on<body.admitted_on)) || (body.birth_date && !validDate(body.birth_date)))throw new AssociationError("Controlla le date.");
+  if(!validDate(body.admitted_on) || (body.ended_on && (!validDate(body.ended_on)||body.ended_on<body.admitted_on)) || (body.birth_date && !validBirthDate(body.birth_date)))throw new AssociationError("Controlla le date.");
   data={register_kind:body.kind,full_name:cleaned(body.full_name,160,true),birth_date:body.birth_date||null,fiscal_code:cleaned(body.fiscal_code??"",24),admitted_on:body.admitted_on,ended_on:body.ended_on||null,notes:cleaned(body.notes??"",500),insurance_reference:body.kind==="volontari"?cleaned(body.insurance_reference??"",160):""};
  }else{
   if(!validDate(body.meeting_on))throw new AssociationError("Data riunione non valida.");

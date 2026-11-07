@@ -9,7 +9,7 @@ const reply = (obj:unknown,status=200) => Response.json(obj,{status,headers:priv
 // La data di nascita non è un movimento contabile: validDate() rifiuta gli anni
 // prima del 2000. Qui accettiamo anche i soci nati nel secolo scorso.
 const validBirthDate = (value: unknown): value is string => {
- if(typeof value!=="string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value))return false;
+ if(typeof value!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
  const year=Number(value.slice(0,4));
  if(year<1900 || year>2199)return false;
  const date=new Date(value+"T12:00:00Z");

@@ -112,7 +112,7 @@ export default function MembershipReceiptForm({ api, onClose }: { api: Api; onCl
     }
   }
 
-  const eligible = (data?.people ?? []).filter(p => !p.paid && !p.ended_on);
+  const eligible = (data?.people ?? []).filter(p => !p.paid && (!p.ended_on || p.ended_on >= paidOn));
   return (
     <form className="receipt-form" onSubmit={(e) => void submit(e)}>
       <h3>Ricevuta quota associativa</h3>

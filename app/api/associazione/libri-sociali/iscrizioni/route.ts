@@ -24,10 +24,12 @@ async function handle(req:Request){
  if(req.method==="GET"){
   const [registration,registered]=await Promise.all([accounts(),existing()]);
   const indexed=new Map(registered.contacts.map(c=>[c.email.trim().toLowerCase(),c.person_id]));
-  const names=new Set(registered.people.filter(p=>!p.ended_on).map(p=>p.full_name.trim().toLocaleLowerCase("it-IT")));
+  const now=new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Rome"}).format(new Date());
+  const norm=(v:string)=>v.trim().replace(/\s+/g," ").toLocaleLowerCase("it-IT");
+  const names=new Set(registered.people.filter(p=>!p.ended_on||p.ended_on>=now).map(p=>norm(p.full_name)));
   return reply({items:registration.map(a=>({
    user_id:a.user_id,name:a.name,email:a.email,role:a.role,psychologist:a.psychologist,
-   in_book:indexed.has(a.email.trim().toLowerCase()) || names.has(a.name.trim().toLocaleLowerCase("it-IT"))
+   in_book:indexed.has(a.email.trim().toLowerCase()) || names.has(norm(a.name))
   }))});
  }
  if(req.method!=="POST")throw new AssociationError("Metodo non consentito.",405);
@@ -43,7 +45,9 @@ async function handle(req:Request){
  const registered=await existing();
  const mail=account.email.trim().toLowerCase(),name=account.name.trim();
  const existingByEmail=registered.contacts.find(c=>c.email.trim().toLowerCase()===mail);
- const existingByName=registered.people.find(p=>!p.ended_on && p.full_name.trim().toLocaleLowerCase("it-IT")===name.toLocaleLowerCase("it-IT"));
+ const now=new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Rome"}).format(new Date());
+ const norm=(v:string)=>v.trim().replace(/\s+/g," ").toLocaleLowerCase("it-IT");
+ const existingByName=registered.people.find(p=>(!p.ended_on||p.ended_on>=now) && norm(p.full_name)===norm(name));
  if(existingByEmail||existingByName)throw new AssociationError("Socio già presente o omonimo nel libro soci. Controlla prima i dati.",409);
  const response=await service("/rest/v1/association_register_people",{
   method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=representation"},

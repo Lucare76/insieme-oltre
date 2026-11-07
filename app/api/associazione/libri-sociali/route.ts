@@ -1,4 +1,4 @@
-import { authorize, AssociationError, jsonBody, privateHeaders, service } from "../../../../lib/associationServer";
+import { authorize, AssociationError, jsonBody, privateHeaders, service, uuid } from "../../../../lib/associationServer";
 import { validDate } from "../../../../lib/accounting";
 import { socialRegisterPdf, type RegisterKind } from "../../../../lib/socialRegisterPdf";
 export const runtime = "nodejs";
@@ -43,7 +43,35 @@ async function handle(request:Request){
    const bytes=await socialRegisterPdf(kind,items);
    return new Response(new Uint8Array(bytes),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="insieme-oltre-${kind}.pdf"` }});
   }
+  if(kind==="soci"){
+   const corrections=await(await service(
+    "/rest/v1/association_member_name_corrections?select=person_id,old_name,new_name,reason,changed_at&order=changed_at.desc&limit=1000"
+   )).json();
+   return reply({items,corrections});
+  }
   return reply({items});
+ }
+ if(request.method==="PATCH"){
+  // Non esporre la modifica generica dei registri: consenti solo l'ortografia del nominativo.
+  const body=await jsonBody(request);
+  if(body.kind!=="soci" || !uuid(body.person_id) || body.confirm!==true)
+   throw new AssociationError("Scegli un socio e conferma la correzione.");
+  const fullName=cleaned(body.full_name,160,true).replace(/\s+/g," ");
+  const expectedName=cleaned(body.expected_name,160,true);
+  const reason=cleaned(body.reason,300,true);
+  if(fullName.length<2 || reason.length<5 || fullName===expectedName)
+   throw new AssociationError("Inserisci un nome diverso e una motivazione valida.");
+  await service("/rest/v1/rpc/association_correct_member_name",{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    p_person:body.person_id,
+    p_expected_name:expectedName,
+    p_new_name:fullName,
+    p_reason:reason,
+    p_actor:actor.id
+   })
+  });
+  return reply({ok:true,person_id:body.person_id});
  }
  if(request.method!=="POST")throw new AssociationError("Metodo non consentito.",405);
  const body=await jsonBody(request,24000);
@@ -65,4 +93,4 @@ async function dispatch(request:Request){
  return reply({error:error instanceof AssociationError?error.message:"Errore imprevisto nella gestione dei libri sociali."},error instanceof AssociationError?error.status:503);
  }
 }
-export {dispatch as GET,dispatch as POST};
+export {dispatch as GET,dispatch as POST,dispatch as PATCH};

@@ -99,7 +99,7 @@ export default function Page(){
       <h4>Correggi nominativo del socio</h4>
       <p>Nome attuale: <strong>{nameEdit.expected_name}</strong>. La correzione non modifica la data di ammissione, il codice fiscale, le quote o l'identificativo del socio.</p>
       <label>Nome e cognome corretti
-       <input autoFocus required maxLength={160} value={nameEdit.full_name}
+       <input required maxLength={160} aria-label="Nome corretto del socio" value={nameEdit.full_name}
         onChange={e=>setNameEdit({...nameEdit,full_name:e.target.value,confirmed:false})}/>
       </label>
       <label>Motivo della correzione

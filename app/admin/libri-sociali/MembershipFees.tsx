@@ -3,11 +3,16 @@ import {useCallback,useEffect,useState} from "react";
 type Person={id:string;full_name:string;admitted_on:string;ended_on:string|null;paid:boolean};
 type Fee={id:string;person_id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"cash"|"bank"};
 type Data={year:number;people:Person[];fees:Fee[];count:number;total_cents:number};
+type Reminder={setting:{due_on:string;enabled:boolean}|null;deliveries:{person_id:string;recipient_email:string;status:string;attempted_at:string}[]};
 const endpoint="/api/associazione/libri-sociali/quote";
 const eur=(c:number)=>(c/100).toLocaleString("it-IT",{style:"currency",currency:"EUR"});
 export default function MembershipFees(){
  const [year,setYear]=useState(new Date().getFullYear());
  const [data,setData]=useState<Data|null>(null);
+ const [reminder,setReminder]=useState<Reminder|null>(null);
+ const [dueOn,setDueOn]=useState("");
+ const [reminderEnabled,setReminderEnabled]=useState(false);
+ const [reminderConfirm,setReminderConfirm]=useState(false);
  const [personId,setPersonId]=useState("");
  const [amount,setAmount]=useState("");
  const [paidOn,setPaidOn]=useState(new Date().toLocaleDateString("sv-SE"));
@@ -23,9 +28,20 @@ export default function MembershipFees(){
   return response;
  },[]);
  const refresh=useCallback(async()=>{
-  setData(await(await api(endpoint+"?year="+year)).json());setPersonId("");setConfirmed(false);
+  const [fees,reminders]=await Promise.all([api(endpoint+"?year="+year),api("/api/associazione/libri-sociali/promemoria?year="+year)]);
+  const reminderData=await reminders.json() as Reminder;
+  setData(await fees.json());setReminder(reminderData);setDueOn(reminderData.setting?.due_on||"");setReminderEnabled(reminderData.setting?.enabled||false);setReminderConfirm(false);
+  setPersonId("");setConfirmed(false);
  },[api,year]);
  useEffect(()=>{void refresh().catch(e=>setMessage(e instanceof Error?e.message:"Errore caricamento"));},[refresh]);
+ async function saveReminder(){
+  setBusy(true);setMessage("");
+  try{
+   await api("/api/associazione/libri-sociali/promemoria",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({year,due_on:dueOn,enabled:reminderEnabled,confirm:reminderConfirm})});
+   await refresh();setMessage(reminderEnabled?"Promemoria di rinnovo attivato. Verrà controllato automaticamente sette giorni prima della scadenza.":"Promemoria disattivato.");
+  }catch(e){setMessage(e instanceof Error?e.message:"Impossibile salvare il promemoria.");}
+  finally{setBusy(false);}
+ }
  async function save(e:React.FormEvent){
   e.preventDefault();setBusy(true);setMessage("");
   try{
@@ -71,6 +87,16 @@ export default function MembershipFees(){
     <label><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/> Confermo di aver realmente incassato la quota e che non è già stata registrata in Contabilità.</label>
     <button type="submit" className="primary" disabled={busy||!confirmed||!personId||!amount}>Registra quota e incasso</button>
    </form>
+   <h3>Promemoria automatico di rinnovo</h3>
+   <p>Un'email di cortesia viene inviata <strong>sette giorni prima della scadenza</strong> soltanto ai soci con quota non registrata e indirizzo email in rubrica. Nessun invio ai soci già in regola.</p>
+   <label>Scadenza rinnovo quota {year}
+    <input type="date" value={dueOn} min={year+"-01-01"} max={year+"-12-31"} onChange={e=>{setDueOn(e.target.value);setReminderConfirm(false);}}/>
+   </label>
+   <label><input type="checkbox" checked={reminderEnabled} onChange={e=>{setReminderEnabled(e.target.checked);setReminderConfirm(false);}}/> Attiva promemoria automatici</label>
+   {reminderEnabled&&<label><input type="checkbox" checked={reminderConfirm} onChange={e=>setReminderConfirm(e.target.checked)}/> Confermo scadenza e invio automatico ai soci che non risultano aver rinnovato.</label>}
+   <p><button type="button" disabled={busy||!dueOn||(reminderEnabled&&!reminderConfirm)} onClick={()=>void saveReminder()}>Salva impostazioni rinnovo</button></p>
+   <p><small>L'invio avviene solo dopo la configurazione di CRON_SECRET su Vercel e l'attivazione del job programmato. Un eventuale pagamento già effettuato ma non registrato potrebbe causare un promemoria non dovuto: aggiorna gli incassi prima della scadenza.</small></p>
+   {!!reminder?.deliveries.length&&<><h4>Storico promemoria ({reminder.deliveries.length})</h4><ul>{reminder.deliveries.map(d=><li key={d.person_id}>{d.recipient_email} · {d.status==="sent"?"Accettato da Brevo":d.status==="failed"?"Non inviato":"Da verificare"}</li>)}</ul></>}
    <h3>Situazione soci · {year}</h3>
    <ul>{data.people.map(p=>{
     const fee=data.fees.find(f=>f.person_id===p.id);

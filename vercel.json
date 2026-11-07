@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/quote-associative",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}

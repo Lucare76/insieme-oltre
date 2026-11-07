@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Movement } from "../../lib/accounting";
 import { receiptTitle, type Receipt } from "../../lib/receipts";
+import MembershipReceiptForm from "./MembershipReceiptForm";
 type Api = (path: string, init?: RequestInit) => Promise<Response>;
 const money = (n: number) =>
   (n / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
@@ -102,6 +103,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
     (m) =>
       m.kind === "income" &&
       !m.cancelled &&
+      m.category !== "Quote associative" &&
       m.date <= today &&
       !items.some((r) => r.movement_id === m.id && !r.cancelled),
   );
@@ -109,11 +111,10 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
     <section className="soci-card" aria-label="Ricevute">
       <div className="soci-toolbar">
         <div>
-          <p className="soci-kicker">DONAZIONI E RACCOLTE FONDI</p>
+          <p className="soci-kicker">DONAZIONI, RACCOLTE FONDI E QUOTE ASSOCIATIVE</p>
           <h2>Ricevute</h2>
           <p>
-            Prepara la ricevuta: all’emissione registreremo anche l’incasso.
-            Puoi scaricare il PDF e inviarlo via email.
+            Scegli il tipo di ricevuta. Per le quote associative puoi registrare il pagamento o scaricare nuovamente la ricevuta già emessa, senza duplicare l’incasso.
           </p>
         </div>
         <button disabled={busy} onClick={() => void run(load)}>
@@ -124,6 +125,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
           disabled={busy || !loaded || !configured}
           onClick={() => {
             setEditing(true);
+            setType("donation");
             setRequestId(crypto.randomUUID());
             setPreviewed(false);
             setEmail("");
@@ -165,6 +167,28 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
           </p>
         )}
       {editing && (
+        <div className="receipt-form">
+          <label>
+            Tipo di documento da emettere
+            <select
+              aria-label="Tipo di ricevuta"
+              value={type}
+              onChange={(e) => {
+                setType(e.target.value);
+                setPreviewed(false);
+              }}
+            >
+              <option value="donation">Donazione libera, senza beni o servizi in cambio</option>
+              <option value="fundraising">Raccolta fondi con consegna di beni</option>
+              <option value="membership">Quota associativa</option>
+            </select>
+          </label>
+        </div>
+      )}
+      {editing && type === "membership" && (
+        <MembershipReceiptForm api={api} onClose={() => setEditing(false)} />
+      )}
+      {editing && type !== "membership" && (
         <form
           className="receipt-form"
           onChange={() => setPreviewed(false)}
@@ -186,6 +210,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
                 );
               const res = await post({
                 ...data,
+                type,
                 source,
                 action: action === "preview" ? "preview" : "issue",
                 id: requestId,
@@ -291,21 +316,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
               </select>
             </label>
           )}
-          <label>
-            Tipo di documento
-            <select
-              name="type"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-            >
-              <option value="donation">
-                Donazione libera, senza beni o servizi in cambio
-              </option>
-              <option value="fundraising">
-                Partecipazione a raccolta fondi con consegna di beni
-              </option>
-            </select>
-          </label>
+
           <label>
             Nome e cognome / ragione sociale
             <input name="name" required maxLength={120} />

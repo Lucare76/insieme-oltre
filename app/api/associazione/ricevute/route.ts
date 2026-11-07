@@ -154,6 +154,10 @@ async function handle(request: Request) {
     }
     if (movement.date > today())
       throw new AssociationError("Seleziona un’entrata già incassata.");
+    // Una quota associativa non può essere emessa come donazione/raccolta fondi.
+    // Il suo PDF usa esclusivamente la procedura collegata al Libro soci.
+    if (movement.category === "Quote associative")
+      throw new AssociationError("Per questa entrata seleziona Quota associativa nella schermata Ricevute.");
     const issuer = issuerConfig();
     let data;
     try {

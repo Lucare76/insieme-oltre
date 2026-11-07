@@ -1,13 +1,15 @@
 "use client";
-import {useCallback,useEffect,useState} from "react";
+import {useCallback,useEffect,useRef,useState} from "react";
 type Person={id:string;full_name:string;admitted_on:string;ended_on:string|null;paid:boolean};
 type Fee={id:string;person_id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"cash"|"bank";email:string;mail_status:string|null;mail_recipient:string|null};
 type Data={year:number;people:Person[];fees:Fee[];count:number;total_cents:number};
 type Reminder={setting:{due_on:string;enabled:boolean}|null;deliveries:{person_id:string;recipient_email:string;status:string;attempted_at:string}[]};
 const endpoint="/api/associazione/libri-sociali/quote";
 const eur=(c:number)=>(c/100).toLocaleString("it-IT",{style:"currency",currency:"EUR"});
+const todayRome=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Rome"}).format(new Date());
+const validMoney=(value:string)=>/^\d{1,8}([.,]\d{1,2})?$/.test(value.trim()) && Number(value.replace(",","."))>0;
 export default function MembershipFees(){
- const [year,setYear]=useState(new Date().getFullYear());
+ const [year,setYear]=useState(Number(todayRome().slice(0,4)));
  const [data,setData]=useState<Data|null>(null);
  const [reminder,setReminder]=useState<Reminder|null>(null);
  const [dueOn,setDueOn]=useState("");
@@ -15,13 +17,15 @@ export default function MembershipFees(){
  const [reminderConfirm,setReminderConfirm]=useState(false);
  const [personId,setPersonId]=useState("");
  const [amount,setAmount]=useState("");
- const [paidOn,setPaidOn]=useState(new Date().toLocaleDateString("sv-SE"));
+ const [paidOn,setPaidOn]=useState(todayRome);
  const [account,setAccount]=useState<"cash"|"bank">("bank");
  const [confirmed,setConfirmed]=useState(false);
  const [sendFeeId,setSendFeeId]=useState("");
  const [sendConfirmed,setSendConfirmed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState("");
+ const [paymentMessage,setPaymentMessage]=useState("");
+ const submission=useRef(false);
  const api=useCallback(async(url:string,init:RequestInit={})=>{
   const saved=JSON.parse(localStorage.getItem("insieme_oltre_admin_session")||"null");
   if(!saved?.access_token||saved.expires_at*1000<Date.now())throw Error("Accedi nuovamente dall'Area Soci.");
@@ -45,12 +49,60 @@ export default function MembershipFees(){
   finally{setBusy(false);}
  }
  async function save(e:React.FormEvent){
-  e.preventDefault();setBusy(true);setMessage("");
+  e.preventDefault();
+  if(submission.current)return;
+  setPaymentMessage("");
+  const selected=data?.people.find(p=>p.id===personId);
+  if(!data){setPaymentMessage("Impossibile caricare il Libro soci: aggiorna la pagina prima di registrare.");return;}
+  if(!selected){setPaymentMessage("Seleziona un socio dal menu a tendina.");return;}
+  if(selected.paid){setPaymentMessage("La quota di questo socio risulta già registrata per l'anno selezionato.");return;}
+  if(!validMoney(amount)){setPaymentMessage("Inserisci un importo valido, per esempio 20,00 (senza simbolo €).");return;}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(paidOn)||!Number.isFinite(Date.parse(paidOn))){setPaymentMessage("Inserisci la data effettiva del pagamento.");return;}
+  if(paidOn>todayRome()){setPaymentMessage("Non puoi registrare un pagamento con data futura.");return;}
+  if(selected.admitted_on>paidOn){setPaymentMessage("La data del versamento precede l'ammissione del socio.");return;}
+  if(selected.ended_on&&selected.ended_on<paidOn){setPaymentMessage("Alla data indicata il socio risulta cessato.");return;}
+  if(!confirmed){setPaymentMessage("Spunta la casella per confermare che l'incasso è reale e non è già registrato.");return;}
+  submission.current=true;
+  setBusy(true);
+  setPaymentMessage("Registrazione in corso: non ripetere l'operazione.");
+  const submittedPerson=personId;
+  let saved=false;
   try{
-   await api(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({person_id:personId,year,amount,paid_on:paidOn,account,confirm:confirmed})});
-   await refresh();setAmount("");setMessage("Quota registrata in contabilità. Puoi scaricare la ricevuta nominativa PDF.");
-  }catch(e){setMessage(e instanceof Error?e.message:"Operazione non riuscita");}
-  finally{setBusy(false);}
+   const response=await api(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({person_id:submittedPerson,year,amount:amount.trim(),paid_on:paidOn,account,confirm:true})});
+   const result=await response.json() as {ok?:boolean;id?:string};
+   if(!result.ok||!result.id)throw new Error("Esito della registrazione non verificabile. Controlla le quote prima di riprovare.");
+   saved=true;
+   setPersonId("");setAmount("");setConfirmed(false);
+   // La RPC registra quota e movimento nella stessa transazione.
+   setPaymentMessage("Quota e incasso registrati correttamente. La ricevuta è disponibile nella situazione soci.");
+   try{await refresh();}
+   catch{setPaymentMessage("Quota e incasso salvati correttamente. Aggiorna l'elenco per scaricare la ricevuta; NON registrare nuovamente l'incasso.");}
+  }catch(e){
+   const error=e instanceof Error?e.message:"Errore durante la registrazione";
+   if(saved){
+    setPaymentMessage("Pagamento registrato, ma aggiornamento dello storico non riuscito. Aggiorna la pagina, senza ripetere la registrazione.");
+   }else{
+    // In caso di errore di rete, lo stato del POST può essere incerto:
+    // proviamo una lettura prima di suggerire un eventuale nuovo tentativo.
+    try{
+     const response=await api(endpoint+"?year="+year);
+     const latest=await response.json() as Data;
+     setData(latest);
+     const recorded=latest.fees.some(f=>f.person_id===submittedPerson);
+     if(recorded){
+      setPersonId("");setAmount("");setConfirmed(false);
+      setPaymentMessage("La quota è presente nello storico: NON registrarla di nuovo. Puoi scaricare la ricevuta dalla situazione soci.");
+     }else{
+      setPaymentMessage(error+". Non risulta una quota registrata nell'elenco aggiornato: verifica la Contabilità prima di tentare nuovamente.");
+     }
+    }catch{
+     setPaymentMessage(error+". Esito incerto: verifica lo storico quote e la Contabilità prima di premere di nuovo il pulsante.");
+    }
+   }
+  }finally{
+   submission.current=false;
+   setBusy(false);
+  }
  }
  async function sendEmail(fee:Fee){
   setBusy(true);setMessage("");
@@ -84,20 +136,22 @@ export default function MembershipFees(){
    <p><strong>{data.count}</strong> quote registrate · <strong>{eur(data.total_cents)}</strong> incassati · <strong>{total-data.count}</strong> soci senza quota registrata nell'anno selezionato</p>
    {!total&&<p>Il libro soci è vuoto. Inserisci prima i soci effettivi nella sezione «Libro soci».</p>}
    <h3>Registra un versamento</h3>
-   <form onSubmit={e=>void save(e)}>
+   <form noValidate onSubmit={e=>void save(e)}>
     <label>Socio
-     <select required value={personId} onChange={e=>{setPersonId(e.target.value);setConfirmed(false);}}>
+     <select required value={personId} onChange={e=>{setPersonId(e.target.value);setConfirmed(false);setPaymentMessage("");}}>
       <option value="">Seleziona un socio senza quota registrata</option>
       {eligible.map(p=><option value={p.id} key={p.id}>{p.full_name}</option>)}
      </select>
     </label>
-    <label>Importo (€)<input required inputMode="decimal" placeholder="Es. 20,00" value={amount} onChange={e=>setAmount(e.target.value)}/></label>
-    <label>Data del versamento<input required type="date" value={paidOn} onChange={e=>setPaidOn(e.target.value)}/></label>
+    <label>Importo (€)<input required inputMode="decimal" placeholder="Es. 20,00" value={amount} onChange={e=>{setAmount(e.target.value);setPaymentMessage("");}}/></label>
+    <label>Data del versamento<input required type="date" value={paidOn} max={todayRome()} onChange={e=>{setPaidOn(e.target.value);setPaymentMessage("");}}/></label>
     <label>Incassato su
      <select value={account} onChange={e=>setAccount(e.target.value as "cash"|"bank")}><option value="bank">Conto bancario</option><option value="cash">Cassa contanti</option></select>
     </label>
-    <label><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/> Confermo di aver realmente incassato la quota e che non è già stata registrata in Contabilità.</label>
-    <button type="submit" className="primary" disabled={busy||!confirmed||!personId||!amount}>Registra quota e incasso</button>
+    <label><input type="checkbox" checked={confirmed} onChange={e=>{setConfirmed(e.target.checked);setPaymentMessage("");}}/> Confermo di aver realmente incassato la quota e che non è già stata registrata in Contabilità.</label>
+    <button type="submit" className="primary" disabled={busy}>{busy?"Registrazione in corso…":"Registra quota e incasso"}</button>
+    {!busy&&(!personId||!amount||!confirmed)&&<p className="soci-message" role="note">Per registrare: scegli un socio, inserisci l'importo e spunta la conferma dell'incasso. Se manca qualcosa, premi il pulsante per leggere il motivo.</p>}
+    {paymentMessage&&<p className="soci-message" role="status" aria-live="polite" aria-atomic="true">{paymentMessage}</p>}
    </form>
    <h3>Promemoria automatico di rinnovo</h3>
    <p>Un'email di cortesia viene inviata <strong>sette giorni prima della scadenza</strong> soltanto ai soci con quota non registrata e indirizzo email in rubrica. Nessun invio ai soci già in regola.</p>

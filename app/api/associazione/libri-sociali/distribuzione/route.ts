@@ -54,6 +54,10 @@ async function handle(req:Request){
   if(!uuid(b.person_id)||!emailOK(b.email))throw new AssociationError("Scegli un socio e un'email valida.");
   const person=await(await service("/rest/v1/association_register_people?id=eq."+b.person_id+"&register_kind=eq.soci&select=id,ended_on&limit=1")).json() as {id:string;ended_on:string|null}[];
   if(!person.length || (person[0].ended_on && person[0].ended_on<new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Rome"}).format(new Date())))throw new AssociationError("Il contatto deve appartenere a un socio attivo.");
+  const others=await(await service("/rest/v1/association_member_delivery_contacts?select=person_id,email&limit=3000")).json() as Contact[];
+  const normalizedEmail=b.email.trim().toLowerCase();
+  if(others.some(c=>c.person_id!==b.person_id&&c.email.trim().toLowerCase()===normalizedEmail))
+   throw new AssociationError("Email già associata a un altro socio. Verifica prima di proseguire.",409);
   await service("/rest/v1/association_member_delivery_contacts?on_conflict=person_id",{
    method:"POST",headers:{"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"},
    body:JSON.stringify({person_id:b.person_id,email:b.email.trim().toLowerCase(),updated_by:actor.id,updated_at:new Date().toISOString()})

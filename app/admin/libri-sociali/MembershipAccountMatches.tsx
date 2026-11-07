@@ -39,7 +39,7 @@ export default function MembershipAccountMatches(){
  const linked=contacts.filter(c=>!!c.email).length;
  return <section className="soci-card">
   <h2>🔗 Soci e account del sito</h2>
-  <p>La quota viene registrata sul <strong>Libro soci</strong>. Per inviare la ricevuta in automatico tramite Brevo serve un'email nella rubrica ufficiale, eventualmente recuperata dall'account dell'Area Soci. L'account da solo non crea un'iscrizione associativa.</p>
+  <p>La quota viene registrata sul <strong>Libro soci</strong>. Per inviare la ricevuta via email tramite Brevo serve un indirizzo verificato nella rubrica ufficiale, eventualmente recuperata dall'account dell'Area Soci. L'account da solo non crea un'iscrizione associativa.</p>
   <p><strong>{contacts.length}</strong> soci nel Libro · <strong>{linked}</strong> email collegate · <strong>{suggestions.length}</strong> abbinamenti da verificare.</p>
   {suggestions.length>0&&<>
    <h3>Possibili corrispondenze con account registrati</h3>

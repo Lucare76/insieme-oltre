@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 type Api = (path: string, init?: RequestInit) => Promise<Response>;
-type Person = { id: string; full_name: string; admitted_on: string; ended_on: string | null; paid: boolean };
-type Fee = { id: string; person_id: string; full_name: string; fee_year: number; amount_cents: number; paid_on: string; payment_account: "cash" | "bank" };
+type Person = { id: string; full_name: string; admitted_on: string; ended_on: string | null; paid: boolean; email: string };
+type Fee = { id: string; person_id: string; full_name: string; fee_year: number; amount_cents: number; paid_on: string; payment_account: "cash" | "bank"; email: string; mail_status: string | null; mail_recipient: string | null };
 type FeesData = { year: number; people: Person[]; fees: Fee[]; count: number; total_cents: number };
 
 const base = "libri-sociali/quote";
@@ -35,6 +35,7 @@ export default function MembershipReceiptForm({ api, onClose }: { api: Api; onCl
   const [paidOn, setPaidOn] = useState(localToday);
   const [account, setAccount] = useState<"bank" | "cash">("bank");
   const [confirmed, setConfirmed] = useState(false);
+  const [confirmSend, setConfirmSend] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [restricted, setRestricted] = useState(false);
@@ -63,6 +64,10 @@ export default function MembershipReceiptForm({ api, onClose }: { api: Api; onCl
   async function receipt(id: string) {
     const response = await api(base + "?receipt=" + encodeURIComponent(id));
     download(await response.blob(), "ricevuta-quota-associativa-" + year + "-" + id.slice(0, 8) + ".pdf");
+  }
+
+  async function sendReceipt(id:string,recipient:string) {
+    await api(base + "/invio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fee_id:id,confirm_email:recipient,confirm:true})});
   }
 
   async function submit(e: React.FormEvent) {
@@ -112,7 +117,8 @@ export default function MembershipReceiptForm({ api, onClose }: { api: Api; onCl
     }
   }
 
-  const eligible = (data?.people ?? []).filter(p => !p.paid && !p.ended_on);
+  const eligible = (data?.people ?? []).filter(p => !p.paid && (!p.ended_on || p.ended_on >= paidOn));
+  const selectedFee = data?.fees.find(f=>f.id===feeId);
   return (
     <form className="receipt-form" onSubmit={(e) => void submit(e)}>
       <h3>Ricevuta quota associativa</h3>
@@ -161,7 +167,7 @@ export default function MembershipReceiptForm({ api, onClose }: { api: Api; onCl
       {data && mode === "existing" && (
         <>
           <label>Versamento già registrato
-            <select required value={feeId} onChange={e => setFeeId(e.target.value)}>
+            <select required value={feeId} onChange={e => { setFeeId(e.target.value); setConfirmSend(false); }}>
               <option value="">Seleziona il pagamento</option>
               {data.fees.map(fee =>
                 <option key={fee.id} value={fee.id}>{fee.full_name} · {fee.paid_on.split("-").reverse().join("/")} · {formatMoney(fee.amount_cents)}</option>,
@@ -170,6 +176,28 @@ export default function MembershipReceiptForm({ api, onClose }: { api: Api; onCl
           </label>
           {!data.fees.length && <p>Nessuna quota associativa risulta registrata per l'anno scelto.</p>}
           <button type="submit" disabled={busy || !feeId}>Scarica ricevuta PDF</button>
+          {selectedFee && <div>
+            {selectedFee.mail_status
+              ? <p role="status">Invio già registrato: {selectedFee.mail_status==="sent" ? "Accettato da Brevo" : selectedFee.mail_status==="failed" ? "Non accettato" : "Esito da verificare"} · {selectedFee.mail_recipient}. Non inviare una seconda volta senza verifica.</p>
+              : selectedFee.email
+                ? <>
+                    <p>Indirizzo destinatario: <strong>{selectedFee.email}</strong></p>
+                    <label className="soci-check"><input type="checkbox" checked={confirmSend} onChange={e=>setConfirmSend(e.target.checked)}/> Confermo il destinatario e autorizzo l'invio della ricevuta PDF.</label>
+                    <button type="button" disabled={busy||!confirmSend} onClick={()=>void (async()=>{
+                      setBusy(true);setMessage("");
+                      try{
+                        await sendReceipt(selectedFee.id,selectedFee.email);
+                        await load();setFeeId(selectedFee.id);
+                        setMessage("Ricevuta accettata da Brevo per "+selectedFee.email+". La consegna finale si verifica nei log.");
+                      }catch(e){
+                        await load().catch(()=>undefined);setFeeId(selectedFee.id);
+                        setMessage((e instanceof Error?e.message:"Invio non riuscito.")+" Prima di ritentare verifica lo storico di invio.");
+                      }finally{setBusy(false);setConfirmSend(false);}
+                    })()}>Invia ricevuta via email</button>
+                  </>
+                : <p>Email non associata a questo socio. Completa la rubrica ufficiale dei Libri sociali prima dell'invio.</p>
+            }
+          </div>}
         </>
       )}
       {message && !restricted && <p role="status" className="soci-message">{message}</p>}

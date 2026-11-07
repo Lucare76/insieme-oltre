@@ -1,7 +1,7 @@
 "use client";
 import {useCallback,useEffect,useState} from "react";
 type Person={id:string;full_name:string;admitted_on:string;ended_on:string|null;paid:boolean};
-type Fee={id:string;person_id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"cash"|"bank"};
+type Fee={id:string;person_id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"cash"|"bank";email:string;mail_status:string|null;mail_recipient:string|null};
 type Data={year:number;people:Person[];fees:Fee[];count:number;total_cents:number};
 type Reminder={setting:{due_on:string;enabled:boolean}|null;deliveries:{person_id:string;recipient_email:string;status:string;attempted_at:string}[]};
 const endpoint="/api/associazione/libri-sociali/quote";
@@ -18,6 +18,8 @@ export default function MembershipFees(){
  const [paidOn,setPaidOn]=useState(new Date().toLocaleDateString("sv-SE"));
  const [account,setAccount]=useState<"cash"|"bank">("bank");
  const [confirmed,setConfirmed]=useState(false);
+ const [sendFeeId,setSendFeeId]=useState("");
+ const [sendConfirmed,setSendConfirmed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState("");
  const api=useCallback(async(url:string,init:RequestInit={})=>{
@@ -50,6 +52,16 @@ export default function MembershipFees(){
   }catch(e){setMessage(e instanceof Error?e.message:"Operazione non riuscita");}
   finally{setBusy(false);}
  }
+ async function sendEmail(fee:Fee){
+  setBusy(true);setMessage("");
+  try{
+   await api(endpoint+"/invio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fee_id:fee.id,confirm_email:fee.email,confirm:true})});
+   await refresh();setMessage("Ricevuta accettata da Brevo per "+fee.email+". Verifica la consegna nei log.");
+  }catch(e){
+   await refresh().catch(()=>undefined);
+   setMessage((e instanceof Error?e.message:"Invio non riuscito.")+" Prima di riprovare controlla lo storico di invio.");
+  }finally{setBusy(false);setSendFeeId("");setSendConfirmed(false);}
+ }
  async function pdf(id:string){
   setBusy(true);setMessage("");
   try{
@@ -60,7 +72,7 @@ export default function MembershipFees(){
   }catch(e){setMessage(e instanceof Error?e.message:"PDF non disponibile");}
   finally{setBusy(false);}
  }
- const eligible=data?.people.filter(p=>!p.paid&&!p.ended_on)||[];
+ const eligible=data?.people.filter(p=>!p.paid&&(!p.ended_on||p.ended_on>=paidOn))||[];
  const total=data?.people.length||0;
  return <section className="soci-card">
   <h2>Quote associative annuali</h2>
@@ -100,7 +112,20 @@ export default function MembershipFees(){
    <h3>Situazione soci · {year}</h3>
    <ul>{data.people.map(p=>{
     const fee=data.fees.find(f=>f.person_id===p.id);
-    return <li key={p.id}><strong>{p.full_name}</strong> — {fee?<>Pagata il {fee.paid_on.split("-").reverse().join("/")} ({eur(fee.amount_cents)}) <button type="button" disabled={busy} onClick={()=>void pdf(fee.id)}>Scarica ricevuta PDF</button></>:"Non registrata"}</li>;
+    return <li key={p.id}><strong>{p.full_name}</strong> — {fee?<>
+     Pagata il {fee.paid_on.split("-").reverse().join("/")} ({eur(fee.amount_cents)})
+     <button type="button" disabled={busy} onClick={()=>void pdf(fee.id)}>Scarica ricevuta PDF</button>
+     {fee.mail_status
+      ? <small> · Email: {fee.mail_status==="sent"?"Accettata da Brevo":"Da verificare"} ({fee.mail_recipient})</small>
+      : fee.email ? <>
+        <button type="button" disabled={busy} onClick={()=>{setSendFeeId(fee.id);setSendConfirmed(false);}}>Invia ricevuta via email</button>
+        {sendFeeId===fee.id&&<span>
+         <strong> Destinatario: {fee.email}</strong>
+         <label><input type="checkbox" checked={sendConfirmed} onChange={e=>setSendConfirmed(e.target.checked)}/> Confermo il destinatario e autorizzo l'invio del PDF.</label>
+         <button type="button" className="primary" disabled={busy||!sendConfirmed} onClick={()=>void sendEmail(fee)}>Conferma invio</button>
+        </span>}
+       </> : <small> · Email mancante nella rubrica soci</small>}
+     </>:"Non registrata"}</li>;
    })}</ul>
    <p><small>«Non registrata» indica soltanto l'assenza di una quota in questo gestionale; verifica eventuali incassi precedenti prima di procedere. La ricevuta della quota è nominativa e non fiscale: non certifica una donazione né agevolazioni fiscali. Si genera soltanto per pagamenti registrati.</small></p>
   </>}

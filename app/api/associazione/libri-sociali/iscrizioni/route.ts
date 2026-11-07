@@ -5,6 +5,26 @@ type Account={user_id:string;name:string;email:string;role:string;psychologist:b
 type Person={id:string;full_name:string;ended_on:string|null};
 type Contact={person_id:string;email:string};
 const reply=(payload:unknown,status=200)=>Response.json(payload,{status,headers:privateHeaders});
+const today=()=>new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Rome"}).format(new Date());
+const norm=(s:string)=>s.trim().replace(/\s+/g," ").toLocaleLowerCase("it-IT");
+const compact=(s:string)=>norm(s).normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+function distanceAtMostOne(a:string,b:string){
+ if(Math.abs(a.length-b.length)>1)return false;
+ let i=0,j=0,diff=0;
+ while(i<a.length&&j<b.length){
+  if(a[i]===b[j]){i++;j++;continue;}
+  if(++diff>1)return false;
+  if(a.length>b.length)i++;else if(b.length>a.length)j++;else{i++;j++;}
+ }
+ return diff+(a.length-i)+(b.length-j)<=1;
+}
+function match(a:string,b:string):"exact"|"similar"|null{
+ if(norm(a)===norm(b))return "exact";
+ const x=compact(a),y=compact(b);
+ // La sola somiglianza NON autorizza l'abbinamento: richiede conferma esplicita nell'UI.
+ if(x.length>=9&&y.length>=9&&(x===y||distanceAtMostOne(x,y)))return "similar";
+ return null;
+}
 async function accounts():Promise<Account[]>{
  const out:Account[]=[];
  for(let offset=0;offset<3000;offset+=500){
@@ -19,39 +39,67 @@ async function existing(){
  const contacts=await(await service("/rest/v1/association_member_delivery_contacts?select=person_id,email&limit=3000")).json() as Contact[];
  return {people,contacts};
 }
+const active=(p:Person)=>!p.ended_on||p.ended_on>=today();
 async function handle(req:Request){
  const actor=await authorize(req,false,false,true);
  if(req.method==="GET"){
   const [registration,registered]=await Promise.all([accounts(),existing()]);
   const indexed=new Map(registered.contacts.map(c=>[c.email.trim().toLowerCase(),c.person_id]));
-  const names=new Set(registered.people.filter(p=>!p.ended_on).map(p=>p.full_name.trim().toLocaleLowerCase("it-IT")));
+  const available=registered.people.filter(active);
+  const names=new Set(available.map(p=>norm(p.full_name)));
   return reply({items:registration.map(a=>({
    user_id:a.user_id,name:a.name,email:a.email,role:a.role,psychologist:a.psychologist,
-   in_book:indexed.has(a.email.trim().toLowerCase()) || names.has(a.name.trim().toLocaleLowerCase("it-IT"))
+   in_book:indexed.has(a.email.trim().toLowerCase())||names.has(norm(a.name)),
+   matches:available.map(p=>({person_id:p.id,full_name:p.full_name,quality:match(a.name,p.full_name),linked:registered.contacts.some(c=>c.person_id===p.id&&c.email.trim().toLowerCase()===a.email.trim().toLowerCase())})).filter(x=>x.quality)
   }))});
  }
  if(req.method!=="POST")throw new AssociationError("Metodo non consentito.",405);
  const b=await jsonBody(req);
+ const registration=await accounts();
+ const registered=await existing();
+ if(b.action==="link_existing"){
+  if(!uuid(b.user_id)||!uuid(b.person_id)||b.confirm_link!==true)
+   throw new AssociationError("Scegli l'account e il socio da collegare, poi conferma l'abbinamento.");
+  const account=registration.find(a=>a.user_id===b.user_id);
+  const person=registered.people.find(p=>p.id===b.person_id&&active(p));
+  if(!account||!person)throw new AssociationError("Account o socio effettivo non trovato.",404);
+  const quality=match(account.name,person.full_name);
+  if(!quality)throw new AssociationError("I nomi non sono sufficientemente simili per un abbinamento sicuro.",409);
+  if(quality==="similar"&&b.confirm_names!==true)
+   throw new AssociationError("I due nomi non coincidono esattamente: verifica l'identità e conferma la differenza prima di associare l'email.",409);
+  const mail=account.email.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))throw new AssociationError("L'email dell'account non è valida.",409);
+  const current=registered.contacts.find(c=>c.person_id===person.id);
+  if(current){
+   if(current.email.toLowerCase()===mail)return reply({ok:true,person_id:person.id,already_linked:true});
+   throw new AssociationError("Il socio ha già un'altra email in rubrica. Verifica prima di modificare.",409);
+  }
+  if(registered.contacts.some(c=>c.email.trim().toLowerCase()===mail))
+   throw new AssociationError("L'email è già associata a un altro socio. Verifica prima di proseguire.",409);
+  await service("/rest/v1/association_member_delivery_contacts",{
+   method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=minimal"},
+   body:JSON.stringify({person_id:person.id,email:mail,updated_by:actor.id})
+  });
+  return reply({ok:true,person_id:person.id},201);
+ }
  if(!uuid(b.user_id)||!validDate(b.admitted_on)||b.confirm_membership!==true)
   throw new AssociationError("Conferma l'iscrizione effettiva e la data di ammissione.");
- if(b.admitted_on>new Date().toISOString().slice(0,10))
-  throw new AssociationError("La data di ammissione non può essere futura.");
- const account=(await accounts()).find(a=>a.user_id===b.user_id);
+ if(b.admitted_on>today())throw new AssociationError("La data di ammissione non può essere futura.");
+ const account=registration.find(a=>a.user_id===b.user_id);
  if(!account)throw new AssociationError("Iscrizione attiva non trovata.",404);
  if(!account.name?.trim() || account.name.length>160 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(account.email||""))
   throw new AssociationError("Nome o email dell'iscrizione non valido.",409);
- const registered=await existing();
  const mail=account.email.trim().toLowerCase(),name=account.name.trim();
  const existingByEmail=registered.contacts.find(c=>c.email.trim().toLowerCase()===mail);
- const existingByName=registered.people.find(p=>!p.ended_on && p.full_name.trim().toLocaleLowerCase("it-IT")===name.toLocaleLowerCase("it-IT"));
- if(existingByEmail||existingByName)throw new AssociationError("Socio già presente o omonimo nel libro soci. Controlla prima i dati.",409);
+ const existingByName=registered.people.find(p=>active(p)&&match(p.full_name,name));
+ if(existingByEmail||existingByName)
+  throw new AssociationError("Socio già presente o nome molto simile nel Libro soci. Usa il collegamento ai nominativi esistenti, senza creare duplicati.",409);
  const response=await service("/rest/v1/association_register_people",{
   method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=representation"},
   body:JSON.stringify({register_kind:"soci",full_name:name,admitted_on:b.admitted_on,created_by:actor.id})
  });
  const [person]=await response.json() as {id:string}[];
  if(!person?.id)throw new AssociationError("Impossibile registrare l'ammissione.",503);
- // Se il salvataggio email fallisce, la persona rimane nel libro soci e potrà essere completata manualmente.
  await service("/rest/v1/association_member_delivery_contacts",{
   method:"POST",headers:{"Content-Type":"application/json",Prefer:"return=minimal"},
   body:JSON.stringify({person_id:person.id,email:mail,updated_by:actor.id})

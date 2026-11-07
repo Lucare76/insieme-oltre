@@ -5,6 +5,7 @@ import Image from "next/image";
 import SignedDocumentsPanel from "./SignedDocumentsPanel";
 import MinuteDistribution from "./MinuteDistribution";
 import MembershipFees from "./MembershipFees";
+import MembershipAccountMatches from "./MembershipAccountMatches";
 import "../../area-soci/soci.css";
 
 type Kind = "soci"|"volontari"|"assemblee"|"direttivo";
@@ -74,6 +75,6 @@ export default function Page(){
     <label>Verbale<textarea required rows={8} value={data.content} onChange={e=>setData({...data,content:e.target.value})}/></label>
     <label><input type="checkbox" checked={data.approved} onChange={e=>setData({...data,approved:e.target.checked})}/> Già approvato</label></>}
    <button className="primary" type="submit" disabled={busy}>Salva</button>
-  </form></section>{kind==="soci"&&<MembershipFees/>}<SignedDocumentsPanel kind={kind}/>{kind==="assemblee"&&<MinuteDistribution minutes={items}/>}</>}
+  </form></section>{kind==="soci"&&<><MembershipAccountMatches/><MembershipFees/></>}<SignedDocumentsPanel kind={kind}/>{kind==="assemblee"&&<MinuteDistribution minutes={items}/>}</>}
  </div></main>;
 }

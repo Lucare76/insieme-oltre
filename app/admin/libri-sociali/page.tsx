@@ -121,7 +121,7 @@ export default function Page(){
     <ul>{corrections.map((c,i)=><li key={c.person_id+":"+c.changed_at+":"+i}>
      {new Date(c.changed_at).toLocaleString("it-IT",{timeZone:"Europe/Rome"})} · <strong>{c.old_name}</strong> → <strong>{c.new_name}</strong> · {c.reason}
     </li>)}</ul>
-   </details>
+   </details>}
   </section>
   <section className="soci-card"><h2>Nuova registrazione</h2><form onSubmit={save}>
    {person?<>{input("full_name","Nome e cognome",true)}{input("admitted_on","Data ammissione",true,"date")}{input("birth_date","Data di nascita",false,"date")}{input("fiscal_code","Codice fiscale")}{input("ended_on","Data cessazione",false,"date")}{kind==="volontari"&&input("insurance_reference","Riferimento assicurativo")}{input("notes","Note")}</>

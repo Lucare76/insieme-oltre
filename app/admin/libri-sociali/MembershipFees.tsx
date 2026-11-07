@@ -60,7 +60,7 @@ export default function MembershipFees(){
   }catch(e){setMessage(e instanceof Error?e.message:"PDF non disponibile");}
   finally{setBusy(false);}
  }
- const eligible=data?.people.filter(p=>!p.paid&&!p.ended_on)||[];
+ const eligible=data?.people.filter(p=>!p.paid&&(!p.ended_on||p.ended_on>=paidOn))||[];
  const total=data?.people.length||0;
  return <section className="soci-card">
   <h2>Quote associative annuali</h2>

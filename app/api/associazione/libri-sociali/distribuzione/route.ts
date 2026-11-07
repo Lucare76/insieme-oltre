@@ -30,7 +30,8 @@ async function recipients(){
   contacts.push(...part);if(part.length<500)break;
  }
  const contactById=new Map(contacts.map(c=>[c.person_id,c.email.trim().toLowerCase()]));
- const active=people.filter(p=>!p.ended_on);
+ const now=new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Rome"}).format(new Date());
+ const active=people.filter(p=>!p.ended_on||p.ended_on>=now);
  const withEmail=active.map(p=>({...p,email:contactById.get(p.id)||""}));
  const valid=withEmail.filter(p=>emailOK(p.email));
  const duplicates=new Set<string>();const seen=new Set<string>();
@@ -52,7 +53,7 @@ async function handle(req:Request){
   const b=await jsonBody(req);
   if(!uuid(b.person_id)||!emailOK(b.email))throw new AssociationError("Scegli un socio e un'email valida.");
   const person=await(await service("/rest/v1/association_register_people?id=eq."+b.person_id+"&register_kind=eq.soci&select=id,ended_on&limit=1")).json() as {id:string;ended_on:string|null}[];
-  if(!person.length || person[0].ended_on)throw new AssociationError("Il contatto deve appartenere a un socio attivo.");
+  if(!person.length || (person[0].ended_on && person[0].ended_on<new Intl.DateTimeFormat("sv-SE",{timeZone:"Europe/Rome"}).format(new Date())))throw new AssociationError("Il contatto deve appartenere a un socio attivo.");
   await service("/rest/v1/association_member_delivery_contacts?on_conflict=person_id",{
    method:"POST",headers:{"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=minimal"},
    body:JSON.stringify({person_id:b.person_id,email:b.email.trim().toLowerCase(),updated_by:actor.id,updated_at:new Date().toISOString()})

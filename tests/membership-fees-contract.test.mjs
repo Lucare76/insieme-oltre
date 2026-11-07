@@ -25,7 +25,13 @@ test("registrazione solo con conferma e validazione; PDF senza donazione",()=>{
  assert.match(route,/parseCents\(b\.amount\)/);
  assert.match(route,/validDate\(b\.paid_on\)/);
  assert.match(route,/association_record_membership_fee/);
- assert.match(pdf,/Non è una ricevuta di donazione/);
+ assert.match(pdf,/RICEVUTA QUOTA ASSOCIATIVA/);
+ assert.match(pdf,/La quota associativa non è un.erogazione liberale/);
+ assert.match(pdf,/RECEIPT_ISSUER_TAX_CODE/);
+ assert.match(pdf,/Codice fiscale del socio/);
+ assert.match(pdf,/receiptNumber = "QA\/" \+ fee.fee_year \+ "\/" \+ fee.id.toUpperCase/);
+ assert.match(route,/filename="ricevuta-quota-associativa-/);
+ assert.match(ui,/Scarica ricevuta PDF/);
  assert.match(pdf,/logo\.png/);
  assert.match(ui,/non è già stata registrata in Contabilità/);
 });

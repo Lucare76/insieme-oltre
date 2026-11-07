@@ -26,10 +26,18 @@ async function handle(req:Request){
    if(!uuid(receiptId))throw new AssociationError("Ricevuta non valida.");
    const fees=await(await service("/rest/v1/association_membership_fees?id=eq."+receiptId+"&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&limit=1")).json() as Fee[];
    const fee=fees[0];if(!fee)throw new AssociationError("Versamento non trovato.",404);
-   const people=await loadPeople(),person=people.find(x=>x.id===fee.person_id);
+   const people=await(await service("/rest/v1/association_register_people?id=eq."+fee.person_id+"&register_kind=eq.soci&select=id,full_name,fiscal_code&limit=1")).json() as {id:string;full_name:string;fiscal_code:string}[];
+   const person=people[0];
    if(!person)throw new AssociationError("Socio non trovato.",404);
-   const bytes=await membershipFeePdf({...fee,full_name:person.full_name});
-   return new Response(new Uint8Array(bytes),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Disposition":'attachment; filename="quota-associativa-'+fee.fee_year+'-'+fee.id.slice(0,8)+'.pdf"'}});
+   let bytes:Buffer;
+   try{
+    bytes=await membershipFeePdf({...fee,full_name:person.full_name,fiscal_code:person.fiscal_code||null});
+   }catch(e){
+    if(e instanceof Error&&e.message.startsWith("Dati dell'associazione incompleti:"))
+     throw new AssociationError(e.message,503);
+    throw e;
+   }
+   return new Response(new Uint8Array(bytes),{headers:{...privateHeaders,"Content-Type":"application/pdf","Content-Disposition":'attachment; filename="ricevuta-quota-associativa-'+fee.fee_year+'-'+fee.id.slice(0,8)+'.pdf"'}});
   }
   const year=Number(url.searchParams.get("year")||new Date().getUTCFullYear());
   if(!Number.isInteger(year)||year<2020||year>2199)throw new AssociationError("Anno non valido.");

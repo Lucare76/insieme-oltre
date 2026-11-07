@@ -1,0 +1,31 @@
+import {PDFDocument,rgb} from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import {readFile} from "node:fs/promises";
+import path from "node:path";
+export type FeeReceipt={id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"bank"|"cash";created_at:string};
+export async function membershipFeePdf(fee:FeeReceipt){
+ const pdf=await PDFDocument.create();pdf.registerFontkit(fontkit);
+ const pathFor=(n:string)=>path.join(process.cwd(),"lib/receipt-assets",n);
+ const [regular,bold,picture]=await Promise.all([readFile(pathFor("DejaVuSans.ttf")),readFile(pathFor("DejaVuSans-Bold.ttf")),readFile(pathFor("logo.png"))]);
+ const font=await pdf.embedFont(regular,{subset:true}),strong=await pdf.embedFont(bold,{subset:true}),logo=await pdf.embedPng(picture);
+ const page=pdf.addPage([595.28,841.89]);const ink=rgb(.15,.23,.18);
+ const d=(s:string)=>s.slice(0,10).split("-").reverse().join("/");
+ const draw=(text:string,x:number,y:number,size=11,b=false)=>page.drawText(text,{x,y,size,font:b?strong:font,color:ink});
+ const image=logo.scale(Math.min(125/logo.width,85/logo.height));page.drawImage(logo,{x:44,y:719,...image});
+ draw("INSIEME OLTRE ODV",190,786,13,true);
+ draw("Attestazione di versamento quota associativa",44,671,17,true);
+ draw("Documento n. QA-"+fee.fee_year+"-"+fee.id.slice(0,8).toUpperCase(),44,628,10);
+ draw("Socio: "+fee.full_name,44,587,12,true);
+ draw("Anno associativo: "+fee.fee_year,44,552,12);
+ draw("Importo versato: "+(fee.amount_cents/100).toLocaleString("it-IT",{style:"currency",currency:"EUR"}),44,517,12);
+ draw("Data pagamento: "+d(fee.paid_on),44,482,12);
+ draw("Modalità: "+(fee.payment_account==="bank"?"Banca":"Contanti"),44,447,12);
+ draw("Causale: quota associativa "+fee.fee_year,44,412,12);
+ draw("L'importo è registrato nella contabilità dell'associazione.",44,344,10);
+ draw("Non è una ricevuta di donazione né attesta agevolazioni fiscali.",44,324,9);
+ draw("Documento generato dal gestionale; non sostituisce eventuale sottoscrizione.",44,300,8);
+ page.drawLine({start:{x:44,y:73},end:{x:551,y:73},thickness:1,color:rgb(.75,.82,.77)});
+ draw("Insieme Oltre ODV · Copia riservata al socio",44,53,9);
+ pdf.setTitle("Quota associativa "+fee.fee_year+" - "+fee.full_name);
+ return Buffer.from(await pdf.save());
+}

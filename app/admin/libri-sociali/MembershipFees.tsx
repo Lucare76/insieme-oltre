@@ -46,7 +46,7 @@ export default function MembershipFees(){
   e.preventDefault();setBusy(true);setMessage("");
   try{
    await api(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({person_id:personId,year,amount,paid_on:paidOn,account,confirm:confirmed})});
-   await refresh();setAmount("");setMessage("Quota registrata in contabilità. Puoi scaricare l'attestazione PDF.");
+   await refresh();setAmount("");setMessage("Quota registrata in contabilità. Puoi scaricare la ricevuta nominativa PDF.");
   }catch(e){setMessage(e instanceof Error?e.message:"Operazione non riuscita");}
   finally{setBusy(false);}
  }
@@ -55,7 +55,7 @@ export default function MembershipFees(){
   try{
    const blob=await(await api(endpoint+"?receipt="+encodeURIComponent(id))).blob();
    const url=URL.createObjectURL(blob),a=document.createElement("a");
-   a.href=url;a.download="quota-associativa-"+year+"-"+id.slice(0,8)+".pdf";a.click();
+   a.href=url;a.download="ricevuta-quota-associativa-"+year+"-"+id.slice(0,8)+".pdf";a.click();
    setTimeout(()=>URL.revokeObjectURL(url),1000);
   }catch(e){setMessage(e instanceof Error?e.message:"PDF non disponibile");}
   finally{setBusy(false);}
@@ -100,9 +100,9 @@ export default function MembershipFees(){
    <h3>Situazione soci · {year}</h3>
    <ul>{data.people.map(p=>{
     const fee=data.fees.find(f=>f.person_id===p.id);
-    return <li key={p.id}><strong>{p.full_name}</strong> — {fee?<>Pagata il {fee.paid_on.split("-").reverse().join("/")} ({eur(fee.amount_cents)}) <button type="button" disabled={busy} onClick={()=>void pdf(fee.id)}>Scarica PDF</button></>:"Non registrata"}</li>;
+    return <li key={p.id}><strong>{p.full_name}</strong> — {fee?<>Pagata il {fee.paid_on.split("-").reverse().join("/")} ({eur(fee.amount_cents)}) <button type="button" disabled={busy} onClick={()=>void pdf(fee.id)}>Scarica ricevuta PDF</button></>:"Non registrata"}</li>;
    })}</ul>
-   <p><small>«Non registrata» indica soltanto l'assenza di una quota in questo gestionale; verifica eventuali incassi precedenti prima di procedere. Il PDF è un'attestazione del versamento, non una ricevuta di donazione fiscalmente agevolata.</small></p>
+   <p><small>«Non registrata» indica soltanto l'assenza di una quota in questo gestionale; verifica eventuali incassi precedenti prima di procedere. La ricevuta della quota è nominativa e non fiscale: non certifica una donazione né agevolazioni fiscali. Si genera soltanto per pagamenti registrati.</small></p>
   </>}
   {message&&<p role="status" className="soci-message">{message}</p>}
  </section>;

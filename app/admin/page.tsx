@@ -566,7 +566,7 @@ export default function AreaSoci() {
               >
                 Contabilità
               </button>
-              {(user.role === "owner" || user.role === "president") && <Link href="/admin/libri-sociali">Libri sociali →</Link>}
+              {user.role === "president" && <Link href="/admin/libri-sociali">Libri sociali →</Link>}
               {whatsappAllowed && <button aria-pressed={tab === "whatsapp"} onClick={() => void openTab("whatsapp")}>WhatsApp</button>}
               {write && <button aria-pressed={tab === "receipts"} onClick={() => void openTab("receipts")}>Ricevute</button>}
               {(user.role === "owner" || user.psychologist) && <Link href="/admin/questionari">Questionari →</Link>}

@@ -41,9 +41,21 @@ async function handle(req:Request){
   }
   const year=Number(url.searchParams.get("year")||new Date().getUTCFullYear());
   if(!Number.isInteger(year)||year<2020||year>2199)throw new AssociationError("Anno non valido.");
-  const [people,fees]=await Promise.all([loadPeople(),loadFees(year)]);
+  const [people,fees,contacts,history]=await Promise.all([
+   loadPeople(),loadFees(year),
+   service("/rest/v1/association_member_delivery_contacts?select=person_id,email&limit=5000").then(r=>r.json()) as Promise<{person_id:string;email:string}[]>,
+   service("/rest/v1/association_membership_receipt_deliveries?select=fee_id,status,recipient_email&limit=5000").then(r=>r.json()) as Promise<{fee_id:string;status:string;recipient_email:string}[]>
+  ]);
   const registered=new Set(fees.map(f=>f.person_id));
-  return reply({year,people:people.filter(p=>p.admitted_on.slice(0,4)<=String(year) && (!p.ended_on || p.ended_on.slice(0,4)>=String(year))).map(p=>({...p,paid:registered.has(p.id)})),fees:fees.map(f=>({...f,full_name:people.find(p=>p.id===f.person_id)?.full_name||"Socio"})),count:fees.length,total_cents:fees.reduce((s,x)=>s+x.amount_cents,0)});
+  const emails=new Map(contacts.map(c=>[c.person_id,c.email]));
+  const receipts=new Map(history.map(h=>[h.fee_id,h]));
+  const names=new Map(people.map(p=>[p.id,p.full_name]));
+  return reply({
+   year,
+   people:people.filter(p=>p.admitted_on.slice(0,4)<=String(year) && (!p.ended_on || p.ended_on.slice(0,4)>=String(year))).map(p=>({...p,paid:registered.has(p.id),email:emails.get(p.id)||""})),
+   fees:fees.map(f=>({...f,full_name:names.get(f.person_id)||"Socio",email:emails.get(f.person_id)||"",mail_status:receipts.get(f.id)?.status||null,mail_recipient:receipts.get(f.id)?.recipient_email||null})),
+   count:fees.length,total_cents:fees.reduce((sum,f)=>sum+f.amount_cents,0)
+  });
  }
  if(req.method!=="POST")throw new AssociationError("Metodo non consentito.",405);
  const b=await jsonBody(req);

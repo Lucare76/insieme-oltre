@@ -34,7 +34,7 @@ export default function Page(){
   let active=true;
   (async()=>{try{
    const me=await (await api("/api/associazione/me")).json();
-   if(!["owner","president"].includes(me.user.role))throw new Error("Accesso riservato all'amministratore principale.");
+   if(!["owner","president","accountant"].includes(me.user.role))throw new Error("Accesso riservato a Admin, Presidente e Tesoriere.");
    const list=await (await api("/api/associazione/libri-sociali?kind="+kind)).json();
    if(active){setAuthorized(true);setItems(list.items);setCorrections(list.corrections||[]);setNameEdit(null);setError("");}
   }catch(e){if(active)setError(e instanceof Error?e.message:"Accesso negato");}})();
@@ -84,7 +84,7 @@ export default function Page(){
   {authorized&&<><section className="soci-card">
    {(Object.keys(labels) as Kind[]).map(k=><button key={k} type="button" aria-pressed={kind===k} onClick={()=>{setKind(k);setData(initial);setNameEdit(null);}}>{labels[k]}</button>)}
    <h2>{labels[kind]}</h2>
-   <p>Registro indipendente dagli account di accesso. Solo Admin e Presidente possono visualizzarlo.</p>
+   <p>Registro indipendente dagli account di accesso. Accessibile soltanto a Admin principale, Presidente e Tesoriere.</p>
    <button disabled={busy} type="button" onClick={()=>void pdf()}>Genera PDF con logo</button>
    <p><small>Il PDF non sostituisce l'approvazione dei verbali né la vidimazione del registro volontari.</small></p>
    <h3>Registrazioni: {items.length}</h3>

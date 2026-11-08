@@ -21,7 +21,7 @@ export const kindLabels = {
 export const roleLabels = {
   owner: "Admin principale",
   president: "Presidente",
-  accountant: "Amministratore contabile",
+  accountant: "Tesoriere — contabilità e libri sociali",
   member: "Socio",
   none: "Senza accesso contabile",
 };

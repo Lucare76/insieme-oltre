@@ -22,7 +22,7 @@ const cleaned = (x:unknown,max:number,required=false) => {
  return x.trim();
 };
 async function handle(request:Request){
- // Solo owner e presidente: gli account di soci e contabili non danno accesso ai registri.
+ // Solo Admin principale, Presidente e Tesoriere. Gli account di semplici soci non accedono ai registri.
  const actor = await authorize(request, false, false, true);
  const params = new URL(request.url).searchParams;
  const kind = params.get("kind");

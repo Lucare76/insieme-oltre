@@ -1,7 +1,7 @@
 import {authorize,AssociationError,jsonBody,privateHeaders,service,uuid} from "../../../../../lib/associationServer";
 import {validDate} from "../../../../../lib/accounting";
 export const runtime="nodejs";
-type Account={user_id:string;name:string;email:string;role:string;psychologist:boolean;active:boolean};
+type Account={user_id:string;name:string;email:string;role:string;psychologist:boolean;active:boolean;activated_at:string|null};
 type Person={id:string;full_name:string;ended_on:string|null};
 type Contact={person_id:string;email:string};
 const reply=(payload:unknown,status=200)=>Response.json(payload,{status,headers:privateHeaders});
@@ -28,7 +28,7 @@ function match(a:string,b:string):"exact"|"similar"|null{
 async function accounts():Promise<Account[]>{
  const out:Account[]=[];
  for(let offset=0;offset<3000;offset+=500){
-  const res=await service("/rest/v1/association_members?active=eq.true&select=user_id,name,email,role,psychologist,active&order=name.asc&offset="+offset+"&limit=500");
+  const res=await service("/rest/v1/association_members?active=eq.true&select=user_id,name,email,role,psychologist,active,activated_at&order=name.asc&offset="+offset+"&limit=500");
   const part=await res.json() as Account[];
   out.push(...part);if(part.length<500)break;
  }
@@ -48,7 +48,7 @@ async function handle(req:Request){
   const available=registered.people.filter(active);
   const names=new Set(available.map(p=>norm(p.full_name)));
   return reply({items:registration.map(a=>({
-   user_id:a.user_id,name:a.name,email:a.email,role:a.role,psychologist:a.psychologist,
+   user_id:a.user_id,name:a.name,email:a.email,role:a.role,psychologist:a.psychologist,activated_at:a.activated_at,
    in_book:indexed.has(a.email.trim().toLowerCase())||names.has(norm(a.name)),
    matches:available.map(p=>({person_id:p.id,full_name:p.full_name,quality:match(a.name,p.full_name),linked:registered.contacts.some(c=>c.person_id===p.id&&c.email.trim().toLowerCase()===a.email.trim().toLowerCase())})).filter(x=>x.quality)
   }))});

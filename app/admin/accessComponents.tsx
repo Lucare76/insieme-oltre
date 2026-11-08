@@ -308,7 +308,7 @@ function RequestCard({
             disabled={busy}
           >
             <option value="member">Socio — consultazione</option>
-            <option value="accountant">Amministratore contabile</option>
+            <option value="accountant">Tesoriere — contabilità e libri sociali</option>
             <option value="president">Presidente — libri sociali</option>
             <option value="none">Nessun accesso alla contabilità</option>
           </select>
@@ -325,7 +325,7 @@ function RequestCard({
             {role === "member"
               ? "Può consultare entrate, uscite e saldi. Non può modificare i conti."
               : role === "accountant"
-                ? "Può registrare e correggere i movimenti e gestire i giustificativi."
+                ? "Può gestire la contabilità e i Libri sociali, incluse quote, ricevute e registri."
                 : role === "president"
                   ? "Gestisce libri sociali e PDF, senza accesso alla contabilità."
                   : "Nessuna sezione economica o amministrativa."}

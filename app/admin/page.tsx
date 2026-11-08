@@ -566,7 +566,7 @@ export default function AreaSoci() {
               >
                 Contabilità
               </button>
-              {user.role === "president" && <Link href="/admin/libri-sociali">Libri sociali →</Link>}
+              {(user.role === "president" || user.role === "accountant") && <Link href="/admin/libri-sociali">Libri sociali →</Link>}
               {whatsappAllowed && <button aria-pressed={tab === "whatsapp"} onClick={() => void openTab("whatsapp")}>WhatsApp</button>}
               {write && <button aria-pressed={tab === "receipts"} onClick={() => void openTab("receipts")}>Ricevute</button>}
               {(user.role === "owner" || user.psychologist) && <Link href="/admin/questionari">Questionari →</Link>}
@@ -619,7 +619,7 @@ export default function AreaSoci() {
                     <strong>Contabilità</strong>
                     <span>Entrate, uscite, cassa e banca</span>
                   </button>
-                  {(user.role === "owner" || user.role === "president") && <Link className="soci-menu-link" href="/admin/libri-sociali"><strong>Libri sociali</strong><span>Soci, quote associative, email, volontari e verbali</span></Link>}
+                  {(user.role === "owner" || user.role === "president" || user.role === "accountant") && <Link className="soci-menu-link" href="/admin/libri-sociali"><strong>Libri sociali</strong><span>Soci, quote associative, email, volontari e verbali</span></Link>}
                   {whatsappAllowed && <button onClick={() => void openTab("whatsapp")}><strong>WhatsApp</strong><span>Conversazioni e risposte dell’associazione</span></button>}
                   {write && <button onClick={() => void openTab("receipts")}><strong>Ricevute</strong><span>Quote associative, donazioni, raccolte fondi ed email</span></button>}
                   {(user.role === "owner" || user.psychologist) && <Link className="soci-menu-link" href="/admin/questionari"><strong>Questionari</strong><span>Incontri, QR code e risultati</span></Link>}
@@ -1045,9 +1045,7 @@ export default function AreaSoci() {
                           defaultValue={memberEdit?.role ?? "member"}
                         >
                           <option value="member">Socio — consultazione</option>
-                          <option value="accountant">
-                            Amministratore contabile
-                          </option>
+                          <option value="accountant">Tesoriere — contabilità e libri sociali</option>
                           <option value="president">Presidente — libri sociali</option>
                           <option value="none">
                             Nessun accesso alla contabilità

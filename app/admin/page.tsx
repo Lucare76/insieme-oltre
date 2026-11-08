@@ -457,18 +457,37 @@ export default function AreaSoci() {
     setDocumentItem(null);
   }
   function cancelMovement(item: Item) {
+    if (
+      item.category === "Quote associative" &&
+      !window.confirm(
+        "Questo movimento potrebbe essere collegato a una quota annuale. " +
+        "La rettifica annullerà sia l'entrata in Contabilità sia la quota nel Libro soci, " +
+        "conservando entrambi i record nello storico. Continuare?",
+      )
+    ) return;
     const reason = window.prompt(
       "Motivo dell’annullamento (10–500 caratteri):",
     );
-    if (reason)
-      void run(async () => {
-        await post("movements", {
-          id: item.id,
-          version: item.version,
-          cancel_reason: reason,
-        });
+    if (reason === null) return;
+    if (reason.trim().length < 10 || reason.length > 500) {
+      setMessage("Indica una motivazione di almeno 10 e massimo 500 caratteri. Non è stato annullato nulla.");
+      return;
+    }
+    void run(async () => {
+      const result = await post("movements", {
+        id: item.id,
+        version: item.version,
+        cancel_reason: reason.trim(),
+      }) as { membership_fee_cancelled?: boolean };
+      try {
         await load();
-      });
+        setMessage(result.membership_fee_cancelled
+          ? "Quota associativa e movimento annullati. La rettifica è tracciata e il socio può registrare un nuovo versamento corretto."
+          : "Movimento annullato correttamente e rimosso dai saldi.");
+      } catch {
+        setMessage("Annullamento salvato. Non ripetere l'operazione: aggiorna la pagina per consultare lo storico.");
+      }
+    });
   }
   async function openDocuments(item: Item) {
     setDocumentItem(item);

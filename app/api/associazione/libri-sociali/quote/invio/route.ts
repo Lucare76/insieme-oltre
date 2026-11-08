@@ -22,7 +22,7 @@ async function handle(req:Request) {
   if (!uuid(body.fee_id) || body.confirm!==true || typeof body.confirm_email!=="string")
     throw new AssociationError("Seleziona una quota pagata e conferma l'indirizzo email.");
   const feeId=body.fee_id;
-  const fees=await(await service("/rest/v1/association_membership_fees?id=eq."+feeId+"&select=id,person_id,fee_year,amount_cents,paid_on,payment_account,created_at&limit=1")).json() as Fee[];
+  const fees=await(await service("/rest/v1/association_membership_fees?id=eq."+feeId+"&cancelled=eq.false&select=id,person_id,fee_year,amount_cents,paid_on,payment_account,created_at&limit=1")).json() as Fee[];
   const fee=fees[0];
   if(!fee)throw new AssociationError("Quota non registrata. Nessuna email inviata.",404);
   const [people,contacts]=await Promise.all([

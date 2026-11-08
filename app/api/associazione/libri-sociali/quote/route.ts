@@ -14,7 +14,7 @@ async function loadPeople():Promise<Person[]>{
  return out;
 }
 async function loadFees(year:number):Promise<Fee[]>{
- return await(await service("/rest/v1/association_membership_fees?fee_year=eq."+year+"&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&order=paid_on.desc&limit=5000")).json() as Fee[];
+ return await(await service("/rest/v1/association_membership_fees?fee_year=eq."+year+"&cancelled=eq.false&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&order=paid_on.desc&limit=5000")).json() as Fee[];
 }
 async function handle(req:Request){
  // Libri sociali: Admin principale, Presidente e Tesoriere; non espone dati a semplici soci o psicologi.
@@ -24,7 +24,7 @@ async function handle(req:Request){
   const receiptId=url.searchParams.get("receipt");
   if(receiptId){
    if(!uuid(receiptId))throw new AssociationError("Ricevuta non valida.");
-   const fees=await(await service("/rest/v1/association_membership_fees?id=eq."+receiptId+"&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&limit=1")).json() as Fee[];
+   const fees=await(await service("/rest/v1/association_membership_fees?id=eq."+receiptId+"&cancelled=eq.false&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&limit=1")).json() as Fee[];
    const fee=fees[0];if(!fee)throw new AssociationError("Versamento non trovato.",404);
    const people=await(await service("/rest/v1/association_register_people?id=eq."+fee.person_id+"&register_kind=eq.soci&select=id,full_name,fiscal_code&limit=1")).json() as {id:string;full_name:string;fiscal_code:string}[];
    const person=people[0];

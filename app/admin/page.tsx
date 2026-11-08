@@ -1078,23 +1078,53 @@ export default function AreaSoci() {
                 {memberEdit && (
                   <form
                     key={memberEdit.user_id}
+                    noValidate
                     onSubmit={(e) => {
                       e.preventDefault();
-                      const form = Object.fromEntries(
-                        new FormData(e.currentTarget),
-                      );
+                      const form = Object.fromEntries(new FormData(e.currentTarget));
+                      const name = String(form.name || "").trim();
+                      const username = String(form.username || "").trim().toLowerCase();
+                      const email = String(form.email || "").trim().toLowerCase();
+                      if (name.length < 1 || name.length > 120) {
+                        setMembersFeedback("Inserisci il nome completo prima di salvare i permessi.");
+                        return;
+                      }
+                      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+                        setMembersFeedback("L'email dell'account non è valida.");
+                        return;
+                      }
+                      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) {
+                        setMembersFeedback("Nome utente non valido: usa da 3 a 32 caratteri minuscoli, numeri, punto, trattino o underscore.");
+                        return;
+                      }
+                      if (form.role === "none" && form.psychologist !== "on") {
+                        setMembersFeedback("Assegna almeno un permesso: per Nessun accesso contabile seleziona Psicologa.");
+                        return;
+                      }
+                      setMembersFeedback("Salvataggio dei permessi in corso…");
                       void run(async () => {
-                        await post("members", {
-                          ...form,
-                          psychologist: form.psychologist === "on",
-                          active: form.active === "true",
-                          ...(memberEdit
-                            ? { user_id: memberEdit.user_id }
-                            : {}),
-                        });
-                        setMemberEdit(null);
-                        setMembers((await (await api("members")).json()).items);
-                        setMessage("Accesso aggiornato.");
+                        try {
+                          await post("members", {
+                            ...form,
+                            name,
+                            username,
+                            email,
+                            psychologist: form.psychologist === "on",
+                            active: form.active === "true",
+                            user_id: memberEdit.user_id,
+                          });
+                          setMemberEdit(null);
+                          setMembersFeedback("Permessi salvati. Aggiorno la lista…");
+                          try {
+                            const loaded = await (await api("members")).json() as {items: Member[]};
+                            setMembers(loaded.items);
+                            setMembersFeedback("Permessi aggiornati correttamente.");
+                          } catch {
+                            setMembersFeedback("Permessi salvati, ma l'elenco non è stato aggiornato. Premi Aggiorna elenco utenti prima di ripetere l'operazione.");
+                          }
+                        } catch (error) {
+                          setMembersFeedback(error instanceof Error ? error.message : "Impossibile salvare i permessi.");
+                        }
                       });
                     }}
                   >
@@ -1170,8 +1200,9 @@ export default function AreaSoci() {
                       collegamento ricevuto via email.
                     </p>
                     <button className="primary" disabled={busy}>
-                      {memberEdit ? "Salva permessi" : "Crea accesso"}
+                      {busy ? "Salvataggio…" : "Salva permessi"}
                     </button>
+                    {membersFeedback && <p className="soci-message" role="status" aria-live="polite">{membersFeedback}</p>}
                     {memberEdit && (
                       <button type="button" onClick={() => setMemberEdit(null)}>
                         Chiudi modifica
@@ -1195,7 +1226,7 @@ export default function AreaSoci() {
                         </small>
                       </div>
                       <div className="soci-actions">
-                        <button onClick={() => setMemberEdit(m)}>
+                        <button onClick={() => {setMembersFeedback("");setMemberEdit(m);}}>
                           Gestisci
                         </button>
                         <button

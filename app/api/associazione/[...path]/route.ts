@@ -156,6 +156,39 @@ async function handle(request: Request, path: string[]) {
         private_note: text(body.private_note ?? "", 1000),
       };
     }
+    if (body.id && reason !== null) {
+      // Una quota associativa possiede anche un record nel Libro soci:
+      // la rettifica deve annullare ENTRAMBI in una sola transazione.
+      const linked = (await (
+        await service(
+          "/rest/v1/association_membership_fees?movement_id=eq." +
+            encodeURIComponent(body.id) + "&select=id,cancelled&limit=1",
+        )
+      ).json()) as { id: string; cancelled: boolean }[];
+      if (linked.length) {
+        if (linked[0].cancelled)
+          throw new AssociationError("Questa quota è già annullata. Aggiorna l'elenco.",409);
+        const [deliveries, receipts] = await Promise.all([
+          service("/rest/v1/association_membership_receipt_deliveries?fee_id=eq." +
+            linked[0].id + "&select=id&limit=1").then(r => r.json()) as Promise<{id:string}[]>,
+          service("/rest/v1/association_receipts?movement_id=eq." +
+            encodeURIComponent(body.id) + "&cancelled=eq.false&select=id&limit=1").then(r => r.json()) as Promise<{id:string}[]>,
+        ]);
+        if (deliveries.length)
+          throw new AssociationError("Per questa quota esiste già un tentativo di invio della ricevuta. La rettifica richiede verifica amministrativa.",409);
+        if (receipts.length)
+          throw new AssociationError("Annulla prima la ricevuta contabile collegata, poi ripeti la rettifica.",409);
+        const result = await service("/rest/v1/rpc/association_cancel_membership_fee",{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            p_movement:body.id,p_version:body.version,p_actor:user.id,p_reason:reason,
+          }),
+        });
+        const id = await result.json();
+        if (!id) throw new AssociationError("Esito della rettifica da verificare: aggiorna l'elenco.",503);
+        return reply({ok:true,id:body.id,membership_fee_cancelled:true});
+      }
+    }
     const saved = await service("/rest/v1/rpc/association_save_movement", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

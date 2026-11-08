@@ -14,7 +14,7 @@ async function loadPeople():Promise<Person[]>{
  return out;
 }
 async function loadFees(year:number):Promise<Fee[]>{
- return await(await service("/rest/v1/association_membership_fees?fee_year=eq."+year+"&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&order=paid_on.desc&limit=5000")).json() as Fee[];
+ return await(await service("/rest/v1/association_membership_fees?fee_year=eq."+year+"&cancelled=eq.false&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&order=paid_on.desc&limit=5000")).json() as Fee[];
 }
 async function handle(req:Request){
  // Libri sociali: Admin principale, Presidente e Tesoriere; non espone dati a semplici soci o psicologi.
@@ -24,7 +24,7 @@ async function handle(req:Request){
   const receiptId=url.searchParams.get("receipt");
   if(receiptId){
    if(!uuid(receiptId))throw new AssociationError("Ricevuta non valida.");
-   const fees=await(await service("/rest/v1/association_membership_fees?id=eq."+receiptId+"&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&limit=1")).json() as Fee[];
+   const fees=await(await service("/rest/v1/association_membership_fees?id=eq."+receiptId+"&cancelled=eq.false&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&limit=1")).json() as Fee[];
    const fee=fees[0];if(!fee)throw new AssociationError("Versamento non trovato.",404);
    const people=await(await service("/rest/v1/association_register_people?id=eq."+fee.person_id+"&register_kind=eq.soci&select=id,full_name,fiscal_code&limit=1")).json() as {id:string;full_name:string;fiscal_code:string}[];
    const person=people[0];
@@ -41,10 +41,11 @@ async function handle(req:Request){
   }
   const year=Number(url.searchParams.get("year")||new Date().getUTCFullYear());
   if(!Number.isInteger(year)||year<2020||year>2199)throw new AssociationError("Anno non valido.");
-  const [people,fees,contacts,history]=await Promise.all([
+  const [people,fees,contacts,history,cancelled]=await Promise.all([
    loadPeople(),loadFees(year),
    service("/rest/v1/association_member_delivery_contacts?select=person_id,email&limit=5000").then(r=>r.json()) as Promise<{person_id:string;email:string}[]>,
-   service("/rest/v1/association_membership_receipt_deliveries?select=fee_id,status,recipient_email&limit=5000").then(r=>r.json()) as Promise<{fee_id:string;status:string;recipient_email:string}[]>
+   service("/rest/v1/association_membership_receipt_deliveries?select=fee_id,status,recipient_email&limit=5000").then(r=>r.json()) as Promise<{fee_id:string;status:string;recipient_email:string}[]>,
+   service("/rest/v1/association_membership_fees?fee_year=eq."+year+"&cancelled=eq.true&select=id,person_id,amount_cents,paid_on,cancellation_reason,cancelled_at&order=cancelled_at.desc&limit=5000").then(r=>r.json()) as Promise<{id:string;person_id:string;amount_cents:number;paid_on:string;cancellation_reason:string;cancelled_at:string}[]>
   ]);
   const registered=new Set(fees.map(f=>f.person_id));
   const emails=new Map(contacts.map(c=>[c.person_id,c.email]));
@@ -54,6 +55,7 @@ async function handle(req:Request){
    year,
    people:people.filter(p=>p.admitted_on.slice(0,4)<=String(year) && (!p.ended_on || p.ended_on.slice(0,4)>=String(year))).map(p=>({...p,paid:registered.has(p.id),email:emails.get(p.id)||""})),
    fees:fees.map(f=>({...f,full_name:names.get(f.person_id)||"Socio",email:emails.get(f.person_id)||"",mail_status:receipts.get(f.id)?.status||null,mail_recipient:receipts.get(f.id)?.recipient_email||null})),
+   cancelled_fees:cancelled.map(f=>({...f,full_name:names.get(f.person_id)||"Socio"})),
    count:fees.length,total_cents:fees.reduce((sum,f)=>sum+f.amount_cents,0)
   });
  }

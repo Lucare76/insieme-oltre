@@ -17,7 +17,7 @@ async function loadFees(year:number):Promise<Fee[]>{
  return await(await service("/rest/v1/association_membership_fees?fee_year=eq."+year+"&select=id,person_id,fee_year,movement_id,amount_cents,paid_on,payment_account,created_at&order=paid_on.desc&limit=5000")).json() as Fee[];
 }
 async function handle(req:Request){
- // Libri sociali: solo admin principale / presidente. Non espone dati a utenti "Socio" o psicologi.
+ // Libri sociali: Admin principale, Presidente e Tesoriere; non espone dati a semplici soci o psicologi.
  const actor=await authorize(req,false,false,true);
  const url=new URL(req.url);
  if(req.method==="GET"){

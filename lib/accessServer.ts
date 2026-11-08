@@ -414,7 +414,7 @@ export async function handleAccess(
     return {
       items: await (
         await service(
-          `/rest/v1/association_access_requests?select=id,name,email,username,status,created_at,reviewed_at,notification_sent_at,invitation_sent_at&order=created_at.desc&limit=100&offset=${offset}`,
+          `/rest/v1/association_access_requests?select=id,name,email,username,status,created_at,reviewed_at,notification_sent_at,invitation_sent_at,created_by_admin&order=created_at.desc&limit=100&offset=${offset}`,
         )
       ).json(),
       emailReady: accessMailReady(),

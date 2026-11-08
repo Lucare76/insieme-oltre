@@ -36,7 +36,7 @@ export async function GET(request:Request){
    const [people,contacts,fees]=await Promise.all([
     getRows<Person>("/rest/v1/association_register_people?register_kind=eq.soci&select=id,full_name,admitted_on,ended_on",2000),
     getRows<Contact>("/rest/v1/association_member_delivery_contacts?select=person_id,email",2000),
-    getRows<Fee>("/rest/v1/association_membership_fees?fee_year=eq."+year+"&select=person_id",2000)
+    getRows<Fee>("/rest/v1/association_membership_fees?fee_year=eq."+year+"&cancelled=eq.false&select=person_id",2000)
    ]);
    const paid=new Set(fees.map(f=>f.person_id));
    const emails=new Map(contacts.map(c=>[c.person_id,c.email.trim().toLowerCase()]));

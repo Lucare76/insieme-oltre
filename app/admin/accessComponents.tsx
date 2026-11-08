@@ -325,7 +325,7 @@ function RequestCard({
             {role === "member"
               ? "Può consultare entrate, uscite e saldi. Non può modificare i conti."
               : role === "accountant"
-                ? "Può registrare e correggere i movimenti e gestire i giustificativi."
+                ? "Può gestire la contabilità e i Libri sociali, incluse quote, ricevute e registri."
                 : role === "president"
                   ? "Gestisce libri sociali e PDF, senza accesso alla contabilità."
                   : "Nessuna sezione economica o amministrativa."}

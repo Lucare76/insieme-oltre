@@ -2,7 +2,8 @@
 import {useCallback,useEffect,useRef,useState} from "react";
 type Person={id:string;full_name:string;admitted_on:string;ended_on:string|null;paid:boolean};
 type Fee={id:string;person_id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"cash"|"bank";email:string;mail_status:string|null;mail_recipient:string|null};
-type Data={year:number;people:Person[];fees:Fee[];count:number;total_cents:number};
+type CancelledFee={id:string;person_id:string;full_name:string;amount_cents:number;paid_on:string;cancellation_reason:string;cancelled_at:string};
+type Data={year:number;people:Person[];fees:Fee[];cancelled_fees:CancelledFee[];count:number;total_cents:number};
 type Reminder={setting:{due_on:string;enabled:boolean}|null;deliveries:{person_id:string;recipient_email:string;status:string;attempted_at:string}[]};
 const endpoint="/api/associazione/libri-sociali/quote";
 const eur=(c:number)=>(c/100).toLocaleString("it-IT",{style:"currency",currency:"EUR"});
@@ -181,6 +182,14 @@ export default function MembershipFees(){
        </> : <small> · Email mancante nella rubrica soci</small>}
      </>:"Non registrata"}</li>;
    })}</ul>
+   {!!data.cancelled_fees?.length&&<>
+    <h3>Storico quote annullate · {year}</h3>
+    <p><small>Le quote annullate restano documentate ma non sono conteggiate fra gli incassi. Non corrispondono a un pagamento valido nell'anno.</small></p>
+    <ul>{data.cancelled_fees.map(f=><li key={f.id}>
+     <strong>{f.full_name}</strong> — {eur(f.amount_cents)}, pagamento originario {f.paid_on.split("-").reverse().join("/")}; annullato il {new Date(f.cancelled_at).toLocaleDateString("it-IT",{timeZone:"Europe/Rome"})}.
+     <strong> Motivo: </strong>{f.cancellation_reason}
+    </li>)}</ul>
+   </>}
    <p><small>«Non registrata» indica soltanto l'assenza di una quota in questo gestionale; verifica eventuali incassi precedenti prima di procedere. La ricevuta della quota è nominativa e non fiscale: non certifica una donazione né agevolazioni fiscali. Si genera soltanto per pagamenti registrati.</small></p>
   </>}
   {message&&<p role="status" className="soci-message">{message}</p>}

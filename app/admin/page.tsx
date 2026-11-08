@@ -1011,7 +1011,7 @@ export default function AreaSoci() {
                       setManualInviteFeedback("Inserisci il nome e cognome completi della persona.");
                       return;
                     }
-                    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                       setManualInviteFeedback("Controlla l'indirizzo email.");
                       return;
                     }
@@ -1089,7 +1089,7 @@ export default function AreaSoci() {
                         setMembersFeedback("Inserisci il nome completo prima di salvare i permessi.");
                         return;
                       }
-                      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+                      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                         setMembersFeedback("L'email dell'account non è valida.");
                         return;
                       }

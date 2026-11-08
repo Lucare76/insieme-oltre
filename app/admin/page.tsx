@@ -1067,7 +1067,7 @@ export default function AreaSoci() {
                     {manualInviteFeedback && <p className="soci-message" role="status" aria-live="polite">{manualInviteFeedback}</p>}
                   </form>
                 )}
-                {membersFeedback && <p className="soci-message" role="status" aria-live="polite">{membersFeedback}</p>}
+                {membersFeedback && !memberEdit && <p className="soci-message" role="status" aria-live="polite">{membersFeedback}</p>}
                 {!memberEdit && (
                   <p>
                     Per abilitare un nuovo utente, chiedigli di compilare

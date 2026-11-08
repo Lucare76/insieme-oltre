@@ -98,6 +98,7 @@ export default function AreaSoci() {
   const [members, setMembers] = useState<Member[]>([]);
   const [audit, setAudit] = useState<Audit[]>([]);
   const [memberEdit, setMemberEdit] = useState<Member | null>(null);
+  const [manualInvite, setManualInvite] = useState(false);
   const [documents, setDocuments] = useState<
     { id: string; filename: string }[]
   >([]);
@@ -976,6 +977,51 @@ export default function AreaSoci() {
               <section className="soci-card">
                 <h2>Utenti e permessi</h2>
                 <p>Solo tu puoi abilitare gli accessi e assegnare i ruoli.</p>
+                <button type="button" disabled={busy} onClick={() => setManualInvite(v => !v)}>
+                  {manualInvite ? "Chiudi invito manuale" : "Prepara invito manuale"}
+                </button>
+                {manualInvite && (
+                  <form className="receipt-form" onSubmit={e => {
+                    e.preventDefault();
+                    const fields = Object.fromEntries(new FormData(e.currentTarget));
+                    void run(async () => {
+                      const response = await api("access/manual-request", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          name: fields.name,
+                          email: fields.email,
+                          username: fields.username,
+                          confirm: fields.confirm === "on",
+                        }),
+                      });
+                      const result = await response.json() as { id?: string };
+                      if (!result.id) throw new Error("Richiesta non verificabile: aggiorna gli accessi prima di riprovare.");
+                      setManualInvite(false);
+                      setTab("requests");
+                      setMessage("Richiesta creata. Vai in Richieste di accesso, seleziona il ruolo e premi Approva e invia invito. La persona sceglierà autonomamente la password.");
+                    });
+                  }}>
+                    <h3>Nuovo invito preparato dall'amministratore</h3>
+                    <p>Da usare per persone che hanno chiesto l'accesso ma non riescono a completare il modulo pubblico. Non crea automaticamente un socio nel Libro soci.</p>
+                    <div className="soci-grid">
+                      <label>Nome e cognome
+                        <input name="name" required minLength={2} maxLength={120} autoComplete="name" />
+                      </label>
+                      <label>Email della persona
+                        <input name="email" type="email" required maxLength={254} autoComplete="email" />
+                      </label>
+                      <label>Nome utente da assegnare
+                        <input name="username" required minLength={3} maxLength={32} pattern="[a-z0-9][a-z0-9._-]{2,31}" autoCapitalize="none" />
+                      </label>
+                    </div>
+                    <label className="soci-check">
+                      <input type="checkbox" name="confirm" required />
+                      Confermo che questa persona ha richiesto l'accesso e che l'indirizzo email è stato verificato. L'informativa sarà accettata dalla persona quando imposterà la password.
+                    </label>
+                    <button type="submit" className="primary" disabled={busy}>Crea richiesta manuale</button>
+                  </form>
+                )}
                 {!memberEdit && (
                   <p>
                     Per abilitare un nuovo utente, chiedigli di compilare

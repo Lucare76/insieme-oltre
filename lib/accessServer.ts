@@ -302,6 +302,32 @@ export async function handleAccess(
           "Questo accesso non è abilitato. Contatta l’admin.",
           403,
         );
+      if (b.privacy !== true)
+        throw new AssociationError(
+          "Leggi e accetta l’informativa sull’accesso prima di scegliere la password.",
+          400,
+        );
+      // Per gli inviti predisposti dall'amministratore, il consenso
+      // all'informativa va registrato SOLO quando l'invitato lo conferma.
+      if (!owner) {
+        const requests = (await (
+          await service(
+            "/rest/v1/association_access_requests?user_id=eq." +
+              person.id +
+              "&created_by_admin=not.is.null&privacy_at=is.null&select=id&limit=1",
+          )
+        ).json()) as { id: string }[];
+        if (requests[0]) {
+          await service(
+            "/rest/v1/association_access_requests?id=eq." + requests[0].id,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ privacy_at: new Date().toISOString() }),
+            },
+          );
+        }
+      }
       await auth("user", { password }, "PUT", token);
       if (
         !owner &&
@@ -323,6 +349,64 @@ export async function handleAccess(
     }
   }
   const owner = await authorize(request, true, true);
+  if (route === "manual-request" && request.method === "POST") {
+    const origin = request.headers.get("origin");
+    if (origin && origin !== new URL(request.url).origin)
+      throw new AssociationError("Richiesta non consentita.", 403);
+    const b = await jsonBody(request);
+    const name = typeof b.name === "string" ? b.name.trim().replace(/\s+/g, " ") : "";
+    const email = emailValue(b.email);
+    const username = normalizeUsername(b.username);
+    if (
+      b.confirm !== true ||
+      name.length < 2 ||
+      name.length > 120 ||
+      /[\r\n]/.test(name) ||
+      !validUsername(username) ||
+      reserved(username) ||
+      email === allowedAdminEmail()
+    )
+      throw new AssociationError(
+        "Inserisci nome, email e username validi e conferma la richiesta dell'interessato.",
+      );
+    const [membersByEmail, membersByUsername, requestsByEmail, requestsByUsername] =
+      await Promise.all([
+        service("/rest/v1/association_members?email=eq." + encodeURIComponent(email) + "&select=user_id&limit=1").then(r => r.json()) as Promise<{ user_id: string }[]>,
+        service("/rest/v1/association_members?username=eq." + encodeURIComponent(username) + "&select=user_id&limit=1").then(r => r.json()) as Promise<{ user_id: string }[]>,
+        service("/rest/v1/association_access_requests?email=eq." + encodeURIComponent(email) + "&status=in.(pending,processing)&select=id&limit=1").then(r => r.json()) as Promise<{ id: string }[]>,
+        service("/rest/v1/association_access_requests?username=eq." + encodeURIComponent(username) + "&status=in.(pending,processing)&select=id&limit=1").then(r => r.json()) as Promise<{ id: string }[]>,
+      ]);
+    if (membersByEmail.length || membersByUsername.length ||
+        requestsByEmail.length || requestsByUsername.length)
+      throw new AssociationError(
+        "Email o nome utente già associato a un account o a una richiesta in corso. Verifica prima di creare duplicati.",
+        409,
+      );
+    let created: { id: string }[];
+    try {
+      const response = await service("/rest/v1/association_access_requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify({
+          name, email, username, created_by_admin: owner.id, privacy_at: null,
+          status: "pending",
+        }),
+      });
+      created = (await response.json()) as { id: string }[];
+    } catch {
+      throw new AssociationError(
+        "Impossibile predisporre la richiesta: verifica che email e nome utente non siano già utilizzati.",
+        409,
+      );
+    }
+    if (!created[0]?.id)
+      throw new AssociationError("Esito della richiesta incerto: aggiorna l'elenco prima di riprovare.", 503);
+    return {
+      ok: true,
+      id: created[0].id,
+      message: "Richiesta predisposta dall'Admin. Ora approvala in Richieste di accesso per inviare il link personale alla password.",
+    };
+  }
   if (route === "requests" && request.method === "GET") {
     const offset = Number(new URL(request.url).searchParams.get("offset") || 0);
     if (!Number.isSafeInteger(offset) || offset < 0)
@@ -330,7 +414,7 @@ export async function handleAccess(
     return {
       items: await (
         await service(
-          `/rest/v1/association_access_requests?select=id,name,email,username,status,created_at,reviewed_at,notification_sent_at,invitation_sent_at&order=created_at.desc&limit=100&offset=${offset}`,
+          `/rest/v1/association_access_requests?select=id,name,email,username,status,created_at,reviewed_at,notification_sent_at,invitation_sent_at,created_by_admin&order=created_at.desc&limit=100&offset=${offset}`,
         )
       ).json(),
       emailReady: accessMailReady(),

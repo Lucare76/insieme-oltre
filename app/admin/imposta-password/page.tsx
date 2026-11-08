@@ -46,6 +46,7 @@ export default function PasswordPage() {
                   body: JSON.stringify({
                     ...token,
                     password: f.get("password"),
+                    privacy: f.get("privacy") === "on",
                   }),
                 });
                 const b = await r.json();
@@ -86,6 +87,12 @@ export default function PasswordPage() {
                 autoComplete="new-password"
                 required
               />
+            </label>
+            <label className="soci-check">
+              <input type="checkbox" name="privacy" required />
+              <span>
+                Ho letto e accetto l’<Link href="/informativa-accessi" target="_blank">informativa per l’area riservata</Link>.
+              </span>
             </label>
             <button className="primary" disabled={busy}>
               {busy ? "Salvataggio…" : "Salva password"}

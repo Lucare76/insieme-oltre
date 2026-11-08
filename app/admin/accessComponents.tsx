@@ -153,6 +153,7 @@ type AccessRequest = {
   notification_sent_at: string | null;
   invitation_sent_at: string | null;
   reviewed_at: string | null;
+  created_by_admin: string | null;
 };
 const statusLabels = {
   pending: "Da approvare",
@@ -239,6 +240,7 @@ function RequestCard({
               {statusLabels[item.status]}
             </span>
             <h3>{item.name}</h3>
+            {item.created_by_admin && <small>Richiesta predisposta manualmente dall’amministratore</small>}
           </div>
         </div>
         <dl className="access-details">

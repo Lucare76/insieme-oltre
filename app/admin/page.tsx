@@ -1045,9 +1045,7 @@ export default function AreaSoci() {
                           defaultValue={memberEdit?.role ?? "member"}
                         >
                           <option value="member">Socio — consultazione</option>
-                          <option value="accountant">
-                            Amministratore contabile
-                          </option>
+                          <option value="accountant">Tesoriere — contabilità e libri sociali</option>
                           <option value="president">Presidente — libri sociali</option>
                           <option value="none">
                             Nessun accesso alla contabilità

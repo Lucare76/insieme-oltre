@@ -354,14 +354,14 @@ export async function handleAccess(
     if (origin && origin !== new URL(request.url).origin)
       throw new AssociationError("Richiesta non consentita.", 403);
     const b = await jsonBody(request);
-    const name = typeof b.name === "string" ? b.name.trim().replace(/\\s+/g, " ") : "";
+    const name = typeof b.name === "string" ? b.name.trim().replace(/\s+/g, " ") : "";
     const email = emailValue(b.email);
     const username = normalizeUsername(b.username);
     if (
       b.confirm !== true ||
       name.length < 2 ||
       name.length > 120 ||
-      /[\\r\\n]/.test(name) ||
+      /[\r\n]/.test(name) ||
       !validUsername(username) ||
       reserved(username) ||
       email === allowedAdminEmail()

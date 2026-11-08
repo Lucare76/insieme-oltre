@@ -99,6 +99,9 @@ export default function AreaSoci() {
   const [audit, setAudit] = useState<Audit[]>([]);
   const [memberEdit, setMemberEdit] = useState<Member | null>(null);
   const [manualInvite, setManualInvite] = useState(false);
+  const [manualInviteFeedback, setManualInviteFeedback] = useState("");
+  const [membersFeedback, setMembersFeedback] = useState("");
+  const adminFormSubmitting = useRef(false);
   const [documents, setDocuments] = useState<
     { id: string; filename: string }[]
   >([]);
@@ -977,33 +980,74 @@ export default function AreaSoci() {
               <section className="soci-card">
                 <h2>Utenti e permessi</h2>
                 <p>Solo tu puoi abilitare gli accessi e assegnare i ruoli.</p>
-                <button type="button" disabled={busy} onClick={() => setManualInvite(v => !v)}>
-                  {manualInvite ? "Chiudi invito manuale" : "Prepara invito manuale"}
-                </button>
+                <div className="soci-actions">
+                  <button type="button" disabled={busy} onClick={() => {
+                    setManualInvite(v => !v);
+                    setManualInviteFeedback("");
+                  }}>
+                    {manualInvite ? "Chiudi invito manuale" : "Prepara invito manuale"}
+                  </button>
+                  <button type="button" disabled={busy} onClick={() => void run(async () => {
+                    try {
+                      const response = await api("members");
+                      const result = await response.json() as {items: Member[]};
+                      setMembers(result.items);
+                      setMembersFeedback("Elenco utenti aggiornato. " + result.items.length + " account presenti.");
+                    } catch (error) {
+                      setMembersFeedback(error instanceof Error ? error.message : "Aggiornamento dell'elenco non riuscito.");
+                      throw error;
+                    }
+                  })}>Aggiorna elenco utenti</button>
+                </div>
                 {manualInvite && (
-                  <form className="receipt-form" onSubmit={e => {
+                  <form noValidate className="receipt-form" onSubmit={e => {
                     e.preventDefault();
+                    if (adminFormSubmitting.current) return;
                     const fields = Object.fromEntries(new FormData(e.currentTarget));
+                    const name = String(fields.name || "").trim();
+                    const email = String(fields.email || "").trim().toLowerCase();
+                    const username = String(fields.username || "").trim().toLowerCase();
+                    if (name.length < 2 || name.length > 120) {
+                      setManualInviteFeedback("Inserisci il nome e cognome completi della persona.");
+                      return;
+                    }
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                      setManualInviteFeedback("Controlla l'indirizzo email.");
+                      return;
+                    }
+                    if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) {
+                      setManualInviteFeedback("Il nome utente deve avere 3–32 caratteri, solo minuscole, numeri, punto, trattino o underscore.");
+                      return;
+                    }
+                    if (fields.confirm !== "on") {
+                      setManualInviteFeedback("Conferma che la persona ha chiesto l'accesso e che l'email è stata verificata.");
+                      return;
+                    }
+                    adminFormSubmitting.current = true;
+                    setManualInviteFeedback("Preparazione richiesta in corso…");
                     void run(async () => {
-                      const response = await api("access/manual-request", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          name: fields.name,
-                          email: fields.email,
-                          username: fields.username,
-                          confirm: fields.confirm === "on",
-                        }),
-                      });
-                      const result = await response.json() as { id?: string };
-                      if (!result.id) throw new Error("Richiesta non verificabile: aggiorna gli accessi prima di riprovare.");
-                      setManualInvite(false);
-                      setTab("requests");
-                      setMessage("Richiesta creata. Vai in Richieste di accesso, seleziona il ruolo e premi Approva e invia invito. La persona sceglierà autonomamente la password.");
+                      try {
+                        const response = await api("access/manual-request", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({name, email, username, confirm: true}),
+                        });
+                        const result = await response.json() as { id?: string };
+                        if (!result.id) throw new Error("Esito non verificabile: controlla le richieste prima di riprovare.");
+                        setManualInvite(false);
+                        setManualInviteFeedback("");
+                        setTab("requests");
+                        setMessage("Richiesta predisposta correttamente. In Richieste di accesso scegli il ruolo e premi Approva e invia invito.");
+                      } catch (error) {
+                        const explanation = error instanceof Error ? error.message : "Creazione richiesta non riuscita.";
+                        setManualInviteFeedback(explanation);
+                      } finally {
+                        adminFormSubmitting.current = false;
+                      }
                     });
                   }}>
                     <h3>Nuovo invito preparato dall'amministratore</h3>
-                    <p>Da usare per persone che hanno chiesto l'accesso ma non riescono a completare il modulo pubblico. Non crea automaticamente un socio nel Libro soci.</p>
+                    <p>Per una persona che ha richiesto l'accesso ma non riesce a usare il modulo pubblico. Non equivale all'ammissione nel Libro soci.</p>
                     <div className="soci-grid">
                       <label>Nome e cognome
                         <input name="name" required minLength={2} maxLength={120} autoComplete="name" />
@@ -1019,9 +1063,11 @@ export default function AreaSoci() {
                       <input type="checkbox" name="confirm" required />
                       Confermo che questa persona ha richiesto l'accesso e che l'indirizzo email è stato verificato. L'informativa sarà accettata dalla persona quando imposterà la password.
                     </label>
-                    <button type="submit" className="primary" disabled={busy}>Crea richiesta manuale</button>
+                    <button type="submit" className="primary" disabled={busy}>{busy ? "Preparazione…" : "Crea richiesta manuale"}</button>
+                    {manualInviteFeedback && <p className="soci-message" role="status" aria-live="polite">{manualInviteFeedback}</p>}
                   </form>
                 )}
+                {membersFeedback && !memberEdit && <p className="soci-message" role="status" aria-live="polite">{membersFeedback}</p>}
                 {!memberEdit && (
                   <p>
                     Per abilitare un nuovo utente, chiedigli di compilare
@@ -1032,23 +1078,53 @@ export default function AreaSoci() {
                 {memberEdit && (
                   <form
                     key={memberEdit.user_id}
+                    noValidate
                     onSubmit={(e) => {
                       e.preventDefault();
-                      const form = Object.fromEntries(
-                        new FormData(e.currentTarget),
-                      );
+                      const form = Object.fromEntries(new FormData(e.currentTarget));
+                      const name = String(form.name || "").trim();
+                      const username = String(form.username || "").trim().toLowerCase();
+                      const email = String(form.email || "").trim().toLowerCase();
+                      if (name.length < 1 || name.length > 120) {
+                        setMembersFeedback("Inserisci il nome completo prima di salvare i permessi.");
+                        return;
+                      }
+                      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        setMembersFeedback("L'email dell'account non è valida.");
+                        return;
+                      }
+                      if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) {
+                        setMembersFeedback("Nome utente non valido: usa da 3 a 32 caratteri minuscoli, numeri, punto, trattino o underscore.");
+                        return;
+                      }
+                      if (form.role === "none" && form.psychologist !== "on") {
+                        setMembersFeedback("Assegna almeno un permesso: per Nessun accesso contabile seleziona Psicologa.");
+                        return;
+                      }
+                      setMembersFeedback("Salvataggio dei permessi in corso…");
                       void run(async () => {
-                        await post("members", {
-                          ...form,
-                          psychologist: form.psychologist === "on",
-                          active: form.active === "true",
-                          ...(memberEdit
-                            ? { user_id: memberEdit.user_id }
-                            : {}),
-                        });
-                        setMemberEdit(null);
-                        setMembers((await (await api("members")).json()).items);
-                        setMessage("Accesso aggiornato.");
+                        try {
+                          await post("members", {
+                            ...form,
+                            name,
+                            username,
+                            email,
+                            psychologist: form.psychologist === "on",
+                            active: form.active === "true",
+                            user_id: memberEdit.user_id,
+                          });
+                          setMemberEdit(null);
+                          setMembersFeedback("Permessi salvati. Aggiorno la lista…");
+                          try {
+                            const loaded = await (await api("members")).json() as {items: Member[]};
+                            setMembers(loaded.items);
+                            setMembersFeedback("Permessi aggiornati correttamente.");
+                          } catch {
+                            setMembersFeedback("Permessi salvati, ma l'elenco non è stato aggiornato. Premi Aggiorna elenco utenti prima di ripetere l'operazione.");
+                          }
+                        } catch (error) {
+                          setMembersFeedback(error instanceof Error ? error.message : "Impossibile salvare i permessi.");
+                        }
                       });
                     }}
                   >
@@ -1124,8 +1200,9 @@ export default function AreaSoci() {
                       collegamento ricevuto via email.
                     </p>
                     <button className="primary" disabled={busy}>
-                      {memberEdit ? "Salva permessi" : "Crea accesso"}
+                      {busy ? "Salvataggio…" : "Salva permessi"}
                     </button>
+                    {membersFeedback && <p className="soci-message" role="status" aria-live="polite">{membersFeedback}</p>}
                     {memberEdit && (
                       <button type="button" onClick={() => setMemberEdit(null)}>
                         Chiudi modifica
@@ -1149,7 +1226,7 @@ export default function AreaSoci() {
                         </small>
                       </div>
                       <div className="soci-actions">
-                        <button onClick={() => setMemberEdit(m)}>
+                        <button onClick={() => {setMembersFeedback("");setMemberEdit(m);}}>
                           Gestisci
                         </button>
                         <button

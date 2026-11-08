@@ -93,7 +93,7 @@ export async function authorize(
   // Chi ha solo il ruolo Psicologa non accede a contabilità, ricevute, WhatsApp o gestione.
   if (user.role === "none" || (user.role === "president" && !registers && !readMovements))
     throw new AssociationError("Non hai accesso a questa sezione.", 403);
-  if ((write && (user.role === "member" || user.role === "president")) || (owner && user.role !== "owner") || (registers && !["owner","president"].includes(user.role)))
+  if ((write && (user.role === "member" || user.role === "president")) || (owner && user.role !== "owner") || (registers && !["owner","president","accountant"].includes(user.role)))
     throw new AssociationError(
       "Non hai i permessi per questa operazione.",
       403,

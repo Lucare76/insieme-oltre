@@ -474,11 +474,12 @@ export default function AreaSoci() {
       return;
     }
     void run(async () => {
-      const result = await post("movements", {
+      const response = await post("movements", {
         id: item.id,
         version: item.version,
         cancel_reason: reason.trim(),
-      }) as { membership_fee_cancelled?: boolean };
+      });
+      const result = await response.json() as { membership_fee_cancelled?: boolean };
       try {
         await load();
         setMessage(result.membership_fee_cancelled

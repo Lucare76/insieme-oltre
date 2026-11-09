@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import type { Movement } from "../../lib/accounting";
+import { FundraisingOperations } from "./FundraisingOperations";
 
 const presets = ["Natale Solidale 2026", "Pasqua Solidale 2027"];
 const euro = (cents: number) => (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
@@ -34,10 +35,13 @@ function drawLines(text: string, width = 86) {
   return result;
 }
 
-export function FundraisingPanel({ items, loaded, onOpenAccounting }: {
+export function FundraisingPanel({ items, loaded, onOpenAccounting, api, canWrite, onAccountingChange }: {
   items: Movement[];
   loaded: boolean;
   onOpenAccounting: () => void;
+  api: (path: string, init?: RequestInit) => Promise<Response>;
+  canWrite: boolean;
+  onAccountingChange: () => Promise<void>;
 }) {
   const events = useMemo(() => [...new Set([...presets, ...items.map(x => x.project).filter(x => /solidal|raccolta|natale|pasqua/i.test(x))])], [items]);
   const [selected, setSelected] = useState(presets[0]);
@@ -105,7 +109,7 @@ export function FundraisingPanel({ items, loaded, onOpenAccounting }: {
   return <section className="soci-card" aria-label="Raccolte fondi occasionali">
     <p className="soci-kicker">TRASPARENZA E RENDICONTAZIONE</p>
     <h2>Raccolte fondi</h2>
-    <p>Rendiconto per iniziativa, ricavato dai movimenti già registrati in Contabilità. Nessuna duplicazione degli incassi.</p>
+    <p>Gestisci le consegne direttamente qui: ogni incasso viene registrato una sola volta in Contabilità e compare nel rendiconto.</p>
     <div className="soci-grid">
       <label>Iniziativa
         <select value={selected} onChange={e => { setSelected(e.target.value); setDescription(""); }}>
@@ -113,7 +117,8 @@ export function FundraisingPanel({ items, loaded, onOpenAccounting }: {
         </select>
       </label>
     </div>
-    <p>Per attribuire un movimento a questa raccolta, inserisci esattamente <strong>{selected}</strong> nel campo «Iniziativa» della Contabilità.</p>
+    <FundraisingOperations key={selected} project={selected} api={api} canWrite={canWrite} onAccountingChange={onAccountingChange} />
+    <p>Per le spese di acquisto, inserisci <strong>{selected}</strong> nel campo «Iniziativa» della Contabilità. Le consegne e i relativi incassi si registrano invece qui sopra.</p>
     <button type="button" onClick={onOpenAccounting}>Apri Contabilità</button>
     {!loaded ? <p role="status">Caricamento dei movimenti…</p> : <>
       <div className="accounting-period">

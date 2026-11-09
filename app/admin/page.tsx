@@ -676,7 +676,7 @@ export default function AreaSoci() {
             {contentVisited && user.role === "owner" && <div hidden={tab !== "contents" && tab !== "stories"}><ContentEditor section={tab === "stories" ? "stories" : "contents"} /></div>}
             {tab === "whatsapp" && whatsappAllowed && <WhatsAppPanel api={api} owner={user.role === "owner"} />}
             {tab === "receipts" && write && <ReceiptsPanel api={api} />}
-            {tab === "fundraising" && <FundraisingPanel items={items} loaded={dataLoaded} onOpenAccounting={() => void openTab("register")} />}
+            {tab === "fundraising" && <FundraisingPanel items={items} loaded={dataLoaded} onOpenAccounting={() => void openTab("register")} api={api} canWrite={Boolean(write)} onAccountingChange={load} />}
             {tab === "requests" && user.role === "owner" && (
               <AccessRequests api={api} onPending={setPending} />
             )}

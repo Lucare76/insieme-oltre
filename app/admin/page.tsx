@@ -22,6 +22,7 @@ import {
 const ContentEditor = dynamic(() => import("./ContentEditor"));
 const ReceiptsPanel = dynamic(() => import("./ReceiptsPanel"));
 const WhatsAppPanel = dynamic(() => import("./WhatsAppPanel"));
+const FundraisingPanel = dynamic(() => import("./FundraisingPanel").then(m => m.FundraisingPanel));
 import { AccountingDashboard } from "./AccountingDashboard";
 import { MovementLedger } from "./MovementLedger";
 import {
@@ -402,7 +403,7 @@ export default function AreaSoci() {
     if (value === "contents" || value === "stories") setContentVisited(true);
     setTab(value);
     await run(async () => {
-      if (value === "register") await load();
+      if (value === "register" || value === "fundraising") await load();
       if (value === "members")
         setMembers((await (await api("members")).json()).items);
       if (value === "audit")
@@ -590,6 +591,7 @@ export default function AreaSoci() {
               >
                 Contabilità
               </button>
+              <button aria-pressed={tab === "fundraising"} onClick={() => void openTab("fundraising")}>Raccolte fondi</button>
               {(user.role === "president" || user.role === "accountant") && <Link href="/admin/libri-sociali">Libri sociali →</Link>}
               {whatsappAllowed && <button aria-pressed={tab === "whatsapp"} onClick={() => void openTab("whatsapp")}>WhatsApp</button>}
               {write && <button aria-pressed={tab === "receipts"} onClick={() => void openTab("receipts")}>Ricevute</button>}
@@ -643,6 +645,7 @@ export default function AreaSoci() {
                     <strong>Contabilità</strong>
                     <span>Entrate, uscite, cassa e banca</span>
                   </button>
+                  <button onClick={() => void openTab("fundraising")}><strong>Raccolte fondi</strong><span>Natale, Pasqua e rendiconti separati da allegare al bilancio</span></button>
                   {(user.role === "owner" || user.role === "president" || user.role === "accountant") && <Link className="soci-menu-link" href="/admin/libri-sociali"><strong>Libri sociali</strong><span>Soci, quote associative, email, volontari e verbali</span></Link>}
                   {whatsappAllowed && <button onClick={() => void openTab("whatsapp")}><strong>WhatsApp</strong><span>Conversazioni e risposte dell’associazione</span></button>}
                   {write && <button onClick={() => void openTab("receipts")}><strong>Ricevute</strong><span>Quote associative, donazioni, raccolte fondi ed email</span></button>}
@@ -673,6 +676,7 @@ export default function AreaSoci() {
             {contentVisited && user.role === "owner" && <div hidden={tab !== "contents" && tab !== "stories"}><ContentEditor section={tab === "stories" ? "stories" : "contents"} /></div>}
             {tab === "whatsapp" && whatsappAllowed && <WhatsAppPanel api={api} owner={user.role === "owner"} />}
             {tab === "receipts" && write && <ReceiptsPanel api={api} />}
+            {tab === "fundraising" && <FundraisingPanel items={items} loaded={dataLoaded} onOpenAccounting={() => void openTab("register")} />}
             {tab === "requests" && user.role === "owner" && (
               <AccessRequests api={api} onPending={setPending} />
             )}

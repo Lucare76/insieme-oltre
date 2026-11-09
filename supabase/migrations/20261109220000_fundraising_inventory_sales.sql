@@ -85,21 +85,6 @@ begin
  returning id into sale_id;
  return sale_id;
 end $$;
-create or replace function public.association_fundraising_cancel(
- p_id uuid,p_actor uuid,p_reason text
-) returns void language plpgsql set search_path = '' as $$
-declare s public.association_fundraising_sales;
-begin
- if p_reason is null or length(trim(p_reason)) not between 10 and 500 then raise exception 'motivazione obbligatoria'; end if;
- select * into s from public.association_fundraising_sales where id=p_id for update;
- if not found or s.cancelled_at is not null then raise exception 'consegna gia annullata o inesistente'; end if;
- perform 1 from public.association_fundraising_stock where project=s.project and product=s.product for update;
- update public.association_movements
- set cancelled=true,cancellation_reason=trim(p_reason),updated_by=p_actor
- where id=s.movement_id and cancelled=false;
- if not found then raise exception 'movimento non annullabile'; end if;
- update public.association_fundraising_sales set cancelled_at=now(), cancelled_by=p_actor where id=s.id;
-end $$;
 -- Vietare rettifiche generiche ai movimenti legati a una consegna; usare annullamento dedicato.
 create or replace function public.association_fundraising_guard_movement()
  returns trigger language plpgsql set search_path = '' as $$

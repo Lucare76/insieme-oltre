@@ -1,5 +1,5 @@
 "use client";
-import {useCallback,useEffect,useRef,useState} from "react";
+import {Fragment,useCallback,useEffect,useRef,useState} from "react";
 import "./quote-associative.css";
 type Person={id:string;full_name:string;admitted_on:string;ended_on:string|null;paid:boolean};
 type Fee={id:string;person_id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"cash"|"bank";email:string;mail_status:string|null;mail_recipient:string|null};
@@ -139,7 +139,7 @@ export default function MembershipFees(){
   return true;
  });
  const displayName=(name:string)=>name.toLocaleUpperCase("it-IT");
- const dateLabel=(value:string)=>value?.slice(0,10).split("-").reverse().join("/")||"—";
+ const dateLabel=(value:string)=>value ? value.slice(0,10).split("-").reverse().join("/") : "—";
  const views=[
   {key:"overview" as const,label:"Situazione soci",hint:"Elenco e ricevute"},
   {key:"payment" as const,label:"Registra quota",hint:"Nuovo incasso"},
@@ -206,7 +206,7 @@ export default function MembershipFees(){
       <tbody>{peopleList.map(p=>{
        const fee=feeByPerson.get(p.id);
        const ended=!!p.ended_on&&p.ended_on<todayRome();
-       return <React.Fragment key={p.id}><tr>
+       return <Fragment key={p.id}><tr>
         <td data-label="Socio"><strong>{displayName(p.full_name)}</strong>{ended&&<small>Iscrizione cessata</small>}</td>
         <td data-label="Stato"><span className={fee?"fees-status is-paid":"fees-status is-missing"}>{fee?"Registrata":"Non registrata"}</span></td>
         <td data-label="Pagamento">{fee?<><strong>{eur(fee.amount_cents)}</strong><small>{dateLabel(fee.paid_on)} · {fee.payment_account==="bank"?"Banca":"Contanti"}</small></>:<span className="fees-muted">Nessun versamento presente</span>}</td>
@@ -220,7 +220,7 @@ export default function MembershipFees(){
          Registra quota
         </button>}</td>
         </tr>
-        {sendFeeId===fee?.id&&fee.email&&!fee.mail_status&&<tr><td className="fees-confirmation-cell" colSpan={4}>
+        {!!fee&&sendFeeId===fee.id&&!!fee.email&&!fee.mail_status&&<tr><td className="fees-confirmation-cell" colSpan={4}>
          <div className="fees-confirmation">
           <strong>Invio ricevuta a {displayName(p.full_name)}</strong>
           <p>Destinatario: <strong>{fee.email}</strong></p>
@@ -233,7 +233,7 @@ export default function MembershipFees(){
           </div>
          </div>
         </td></tr>}
-       </React.Fragment>;
+       </Fragment>;
       })}</tbody>
      </table>
     </div>}

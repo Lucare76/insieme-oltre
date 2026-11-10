@@ -4,6 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
+import { uppercasePersonName } from "../../../lib/personName";
 import "../../area-soci/soci.css";
 import "./libri-sociali.css";
 
@@ -162,7 +163,7 @@ export default function Page() {
   try {
    await api("/api/associazione/libri-sociali", {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...data, kind }),
+    body: JSON.stringify({ ...data, full_name: personKind(kind) ? uppercasePersonName(data.full_name) : data.full_name, kind }),
    });
    persisted = true;
    setData(initial); setEditorOpen(false);
@@ -187,7 +188,7 @@ export default function Page() {
     method: "PATCH", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
      kind: "soci", person_id: nameEdit.id, expected_name: nameEdit.expected_name,
-     full_name: nameEdit.full_name, reason: nameEdit.reason, confirm: nameEdit.confirmed,
+     full_name: uppercasePersonName(nameEdit.full_name), reason: nameEdit.reason, confirm: nameEdit.confirmed,
     }),
    });
    persisted = true;
@@ -228,7 +229,7 @@ export default function Page() {
  const input = (key: keyof typeof initial, label: string, required = false, variant = "text") =>
   <label key={key}>{label}
    <input type={variant} required={required} maxLength={variant === "text" ? (key === "full_name" ? 160 : key === "fiscal_code" ? 24 : key === "insurance_reference" ? 160 : key === "title" ? 200 : 500) : undefined}
-    value={String(data[key])} onChange={event => setData(old => ({ ...old, [key]: event.target.value }))}/>
+    value={String(data[key])} onChange={event => setData(old => ({ ...old, [key]: key === "full_name" ? event.target.value.toLocaleUpperCase("it-IT") : event.target.value }))}/>
   </label>;
 
  return <main className="soci books-page"><div className="soci-shell">
@@ -348,7 +349,7 @@ export default function Page() {
           const muted = isPerson ? endedEntry : !item.approved;
           return <Fragment key={item.id}><tr>
            <td data-label={isPerson ? "Nominativo" : "Oggetto"}>
-            <span className="books-person-name">{isPerson ? item.full_name : item.title}</span>
+            <span className="books-person-name">{isPerson ? uppercasePersonName(item.full_name) : item.title}</span>
            </td>
            <td data-label={isPerson ? "Data" : "Riunione"}>{dateLabel(isPerson ? item.admitted_on : item.meeting_on)}</td>
            <td data-label="Stato"><span className={"books-pill" + (muted ? " books-pill-muted" : "")}>{status}</span></td>
@@ -365,11 +366,11 @@ export default function Page() {
            {nameEdit?.id === item.id && kind === "soci" && <tr className="books-detail-row"><td className="books-edit-cell" colSpan={4} data-label="Correzione">
             <form className="books-edit-box" onSubmit={event => void correctName(event)}>
              <h4>Correggi il nominativo</h4>
-             <p>Nome attuale: <strong>{nameEdit.expected_name}</strong>. Questa operazione non sostituisce il socio e non modifica quote o ricevute.</p>
+             <p>Nome attuale: <strong>{uppercasePersonName(nameEdit.expected_name)}</strong>. Questa operazione non sostituisce il socio e non modifica quote o ricevute.</p>
              <div className="books-form-grid">
               <label>Nome e cognome corretti
-               <input required maxLength={160} value={nameEdit.full_name}
-                onChange={event => setNameEdit(d => d ? ({ ...d, full_name: event.target.value, confirmed: false }) : null)}/>
+               <input required maxLength={160} value={nameEdit.full_name.toLocaleUpperCase("it-IT")}
+                onChange={event => setNameEdit(d => d ? ({ ...d, full_name: event.target.value.toLocaleUpperCase("it-IT"), confirmed: false }) : null)}/>
               </label>
               <label>Motivo della correzione
                <input required minLength={5} maxLength={300} value={nameEdit.reason}
@@ -394,7 +395,7 @@ export default function Page() {
         {kind === "soci" && corrections.length > 0 && <details className="books-activity">
          <summary>Storico correzioni dei nominativi ({corrections.length})</summary>
          <ul>{corrections.map((c, i) => <li key={c.person_id + c.changed_at + i}>
-          {new Date(c.changed_at).toLocaleString("it-IT", { timeZone: "Europe/Rome" })} · <strong>{c.old_name}</strong> → <strong>{c.new_name}</strong> · {c.reason}
+          {new Date(c.changed_at).toLocaleString("it-IT", { timeZone: "Europe/Rome" })} · <strong>{uppercasePersonName(c.old_name)}</strong> → <strong>{uppercasePersonName(c.new_name)}</strong> · {c.reason}
          </li>)}</ul>
         </details>}
         <p className="books-subtle-note">Il PDF è un'esportazione dei dati del registro. Non sostituisce l'approvazione dei verbali o la vidimazione prevista per i volontari.</p>

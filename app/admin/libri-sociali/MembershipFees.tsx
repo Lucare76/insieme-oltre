@@ -1,4 +1,5 @@
 "use client";
+import { uppercasePersonName } from "../../../lib/personName";
 import {useCallback,useEffect,useRef,useState} from "react";
 type Person={id:string;full_name:string;admitted_on:string;ended_on:string|null;paid:boolean};
 type Fee={id:string;person_id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"cash"|"bank";email:string;mail_status:string|null;mail_recipient:string|null};
@@ -141,7 +142,7 @@ export default function MembershipFees(){
     <label>Socio
      <select required value={personId} onChange={e=>{setPersonId(e.target.value);setConfirmed(false);setPaymentMessage("");}}>
       <option value="">Seleziona un socio senza quota registrata</option>
-      {eligible.map(p=><option value={p.id} key={p.id}>{p.full_name}</option>)}
+      {eligible.map(p=><option value={p.id} key={p.id}>{uppercasePersonName(p.full_name)}</option>)}
      </select>
     </label>
     <label>Importo (€)<input required inputMode="decimal" placeholder="Es. 20,00" value={amount} onChange={e=>{setAmount(e.target.value);setPaymentMessage("");}}/></label>
@@ -167,7 +168,7 @@ export default function MembershipFees(){
    <h3>Situazione soci · {year}</h3>
    <ul>{data.people.map(p=>{
     const fee=data.fees.find(f=>f.person_id===p.id);
-    return <li key={p.id}><strong>{p.full_name}</strong> — {fee?<>
+    return <li key={p.id}><strong>{uppercasePersonName(p.full_name)}</strong> — {fee?<>
      Pagata il {fee.paid_on.split("-").reverse().join("/")} ({eur(fee.amount_cents)})
      <button type="button" disabled={busy} onClick={()=>void pdf(fee.id)}>Scarica ricevuta PDF</button>
      {fee.mail_status
@@ -186,7 +187,7 @@ export default function MembershipFees(){
     <h3>Storico quote annullate · {year}</h3>
     <p><small>Le quote annullate restano documentate ma non sono conteggiate fra gli incassi. Non corrispondono a un pagamento valido nell'anno.</small></p>
     <ul>{data.cancelled_fees.map(f=><li key={f.id}>
-     <strong>{f.full_name}</strong> — {eur(f.amount_cents)}, pagamento originario {f.paid_on.split("-").reverse().join("/")}; annullato il {new Date(f.cancelled_at).toLocaleDateString("it-IT",{timeZone:"Europe/Rome"})}.
+     <strong>{uppercasePersonName(f.full_name)}</strong> — {eur(f.amount_cents)}, pagamento originario {f.paid_on.split("-").reverse().join("/")}; annullato il {new Date(f.cancelled_at).toLocaleDateString("it-IT",{timeZone:"Europe/Rome"})}.
      <strong> Motivo: </strong>{f.cancellation_reason}
     </li>)}</ul>
    </>}

@@ -1,4 +1,5 @@
 "use client";
+import { uppercasePersonName } from "../../../lib/personName";
 import {useCallback,useEffect,useState} from "react";
 
 type Match={person_id:string;full_name:string;quality:"exact"|"similar";linked:boolean};
@@ -51,7 +52,7 @@ export default function MembershipAccountMatches(){
   {unregistered.length===0
     ? <p>Nessun account approvato da iscrivere: le altre persone potrebbero già essere nel Libro soci o richiedere la verifica di un nome simile.</p>
     : <ul>{unregistered.map(a=><li key={a.user_id}>
-      <strong>{a.name}</strong> · {a.email} · {a.activated_at?"Accesso attivato":"Invito approvato, account non ancora attivato"} · <strong>Non nel Libro soci</strong>
+      <strong>{uppercasePersonName(a.name)}</strong> · {a.email} · {a.activated_at?"Accesso attivato":"Invito approvato, account non ancora attivato"} · <strong>Non nel Libro soci</strong>
       <button type="button" disabled={busy} onClick={()=>{
         setAdmitting(admitting===a.user_id?"":a.user_id);
         setAdmittedOn("");
@@ -63,7 +64,7 @@ export default function MembershipAccountMatches(){
           <input type="date" required value={admittedOn} max={todayRome()} onChange={e=>{setAdmittedOn(e.target.value);setFormalAdmission(false);}}/>
         </label>
         <label className="soci-check"><input type="checkbox" checked={formalAdmission} onChange={e=>setFormalAdmission(e.target.checked)}/>
-          Confermo che {a.name} è stato formalmente ammesso come socio e che la data inserita è corretta.
+          Confermo che {uppercasePersonName(a.name)} è stato formalmente ammesso come socio e che la data inserita è corretta.
         </label>
         <button type="button" className="primary" disabled={busy||!admittedOn||admittedOn>todayRome()||!formalAdmission}
           onClick={()=>void run(async()=>{
@@ -81,7 +82,7 @@ export default function MembershipAccountMatches(){
    <ul>{suggestions.map(s=>{
     const key=s.user_id+":"+s.person_id;
     return <li key={key}>
-     <strong>Libro soci:</strong> {s.full_name} · <strong>Account:</strong> {s.account_name} ({s.account_email})
+     <strong>Libro soci:</strong> {uppercasePersonName(s.full_name)} · <strong>Account:</strong> {uppercasePersonName(s.account_name)} ({s.account_email})
      {s.quality==="similar"?" · Nomi simili, non identici":" · Corrispondenza esatta"}
      {selected===key&&<>
       <label className="soci-check"><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)}/> Ho verificato che si tratta della stessa persona e autorizzo l'associazione dell'email dell'account al socio.</label>
@@ -102,7 +103,7 @@ export default function MembershipAccountMatches(){
     setEmail(contacts.find(c=>c.id===e.target.value)?.email||"");
    }}>
     <option value="">Seleziona un socio da aggiornare</option>
-    {contacts.map(c=><option key={c.id} value={c.id}>{c.full_name}{c.email?" · "+c.email:" · Email mancante"}</option>)}
+    {contacts.map(c=><option key={c.id} value={c.id}>{uppercasePersonName(c.full_name)}{c.email?" · "+c.email:" · Email mancante"}</option>)}
    </select>
   </label>
   {selected.startsWith("contact:")&&<>

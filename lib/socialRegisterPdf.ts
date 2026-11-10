@@ -2,6 +2,7 @@ import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { uppercasePersonName } from "./personName";
 
 export type RegisterKind = "soci" | "volontari" | "assemblee" | "direttivo";
 type RecordItem = Record<string, unknown>;
@@ -57,7 +58,7 @@ export async function socialRegisterPdf(kind: RegisterKind, items: RecordItem[])
  if (!items.length) write("Nessuna registrazione presente nel periodo.",11);
  for (const [i,item] of items.entries()) {
   if(y<175) start();
-  write(String(i+1)+". "+(kind==="soci"||kind==="volontari"?str(item.full_name):str(item.title)),12,true);
+  write(String(i+1)+". "+(kind==="soci"||kind==="volontari"?uppercasePersonName(str(item.full_name)):str(item.title)),12,true);
   if(kind==="soci"||kind==="volontari") {
    write("Data iscrizione: "+date(item.admitted_on)+" · Cessazione: "+(item.ended_on?date(item.ended_on):"non registrata"),9);
    if(item.birth_date)write("Nascita: "+date(item.birth_date),9);

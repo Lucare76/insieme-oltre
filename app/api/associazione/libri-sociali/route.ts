@@ -1,5 +1,6 @@
 import { authorize, AssociationError, jsonBody, privateHeaders, service, uuid } from "../../../../lib/associationServer";
 import { validDate } from "../../../../lib/accounting";
+import { uppercasePersonName } from "../../../../lib/personName";
 import { socialRegisterPdf, type RegisterKind } from "../../../../lib/socialRegisterPdf";
 export const runtime = "nodejs";
 const kinds = ["soci","volontari","assemblee","direttivo"] as const;
@@ -56,7 +57,7 @@ async function handle(request:Request){
   const body=await jsonBody(request);
   if(body.kind!=="soci" || !uuid(body.person_id) || body.confirm!==true)
    throw new AssociationError("Scegli un socio e conferma la correzione.");
-  const fullName=cleaned(body.full_name,160,true).replace(/\s+/g," ");
+  const fullName=uppercasePersonName(cleaned(body.full_name,160,true));
   const expectedName=cleaned(body.expected_name,160,true);
   const reason=cleaned(body.reason,300,true);
   if(fullName.length<2 || reason.length<5 || fullName===expectedName)
@@ -80,7 +81,7 @@ async function handle(request:Request){
  let data:Record<string,unknown>;
  if(people(body.kind)){
   if(!validDate(body.admitted_on) || (body.ended_on && (!validDate(body.ended_on)||body.ended_on<body.admitted_on)) || (body.birth_date && !validBirthDate(body.birth_date)))throw new AssociationError("Controlla le date.");
-  data={register_kind:body.kind,full_name:cleaned(body.full_name,160,true),birth_date:body.birth_date||null,fiscal_code:cleaned(body.fiscal_code??"",24),admitted_on:body.admitted_on,ended_on:body.ended_on||null,notes:cleaned(body.notes??"",500),insurance_reference:body.kind==="volontari"?cleaned(body.insurance_reference??"",160):""};
+  data={register_kind:body.kind,full_name:uppercasePersonName(cleaned(body.full_name,160,true)),birth_date:body.birth_date||null,fiscal_code:cleaned(body.fiscal_code??"",24),admitted_on:body.admitted_on,ended_on:body.ended_on||null,notes:cleaned(body.notes??"",500),insurance_reference:body.kind==="volontari"?cleaned(body.insurance_reference??"",160):""};
  }else{
   if(!validDate(body.meeting_on))throw new AssociationError("Data riunione non valida.");
   data={meeting_kind:body.kind,meeting_on:body.meeting_on,title:cleaned(body.title,200,true),attendees:cleaned(body.attendees,4000,true),content:cleaned(body.content,20000,true),approved:body.approved===true};

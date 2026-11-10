@@ -1,5 +1,6 @@
 import {authorize,AssociationError,jsonBody,privateHeaders,service,uuid} from "../../../../../lib/associationServer";
 import {validDate} from "../../../../../lib/accounting";
+import {uppercasePersonName} from "../../../../../lib/personName";
 export const runtime="nodejs";
 type Account={user_id:string;name:string;email:string;role:string;psychologist:boolean;active:boolean;activated_at:string|null};
 type Person={id:string;full_name:string;ended_on:string|null};
@@ -89,7 +90,7 @@ async function handle(req:Request){
  if(!account)throw new AssociationError("Iscrizione attiva non trovata.",404);
  if(!account.name?.trim() || account.name.length>160 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(account.email||""))
   throw new AssociationError("Nome o email dell'iscrizione non valido.",409);
- const mail=account.email.trim().toLowerCase(),name=account.name.trim();
+ const mail=account.email.trim().toLowerCase(),name=uppercasePersonName(account.name);
  const existingByEmail=registered.contacts.find(c=>c.email.trim().toLowerCase()===mail);
  const existingByName=registered.people.find(p=>active(p)&&match(p.full_name,name));
  if(existingByEmail||existingByName)

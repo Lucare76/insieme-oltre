@@ -57,7 +57,13 @@ export function FundraisingOperations({ project, api, canWrite, onAccountingChan
  return <section className="soci-card" aria-label="Gestione consegne solidali">
   <h3>Gestione prodotti e consegne</h3>
   <p>Registra qui una consegna: l'incasso entra automaticamente nella Contabilità e nel rendiconto. Non registrarlo una seconda volta.</p>
-  {!loaded ? <p role="status">Caricamento giacenze…</p> : <>
+  {!loaded ? <div role="status">
+   <p>{message ? "Impossibile caricare le giacenze." : "Caricamento giacenze…"}</p>
+   {message && <button type="button" disabled={busy} onClick={() => {
+    setMessage("");
+    void refresh().catch(e => setMessage(e instanceof Error ? e.message : "Impossibile caricare le consegne."));
+   }}>Riprova caricamento</button>}
+  </div> : <>
    <div className="accounting-period">
     {(["panettone","candela"] as Product[]).map(p=><div key={p}>
      <span>{name[p]} disponibili</span>

@@ -26,6 +26,7 @@ const FundraisingPanel = dynamic(() => import("./FundraisingPanel").then(m => m.
 import { AccountingDashboard } from "./AccountingDashboard";
 import { MovementLedger } from "./MovementLedger";
 import { AdminSidebar } from "./AdminSidebar";
+import { MemberRoleEditor, type MemberAccessRole } from "./MemberRoleEditor";
 import "./admin-workspace.css";
 import {
   defaultMovementFilters,
@@ -414,6 +415,57 @@ export default function AreaSoci() {
         .getElementById("movement-editor")
         ?.scrollIntoView({ behavior: "smooth", block: "start" }),
     );
+  }
+  async function saveMemberRole(member: Member, nextRole: MemberAccessRole) {
+    if (busy || member.role === nextRole) return;
+    if (!member.username || !/^[a-z0-9][a-z0-9._-]{2,31}$/.test(member.username)) {
+      setMembersFeedback("Per modificare il ruolo devi prima assegnare un nome utente valido con Gestisci.");
+      return;
+    }
+    setMemberEdit(null);
+    setBusy(true);
+    setMembersFeedback("Aggiornamento del ruolo di " + member.name + " in corso…");
+    let saved = false;
+    try {
+      await post("members", {
+        user_id: member.user_id,
+        name: member.name,
+        email: member.email,
+        username: member.username,
+        role: nextRole,
+        psychologist: member.psychologist,
+        active: member.active,
+      });
+      saved = true;
+      setMembers(current => current.map(m => m.user_id === member.user_id ? { ...m, role: nextRole } : m));
+      try {
+        const latest = await (await api("members")).json() as { items: Member[] };
+        setMembers(latest.items);
+        setMembersFeedback("Ruolo di " + member.name + " aggiornato. La modifica è registrata nello storico operazioni.");
+      } catch {
+        setMembersFeedback("Ruolo salvato, ma elenco non aggiornato dal server. Premi Aggiorna elenco utenti; non ripetere il salvataggio.");
+      }
+    } catch (error) {
+      const explanation = error instanceof Error ? error.message : "Cambio ruolo non riuscito.";
+      if (saved) {
+        setMembersFeedback("Ruolo salvato, ma verifica non completata. Aggiorna l'elenco prima di riprovare.");
+      } else {
+        // Una risposta persa dopo il salvataggio può lasciare un esito incerto:
+        // rileggiamo il ruolo prima di suggerire un nuovo tentativo.
+        try {
+          const latest = await (await api("members")).json() as { items: Member[] };
+          setMembers(latest.items);
+          const persisted = latest.items.find(m => m.user_id === member.user_id)?.role === nextRole;
+          setMembersFeedback(persisted
+            ? "Il nuovo ruolo risulta già salvato nello storico utenti. Non ripetere l'operazione."
+            : explanation + " Verifica lo storico prima di effettuare un nuovo cambio.");
+        } catch {
+          setMembersFeedback(explanation + " Esito da verificare: aggiorna l'elenco prima di riprovare.");
+        }
+      }
+    } finally {
+      setBusy(false);
+    }
   }
   async function openTab(value: string) {
     if (value === "contents" || value === "stories") setContentVisited(true);
@@ -985,7 +1037,8 @@ export default function AreaSoci() {
             {tab === "members" && user.role === "owner" && (
               <section className="soci-card">
                 <h2>Utenti e permessi</h2>
-                <p>Solo tu puoi abilitare gli accessi e assegnare i ruoli.</p>
+                <p>Solo l'amministratore principale può cambiare il ruolo degli utenti. La modifica riguarda l'accesso al gestionale e non sostituisce la nomina ufficiale negli atti associativi.</p>
+                <p className="admin-member-role-help">Per ogni utente seleziona <strong>Socio, Presidente o Tesoriere</strong>, poi premi <strong>Salva ruolo</strong>. Ogni variazione viene registrata nello storico.</p>
                 <div className="soci-actions">
                   <button type="button" disabled={busy} onClick={() => {
                     setManualInvite(v => !v);
@@ -1216,7 +1269,7 @@ export default function AreaSoci() {
                     )}
                   </form>
                 )}
-                <ul className="soci-members">
+                <ul className="soci-members admin-members-list">
                   {members.map((m) => (
                     <li key={m.user_id}>
                       <div>
@@ -1231,6 +1284,11 @@ export default function AreaSoci() {
                             : "Disattivato"}
                         </small>
                       </div>
+                      <MemberRoleEditor
+                        member={m}
+                        busy={busy}
+                        onSave={(nextRole) => saveMemberRole(m, nextRole)}
+                      />
                       <div className="soci-actions">
                         <button onClick={() => {setMembersFeedback("");setMemberEdit(m);}}>
                           Gestisci

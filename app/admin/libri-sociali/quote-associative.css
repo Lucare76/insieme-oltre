@@ -1,0 +1,89 @@
+/* Quote associative — component-scoped; preserves existing accounting operations. */
+.fees-workspace { font-size: 14px; color: #283d30; }
+.fees-workspace .fees-heading { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:22px; margin-bottom:25px; }
+.fees-heading .soci-kicker { color:#839280; font-size:11px; letter-spacing:.14em; margin:0 0 9px; }
+.fees-heading h3 { margin:0; font-size:clamp(23px,2.6vw,29px); letter-spacing:-.025em; font-weight:750; }
+.fees-heading p:not(.soci-kicker) { margin:8px 0 0; font-size:13px; max-width:620px; color:#6c796c; line-height:1.55; }
+.fees-year { width:190px; max-width:100%; }
+.fees-year label { font-size:12px; color:#627265; gap:6px; }
+.fees-year select { font-weight:750; background:#f8faf6; }
+.fees-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:28px; }
+.fees-kpi { background:#f7f9f5; border:1px solid #e0e8dd; border-radius:14px; padding:19px 17px; min-width:0; }
+.fees-kpi > span { font-size:12px; color:#6c7c6e; display:block; min-height:18px; }
+.fees-kpi strong { display:block; margin:7px 0 5px; font-size:clamp(24px,2.6vw,32px); line-height:1.25; font-weight:750; letter-spacing:-.03em; overflow-wrap:anywhere; }
+.fees-kpi small { font-size:11px; color:#79867a; line-height:1.5; }
+.fees-kpi-total { background:#345b43; color:#fff; border-color:#345b43; }
+.fees-kpi-total > span, .fees-kpi-total small { color:#e2ede5; }
+.fees-navigation { display:flex; flex-wrap:wrap; gap:8px; border-bottom:1px solid #dbe4d9; margin-bottom:26px; padding-bottom:12px; }
+.fees-workspace .fees-navigation button { display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:3px; min-height:58px; padding:9px 15px; border:1px solid transparent; border-radius:10px; background:transparent; color:#667869; }
+.fees-workspace .fees-navigation button:hover { background:#eff4ec; }
+.fees-workspace .fees-navigation button[aria-pressed="true"] { background:#e7f0e6; border-color:#c7dcc8; color:#264f35; }
+.fees-navigation button strong { font-size:13px; font-weight:750; }
+.fees-navigation button span { font-size:11px; font-weight:450; }
+.fees-section { background:#fff; min-width:0; }
+.fees-section-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:22px; }
+.fees-section-heading h4 { font-size:20px; letter-spacing:-.025em; margin:0 0 6px; }
+.fees-section-heading p { margin:0; color:#69796b; font-size:13px; }
+.fees-section-heading button { font-size:13px; white-space:nowrap; }
+.fees-filters { display:grid; grid-template-columns:minmax(0,2fr) minmax(200px,1fr); gap:15px; align-items:end; margin-bottom:16px; }
+.fees-filters label { gap:6px; font-size:12px; color:#5e705f; }
+.fees-filters input, .fees-filters select { background:#fcfdfa; }
+.fees-results { margin:0 0 12px !important; color:#718374; font-size:12px; }
+.fees-table-wrap { width:100%; overflow-x:auto; border:1px solid #e0e6df; border-radius:13px; }
+.fees-workspace .fees-table { border-collapse:collapse; width:100%; min-width:0; }
+.fees-table th { background:#f4f8f3; color:#728273; padding:13px 15px; font-size:11px; letter-spacing:.04em; font-weight:750; text-align:left; }
+.fees-table td { padding:14px 15px; border-bottom:1px solid #e8ece5; font-size:13px; vertical-align:middle; }
+.fees-table tbody tr:last-child td { border-bottom:0; }
+.fees-table td:first-child { white-space:normal; overflow-wrap:anywhere; }
+.fees-table td strong { display:block; font-size:13px; font-weight:700; }
+.fees-table td small { display:block; margin-top:3px; font-size:11px; color:#758374; line-height:1.5; overflow-wrap:anywhere; }
+.fees-status { display:inline-flex; align-items:center; border-radius:100px; padding:6px 11px; font-size:11px; font-weight:750; width:max-content; max-width:100%; }
+.fees-status.is-paid { background:#e7f2e7; color:#246c42; }
+.fees-status.is-missing { background:#f5f0e4; color:#837044; }
+.fees-muted { font-size:12px; color:#738072; }
+.fees-row-actions { display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
+.fees-workspace .fees-row-actions button, .fees-table td>button { padding:7px 10px; min-height:33px; font-size:11px; border-radius:8px; }
+.fees-table .fees-confirmation-cell { background:#f7faf5; padding:18px 22px; }
+.fees-confirmation { max-width:690px; }
+.fees-confirmation strong { font-size:13px; }
+.fees-confirmation p { font-size:12px; margin:8px 0 15px; }
+.fees-checkbox { display:flex !important; align-items:flex-start !important; flex-direction:row !important; gap:12px !important; font-weight:500 !important; line-height:1.6; max-width:820px; }
+.fees-checkbox input { flex:0 0 20px !important; width:20px !important; height:20px !important; min-height:20px !important; margin-top:2px; }
+.fees-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:18px; }
+.fees-workspace .fees-actions button { margin:0; min-height:42px; }
+.fees-payment-form { max-width:830px; }
+.fees-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.fees-form-grid label { min-width:0; }
+.fees-payment-confirm { margin:23px 0 0; }
+.fees-payment-note { margin-top:21px; padding:17px 19px; border:1px solid #cddfce; background:#f1f7f0; border-radius:12px; }
+.fees-payment-note strong { font-size:13px; }
+.fees-payment-note p { font-size:12px; color:#5d745e; margin:4px 0 0; }
+.fees-settings-form { display:flex; flex-direction:column; gap:17px; max-width:570px; margin-top:24px; padding:20px; background:#f8faf7; border:1px solid #e0e9dd; border-radius:13px; }
+.fees-settings-form > label:not(.fees-checkbox) { max-width:320px; }
+.fees-reminder-status { display:flex; gap:13px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+.fees-workspace h5 { font-size:16px; margin:24px 0 12px; }
+.fees-empty { text-align:center; border:1px dashed #d2dcd0; border-radius:13px; padding:35px 22px; background:#f9fbf8; }
+.fees-empty strong { display:block; font-size:16px; margin-bottom:5px; }
+.fees-empty p { margin:0; font-size:12px; color:#718272; }
+.fees-footnote { color:#6c7c6d; font-size:12px; border-top:1px solid #e5eae2; padding-top:16px; margin-top:22px; line-height:1.65; }
+.fees-notice { background:#edf5ee; border:1px solid #c4d9c4; color:#2e613f; padding:13px 16px; border-radius:11px; margin:13px 0 22px; font-size:13px; line-height:1.6; }
+@media(max-width:1100px){ .fees-kpis {grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media(max-width:760px){
+ .fees-workspace .fees-heading { align-items:flex-start; }
+ .fees-year { width:100%; }
+ .fees-navigation { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .fees-workspace .fees-navigation button { min-height:55px; padding:10px; }
+ .fees-filters,.fees-form-grid { grid-template-columns:minmax(0,1fr); }
+ .fees-table-wrap { border:0; overflow:visible; }
+ .fees-workspace .fees-table, .fees-table tbody, .fees-table tr, .fees-table td { display:block; width:100%; }
+ .fees-table thead { display:none; }
+ .fees-table tbody tr { border:1px solid #e0e8dd; border-radius:12px; margin:0 0 12px; padding:9px 14px; }
+ .fees-table td { display:flex; justify-content:space-between; align-items:center; gap:13px; padding:10px 0; border-bottom:1px solid #e8ece5; }
+ .fees-table td::before { content:attr(data-label); font-size:11px; color:#6d806e; font-weight:750; flex:0 0 95px; }
+ .fees-table td:last-child { border-bottom:0; }
+ .fees-table td .fees-row-actions { align-items:flex-end; text-align:right; }
+ .fees-table .fees-confirmation-cell { display:block; padding:12px; }
+ .fees-table .fees-confirmation-cell::before { display:none; }
+ .fees-actions button { flex:1 1 auto; }
+ .fees-workspace .fees-table td strong { text-align:right; }
+}

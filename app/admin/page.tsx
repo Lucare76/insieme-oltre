@@ -25,6 +25,8 @@ const WhatsAppPanel = dynamic(() => import("./WhatsAppPanel"));
 const FundraisingPanel = dynamic(() => import("./FundraisingPanel").then(m => m.FundraisingPanel));
 import { AccountingDashboard } from "./AccountingDashboard";
 import { MovementLedger } from "./MovementLedger";
+import { AdminSidebar } from "./AdminSidebar";
+import "./admin-workspace.css";
 import {
   defaultMovementFilters,
   filterMovements,
@@ -88,6 +90,7 @@ export default function AreaSoci() {
   const [busy, setBusy] = useState(false);
   const [newDate, setNewDate] = useState("");
   const [tab, setTab] = useState("home");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [contentVisited, setContentVisited] = useState(false);
   const [whatsappAllowed, setWhatsappAllowed] = useState(false);
   const [pending, setPending] = useState(0);
@@ -328,6 +331,19 @@ export default function AreaSoci() {
     }).catch(() => { if (active) setWhatsappAllowed(user.role === "owner"); }); });
     return () => { active = false; };
   }, [api, user]);
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onEscape);
+    };
+  }, [mobileMenuOpen]);
   async function run(action: () => Promise<void>) {
     setBusy(true);
     setMessage("");
@@ -507,7 +523,7 @@ export default function AreaSoci() {
       </main>
     );
   return (
-    <main className={"soci" + (tab === "whatsapp" ? " soci-whatsapp" : "")}>
+    <main className={"soci admin-area" + (tab === "whatsapp" ? " soci-whatsapp" : "")}>
       <div className="soci-shell">
         <header className="soci-header">
           <Link href="/">
@@ -578,97 +594,63 @@ export default function AreaSoci() {
           </div>
         ) : (
           <>
-            <nav className="soci-tabs" aria-label="Sezioni area soci">
-              <button
-                aria-pressed={tab === "home"}
-                onClick={() => void openTab("home")}
-              >
-                Menu
+            <div className="admin-mobile-bar">
+              <button type="button" className="admin-mobile-toggle" aria-expanded={mobileMenuOpen}
+                aria-controls="admin-site-navigation" onClick={() => setMobileMenuOpen(open => !open)}>
+                <span aria-hidden="true">☰</span> Menu sezioni
               </button>
-              <button
-                aria-pressed={tab === "register"}
-                onClick={() => void openTab("register")}
-              >
-                Contabilità
-              </button>
-              <button aria-pressed={tab === "fundraising"} onClick={() => void openTab("fundraising")}>Raccolte fondi</button>
-              {(user.role === "president" || user.role === "accountant") && <Link href="/admin/libri-sociali">Libri sociali →</Link>}
-              {whatsappAllowed && <button aria-pressed={tab === "whatsapp"} onClick={() => void openTab("whatsapp")}>WhatsApp</button>}
-              {write && <button aria-pressed={tab === "receipts"} onClick={() => void openTab("receipts")}>Ricevute</button>}
-              {(user.role === "owner" || user.psychologist) && <Link href="/admin/questionari">Questionari →</Link>}
-              {user.role === "owner" && (
-                <>
-                  <button
-                    aria-pressed={tab === "requests"}
-                    onClick={() => void openTab("requests")}
-                  >
-                    Richieste di accesso {pending > 0 ? `(${pending})` : ""}
-                  </button>
-                  <button
-                    aria-pressed={tab === "contents"}
-                    onClick={() => void openTab("contents")}
-                  >
-                    Contenuti del sito
-                  </button>
-                  <button aria-pressed={tab === "stories"} onClick={() => void openTab("stories")}>Storie delle famiglie</button>
-                  <button
-                    aria-pressed={tab === "members"}
-                    onClick={() => void openTab("members")}
-                  >
-                    Utenti e permessi
-                  </button>
-                  <button
-                    aria-pressed={tab === "audit"}
-                    onClick={() => void openTab("audit")}
-                  >
-                    Storico operazioni
-                  </button>
-                  <Link href="/admin/libri-sociali">Libri sociali e registro volontari →</Link>
-                  <Link href="/admin/partecipazioni">
-                    Le idee delle famiglie →
-                  </Link>
-                </>
-              )}
-            </nav>
+              <span>{({
+                home: "Dashboard", register: "Contabilità", fundraising: "Raccolte fondi",
+                receipts: "Ricevute", whatsapp: "WhatsApp", requests: "Richieste di accesso",
+                contents: "Contenuti del sito", stories: "Storie delle famiglie",
+                members: "Utenti e permessi", audit: "Storico operazioni",
+              } as Record<string, string>)[tab] || "Area riservata"}</span>
+            </div>
+            <div className="admin-workspace">
+              <AdminSidebar
+                tab={tab}
+                onNavigate={(next) => { void openTab(next); }}
+                role={user.role}
+                psychologist={Boolean(user.psychologist)}
+                canWrite={Boolean(write)}
+                whatsappAllowed={whatsappAllowed}
+                pending={pending}
+                mobileOpen={mobileMenuOpen}
+                onDismiss={() => setMobileMenuOpen(false)}
+              />
+              <div className="admin-main-content">
             {tab === "home" && (
-              <section className="soci-card">
-                <h2>Benvenuto, {user.name}</h2>
+              <section className="admin-home-card" aria-label="Panoramica associazione">
+                <p className="admin-home-kicker">BENVENUTO NELL'AREA RISERVATA</p>
+                <h2>Ciao, {user.name}</h2>
                 <p>
                   {user.role === "owner"
-                    ? "Da questo menu gestisci il sito, la contabilità e gli accessi dell’associazione."
+                    ? "Tutto ciò che serve per amministrare Insieme Oltre, organizzato in un unico spazio. Seleziona un'area dalla barra laterale."
                     : user.role === "accountant"
-                      ? "Puoi consultare e registrare i movimenti dell’associazione."
-                      : "Puoi consultare i movimenti e i riepiloghi dell’associazione."}
+                      ? "Gestisci conti e registrazioni dell'associazione. Le altre funzioni autorizzate sono nel menu laterale."
+                      : "Consulta le risorse e le attività di Insieme Oltre, con le sezioni autorizzate nel menu laterale."}
                 </p>
-                <div className="soci-menu-cards">
-                  <button onClick={() => void openTab("register")}>
+                <h3 className="admin-home-quick-title">ACCESSI RAPIDI</h3>
+                <div className="admin-home-actions">
+                  <button type="button" className="admin-home-action" onClick={() => void openTab("register")}>
                     <strong>Contabilità</strong>
-                    <span>Entrate, uscite, cassa e banca</span>
+                    <span>Entrate, uscite, saldi di cassa e banca</span>
                   </button>
-                  <button onClick={() => void openTab("fundraising")}><strong>Raccolte fondi</strong><span>Natale, Pasqua e rendiconti separati da allegare al bilancio</span></button>
-                  {(user.role === "owner" || user.role === "president" || user.role === "accountant") && <Link className="soci-menu-link" href="/admin/libri-sociali"><strong>Libri sociali</strong><span>Soci, quote associative, email, volontari e verbali</span></Link>}
-                  {whatsappAllowed && <button onClick={() => void openTab("whatsapp")}><strong>WhatsApp</strong><span>Conversazioni e risposte dell’associazione</span></button>}
-                  {write && <button onClick={() => void openTab("receipts")}><strong>Ricevute</strong><span>Quote associative, donazioni, raccolte fondi ed email</span></button>}
-                  {(user.role === "owner" || user.psychologist) && <Link className="soci-menu-link" href="/admin/questionari"><strong>Questionari</strong><span>Incontri, QR code e risultati</span></Link>}
-                  {user.role === "owner" && (
-                    <>
-                      <button onClick={() => void openTab("contents")}>
-                        <strong>Contenuti del sito</strong>
-                        <span>Testi della homepage, divisi per sezione</span>
-                      </button>
-                      <button onClick={() => void openTab("stories")}><strong>Storie delle famiglie</strong><span>Racconti, pubblicazione e fotografie</span></button>
-                      <button onClick={() => void openTab("requests")}>
-                        <strong>
-                          Richieste di accesso{" "}
-                          {pending > 0 ? `· ${pending}` : ""}
-                        </strong>
-                        <span>Approva e assegna il ruolo</span>
-                      </button>
-                      <button onClick={() => void openTab("members")}>
-                        <strong>Utenti e permessi</strong>
-                        <span>Gestisci account e inviti</span>
-                      </button>
-                    </>
+                  <button type="button" className="admin-home-action" onClick={() => void openTab("fundraising")}>
+                    <strong>Raccolte fondi</strong>
+                    <span>Consegne, incassi e rendiconti delle iniziative</span>
+                  </button>
+                  {(user.role === "owner" || user.role === "president" || user.role === "accountant") && (
+                    <Link className="admin-home-action" href="/admin/libri-sociali">
+                      <strong>Libri sociali</strong>
+                      <span>Soci, quote associative, volontari e verbali</span>
+                    </Link>
+                  )}
+                  {(user.role === "owner" && pending > 0) && (
+                    <button type="button" className="admin-home-action" onClick={() => void openTab("requests")}>
+                      <strong>{pending} richieste da gestire</strong>
+                      <span>Controlla le domande di accesso in attesa</span>
+                    </button>
                   )}
                 </div>
               </section>
@@ -1321,6 +1303,8 @@ export default function AreaSoci() {
                 </button>
               </section>
             )}
+              </div>
+            </div>
           </>
         )}
         <footer>

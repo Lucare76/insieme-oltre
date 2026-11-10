@@ -2,6 +2,7 @@ import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { uppercasePersonName } from "./personName";
 
 export type FeeReceipt = {
   id: string;
@@ -80,7 +81,7 @@ export async function membershipFeePdf(fee: FeeReceipt): Promise<Buffer> {
   line("Ricevuta n. " + receiptNumber, 9);
   line("Data emissione: " + issuedOn, 10, false, 19);
   line("RICEVUTO DA", 10, true);
-  line(fee.full_name, 13, true);
+  line(uppercasePersonName(fee.full_name), 13, true);
   if (fee.fiscal_code) line("Codice fiscale del socio: " + fee.fiscal_code, 10);
   y -= 13;
   line("Importo ricevuto: " + euros, 14, true);
@@ -94,7 +95,7 @@ export async function membershipFeePdf(fee: FeeReceipt): Promise<Buffer> {
 
   page.drawLine({ start: { x: 51, y: 84 }, end: { x: 544, y: 84 }, thickness: 0.8, color: rgb(0.74, 0.82, 0.76) });
   page.drawText("Insieme Oltre ODV - Ricevuta rilasciata al socio", { x: 51, y: 66, size: 9, font: normal, color: muted });
-  pdf.setTitle("Ricevuta quota associativa " + fee.fee_year + " - " + fee.full_name);
+  pdf.setTitle("Ricevuta quota associativa " + fee.fee_year + " - " + uppercasePersonName(fee.full_name));
   pdf.setSubject("Ricevuta del versamento della quota associativa");
   return Buffer.from(await pdf.save());
 }

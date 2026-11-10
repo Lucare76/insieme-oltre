@@ -1,4 +1,5 @@
 "use client";
+import { uppercasePersonName } from "../../../lib/personName";
 import {useCallback,useEffect,useState} from "react";
 type Person={id:string;full_name:string;email:string};
 type Registration={user_id:string;name:string;email:string;role:string;psychologist:boolean;in_book:boolean};
@@ -77,7 +78,7 @@ export default function MinuteDistribution({minutes}:{minutes:{id:string;title?:
   <label>Iscrizione
    <select value={registration} onChange={e=>{setRegistration(e.target.value);setMembershipConfirmed(false);}}>
     <option value="">Seleziona iscrizione da importare</option>
-    {registrations.filter(r=>!r.in_book).map(r=><option key={r.user_id} value={r.user_id}>{r.name} · {r.email}{r.psychologist?" · Psicologa":""}</option>)}
+    {registrations.filter(r=>!r.in_book).map(r=><option key={r.user_id} value={r.user_id}>{uppercasePersonName(r.name)} · {r.email}{r.psychologist?" · Psicologa":""}</option>)}
    </select>
   </label>
   {registration&&<>
@@ -93,7 +94,7 @@ export default function MinuteDistribution({minutes}:{minutes:{id:string;title?:
   <label>Socio
    <select value={selectedPerson} onChange={e=>{setSelectedPerson(e.target.value);setEmail(contacts.find(p=>p.id===e.target.value)?.email||"");}}>
     <option value="">Seleziona un socio</option>
-    {contacts.map(p=><option value={p.id} key={p.id}>{p.full_name}{p.email?" — "+p.email:" — email mancante"}</option>)}
+    {contacts.map(p=><option value={p.id} key={p.id}>{uppercasePersonName(p.full_name)}{p.email?" — "+p.email:" — email mancante"}</option>)}
    </select>
   </label>
   <label>Indirizzo email
@@ -110,10 +111,10 @@ export default function MinuteDistribution({minutes}:{minutes:{id:string;title?:
   {preview&&<>
    <p><strong>{preview.minute.title}</strong> · {preview.minute.meeting_on}</p>
    {!preview.configured&&<p role="alert">Brevo non configurato: invio non disponibile.</p>}
-   {!!missing.length&&<p role="alert">Mancano {missing.length} email: {missing.map(p=>p.full_name).join(", ")}.</p>}
+   {!!missing.length&&<p role="alert">Mancano {missing.length} email: {missing.map(p=>uppercasePersonName(p.full_name)).join(", ")}.</p>}
    {!!preview.duplicates.length&&<p role="alert">Ci sono email duplicate nella rubrica: correggile prima dell'invio.</p>}
    <h3>Destinatari ({preview.recipients.length})</h3>
-   <ul>{preview.recipients.map(p=><li key={p.id}>{p.full_name} · {p.email}</li>)}</ul>
+   <ul>{preview.recipients.map(p=><li key={p.id}>{uppercasePersonName(p.full_name)} · {p.email}</li>)}</ul>
    {preview.history.length>0?<><h3>Storico invio</h3><ul>{preview.history.map(h=><li key={h.person_id}>{h.recipient_email} · {h.status==="sent"?"Accettato da Brevo":h.status==="failed"?"Errore invio":"Stato da verificare"}</li>)}</ul><p><small>Non è previsto reinvio automatico: eventuali errori devono essere verificati per evitare duplicati.</small></p></>:<>
     <label><input type="checkbox" checked={confirm} onChange={e=>setConfirm(e.target.checked)}/> Ho verificato i destinatari e il contenuto del verbale; autorizzo l'invio individuale del PDF.</label>
     <p><button className="primary" type="button" disabled={busy||!ready||!confirm} onClick={()=>void send()}>Invia verbale ai {preview.recipients.length} soci</button></p>

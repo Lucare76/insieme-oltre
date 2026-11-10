@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
@@ -227,7 +227,7 @@ export default function Page() {
  const currentView = tabs[kind].find(v => v.id === view) || tabs[kind][0];
  const input = (key: keyof typeof initial, label: string, required = false, variant = "text") =>
   <label key={key}>{label}
-   <input type={variant} required={required} maxLength={variant === "text" ? 500 : undefined}
+   <input type={variant} required={required} maxLength={variant === "text" ? (key === "full_name" ? 160 : key === "fiscal_code" ? 24 : key === "insurance_reference" ? 160 : key === "title" ? 200 : 500) : undefined}
     value={String(data[key])} onChange={event => setData(old => ({ ...old, [key]: event.target.value }))}/>
   </label>;
 
@@ -346,7 +346,7 @@ export default function Page() {
           const endedEntry = !!item.ended_on && item.ended_on <= todayRome();
           const status = isPerson ? endedEntry ? "Cessato" : "Attivo" : item.approved ? "Approvato" : "Da approvare";
           const muted = isPerson ? endedEntry : !item.approved;
-          return <tr key={item.id}>
+          return <Fragment key={item.id}><tr>
            <td data-label={isPerson ? "Nominativo" : "Oggetto"}>
             <span className="books-person-name">{isPerson ? item.full_name : item.title}</span>
            </td>
@@ -361,7 +361,8 @@ export default function Page() {
              {nameEdit?.id === item.id ? "Chiudi" : "Correggi nome"}
             </button>}
            </td>}
-           {nameEdit?.id === item.id && kind === "soci" && <td className="books-edit-cell" colSpan={4} data-label="Correzione">
+           </tr>
+           {nameEdit?.id === item.id && kind === "soci" && <tr className="books-detail-row"><td className="books-edit-cell" colSpan={4} data-label="Correzione">
             <form className="books-edit-box" onSubmit={event => void correctName(event)}>
              <h4>Correggi il nominativo</h4>
              <p>Nome attuale: <strong>{nameEdit.expected_name}</strong>. Questa operazione non sostituisce il socio e non modifica quote o ricevute.</p>
@@ -386,8 +387,8 @@ export default function Page() {
               <button type="button" disabled={busy} onClick={() => setNameEdit(null)}>Annulla</button>
              </div>
             </form>
-           </td>}
-          </tr>;
+           </td></tr>}
+          </Fragment>;
          })}</tbody>
         </table></div>}
         {kind === "soci" && corrections.length > 0 && <details className="books-activity">

@@ -271,6 +271,61 @@
  .admin-sidebar, .admin-home-action { transition: none !important; transform: none; }
  .admin-area .admin-sidebar:not(.is-open) { visibility: hidden; }
 }
+
+/* Owner-only user role management. On compact screens each user becomes a card. */
+.admin-area .admin-member-role-help {
+  max-width: 740px;
+  color: #667869;
+  font-size: 13px;
+  line-height: 1.65;
+  background: #f2f7f0;
+  border: 1px solid #e0ebe0;
+  padding: 12px 15px;
+  border-radius: 11px;
+}
+.admin-area .admin-members-list {
+  display: grid;
+  gap: 10px;
+}
+.admin-area .admin-members-list > li {
+  display: grid;
+  grid-template-columns: minmax(160px,1fr) minmax(176px,235px) auto;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #e1e8de;
+  border-radius: 13px;
+  padding: 16px 18px;
+}
+.admin-area .admin-members-list > li > div:first-child { min-width: 0; }
+.admin-area .admin-members-list > li > div:first-child > strong { font-size: 14px; overflow-wrap: anywhere; }
+.admin-area .admin-members-list > li > div:first-child > small {
+  display: block; margin-top: 5px; line-height: 1.55; font-size: 11px; color: #697b6b;
+  overflow-wrap: anywhere;
+}
+.admin-area .admin-member-role { display: grid; gap: 6px; min-width: 0; }
+.admin-area .admin-member-role > label { font-size: 11px; color: #58705e; gap: 5px; font-weight: 750; }
+.admin-area .admin-member-role select { margin: 0; width: 100%; font-size: 13px; min-height: 39px; padding: 8px 10px; }
+.admin-area .admin-member-role .admin-member-role-save {
+  min-height: 34px; font-size: 12px; padding: 7px 11px; margin: 0;
+  border-radius: 8px; border-color: #a9c4ad; color: #245638; background: #eaf4e9;
+}
+.admin-area .admin-member-role .admin-member-role-save:hover:not(:disabled) {
+  background: #d4e9d6; border-color: #7fa88a;
+}
+.admin-area .admin-member-role .admin-member-role-save:disabled { opacity: .52; cursor: not-allowed; }
+.admin-area .admin-member-role > small { color: #8b6247; font-size: 11px; line-height: 1.5; }
+.admin-area .admin-members-list > li > .soci-actions { flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+.admin-area .admin-members-list > li > .soci-actions button { font-size: 12px; padding: 8px 10px; }
+@media (max-width: 1120px) {
+  .admin-area .admin-members-list > li { grid-template-columns: minmax(150px,1fr) minmax(170px,225px); }
+  .admin-area .admin-members-list > li > .soci-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}
+@media (max-width: 650px) {
+  .admin-area .admin-members-list > li { display: flex; flex-direction: column; align-items: stretch; padding: 15px; gap: 12px; }
+  .admin-area .admin-members-list > li > .soci-actions { justify-content: flex-start; }
+}
+
 @media print {
  .admin-sidebar, .admin-mobile-bar, .admin-side-backdrop { display: none !important; }
  .admin-workspace { display: block; }

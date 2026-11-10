@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { membershipCardCode, canIssueMembershipCard, todayInRome } from "../../../lib/membershipCard";
+import { uppercasePersonName } from "../../../lib/personName";
 
 type Person = {
   id: string;
@@ -94,10 +95,10 @@ async function renderCard(person: Required<Pick<Person, "id" | "full_name" | "ad
   ctx.fillText("NOME E COGNOME", 76, 441);
   ctx.fillStyle = "#173b53";
   ctx.font = "bold 41px Arial, sans-serif";
-  let lines = fitLines(ctx, person.full_name, 575);
+  let lines = fitLines(ctx, uppercasePersonName(person.full_name), 575);
   if (lines.length > 2) {
     ctx.font = "bold 31px Arial, sans-serif";
-    lines = fitLines(ctx, person.full_name, 620);
+    lines = fitLines(ctx, uppercasePersonName(person.full_name), 620);
   }
   if (lines.length > 3) throw new Error("Nominativo troppo lungo per il modello della tessera.");
   lines.forEach((line, index) => ctx.fillText(line, 76, 486 + index * 40));
@@ -211,7 +212,7 @@ export default function MembershipCards({ people }: Props) {
       <label>Seleziona socio
         <select value={selected} onChange={event => { setSelected(event.target.value); setImage(""); setMessage(""); }}>
           <option value="">Seleziona dal Libro soci</option>
-          {eligible.map(person => <option key={person.id} value={person.id}>{person.full_name}</option>)}
+          {eligible.map(person => <option key={person.id} value={person.id}>{uppercasePersonName(person.full_name)}</option>)}
         </select>
       </label>
     </div>

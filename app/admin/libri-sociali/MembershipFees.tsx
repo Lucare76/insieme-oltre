@@ -250,7 +250,8 @@ export default function MembershipFees(){
           {sendFeeId===fee.id?"Chiudi invio":"Invia per email"}
          </button>:<small>Email mancante nella rubrica</small>}
          {fee.mail_status==="sent"&&fee.email&&<button type="button"
-          disabled={busy||fee.resend_last_status==="sending"||fee.resend_last_status==="unknown"}
+          disabled={busy||fee.resend_last_status==="sending"||fee.resend_last_status==="unknown"||
+           Boolean(fee.resend_last_at && Date.now()-Date.parse(fee.resend_last_at)<15*60*1000)}
           onClick={()=>{setResendFeeId(resendFeeId===fee.id?"":fee.id);setResendEmail("");setResendReason("Richiesta del socio");setResendConfirmed(false);setSendFeeId("");}}>
           {resendFeeId===fee.id?"Chiudi reinvio":"Reinvia ricevuta"}
          </button>}

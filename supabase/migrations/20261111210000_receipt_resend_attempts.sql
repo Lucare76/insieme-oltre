@@ -93,3 +93,24 @@ revoke all on function public.association_reserve_receipt_resend(text,uuid,text,
   from public, anon, authenticated;
 grant execute on function public.association_reserve_receipt_resend(text,uuid,text,uuid,text)
   to service_role;
+
+-- Una ricevuta non deve essere annullata durante l'invio di una sua copia.
+-- Il controllo si applica unicamente al cambio da attiva ad annullata.
+create or replace function public.association_guard_receipt_resend()
+returns trigger language plpgsql security invoker set search_path = '' as $$
+begin
+  if new.cancelled is true and old.cancelled is false and exists(
+    select 1 from public.association_receipt_resend_attempts
+    where source = 'general' and source_id = old.id and status = 'sending'
+  ) then
+    raise exception 'Reinvio in corso: attendi prima di annullare la ricevuta.'
+      using errcode = 'RR409';
+  end if;
+  return new;
+end $$;
+drop trigger if exists association_receipt_resend_cancel_guard on public.association_receipts;
+create trigger association_receipt_resend_cancel_guard
+before update of cancelled on public.association_receipts
+for each row execute function public.association_guard_receipt_resend();
+revoke all on function public.association_guard_receipt_resend()
+  from public, anon, authenticated;

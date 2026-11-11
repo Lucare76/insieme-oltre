@@ -1,8 +1,8 @@
-import { authorize, AssociationError, jsonBody, privateHeaders, service, uuid } from "../../../../lib/associationServer";
-import { contactMailConfig } from "../../../../lib/contactMail";
-import { receiptPdf } from "../../../../lib/receiptPdf";
-import { receiptTitle, type Receipt } from "../../../../lib/receipts";
-import { membershipFeePdf } from "../../../../lib/membershipFeePdf";
+import { authorize, AssociationError, jsonBody, privateHeaders, service, uuid } from "../../../../../lib/associationServer";
+import { contactMailConfig } from "../../../../../lib/contactMail";
+import { receiptPdf } from "../../../../../lib/receiptPdf";
+import { receiptTitle, type Receipt } from "../../../../../lib/receipts";
+import { membershipFeePdf } from "../../../../../lib/membershipFeePdf";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;

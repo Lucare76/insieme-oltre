@@ -10,7 +10,8 @@ type ArchivedReceipt = Receipt & {
   resend_last_at?:string|null;
 };
 const resendBlocked = (receipt:ArchivedReceipt) =>
-  receipt.resend_last_status === "sending" || receipt.resend_last_status === "unknown";
+  receipt.resend_last_status === "sending" || receipt.resend_last_status === "unknown" ||
+  Boolean(receipt.resend_last_at && Date.now() - Date.parse(receipt.resend_last_at) < 15*60*1000);
 const resendLabel = (status:string|null|undefined) =>
   status==="sent" ? "Accettato da Brevo"
   : status==="failed" ? "Rifiutato da Brevo"
@@ -603,6 +604,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
                           disabled={busy || !mailReady}
                           onClick={() => {
                             setSending(r);
+                            setResending(null);
                             setCancelling(null);
                           }}
                         >
@@ -615,6 +617,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
                         onClick={() => {
                           setCancelling(r);
                           setSending(null);
+                          setResending(null);
                         }}
                       >
                         Annulla
@@ -622,7 +625,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
                     )}
                     {!r.cancelled && r.mail_status === "sent" && r.data.email && (
                       <button type="button" disabled={busy || !mailReady || resendBlocked(r)}
-                        title={resendBlocked(r)?"Esito del precedente reinvio da verificare su Brevo":undefined}
+                        title={resendBlocked(r)?"Reinvio bloccato: verifica l'esito o attendi 15 minuti":undefined}
                         onClick={()=>{
                           setResending(r);setSending(null);setCancelling(null);
                         }}>

@@ -43,10 +43,14 @@ begin
   then
     raise exception 'Dati di reinvio non validi.' using errcode='RR400';
   end if;
+  -- Serializza tentativi concorrenti senza concedere UPDATE sul registro quote.
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(p_source || ':' || p_source_id::text, 0)
+  );
   v_email := lower(trim(p_recipient));
   if p_source = 'membership' then
     select * into v_fee from public.association_membership_fees
-      where id = p_source_id and cancelled = false for update;
+      where id = p_source_id and cancelled = false;
     if not found then raise exception 'Quota non trovata o annullata.' using errcode='RR409'; end if;
     if not exists (
       select 1 from public.association_membership_receipt_deliveries

@@ -31,6 +31,9 @@ export async function service(path: string, init: RequestInit = {}) {
         "Il movimento è stato modificato da un'altra persona. Ricarica i dati.",
         409,
       );
+    // Reinvii ricevute: codici SQL specifici e messaggi di validazione controllati.
+    if (typeof body.code === "string" && /^RR(400|409)$/.test(body.code))
+      throw new AssociationError(String(body.message || "Reinvio non consentito."), Number(body.code.slice(2)));
     // Errori dei questionari: messaggi scritti nelle funzioni SQL, sicuri da mostrare.
     if (typeof body.code === "string" && /^QS\d{3}$/.test(body.code))
       throw new AssociationError(String(body.message), Number(body.code.slice(2)));

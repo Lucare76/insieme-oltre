@@ -3,7 +3,7 @@ import {Fragment,useCallback,useEffect,useRef,useState} from "react";
 import { uppercasePersonName } from "../../../lib/personName";
 import "./quote-associative.css";
 type Person={id:string;full_name:string;admitted_on:string;ended_on:string|null;paid:boolean};
-type Fee={id:string;person_id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"cash"|"bank";email:string;mail_status:string|null;mail_recipient:string|null};
+type Fee={id:string;person_id:string;full_name:string;fee_year:number;amount_cents:number;paid_on:string;payment_account:"cash"|"bank";email:string;mail_status:string|null;mail_recipient:string|null;resend_count?:number;resend_last_status?:"sending"|"sent"|"failed"|"unknown"|null;resend_last_at?:string|null};
 type CancelledFee={id:string;person_id:string;full_name:string;amount_cents:number;paid_on:string;cancellation_reason:string;cancelled_at:string};
 type Data={year:number;people:Person[];fees:Fee[];cancelled_fees:CancelledFee[];count:number;total_cents:number};
 type Reminder={setting:{due_on:string;enabled:boolean}|null;deliveries:{person_id:string;recipient_email:string;status:string;attempted_at:string}[]};
@@ -25,6 +25,10 @@ export default function MembershipFees(){
  const [confirmed,setConfirmed]=useState(false);
  const [sendFeeId,setSendFeeId]=useState("");
  const [sendConfirmed,setSendConfirmed]=useState(false);
+ const [resendFeeId,setResendFeeId]=useState("");
+ const [resendEmail,setResendEmail]=useState("");
+ const [resendReason,setResendReason]=useState("Richiesta del socio");
+ const [resendConfirmed,setResendConfirmed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState("");
  const [paymentMessage,setPaymentMessage]=useState("");
@@ -120,6 +124,34 @@ export default function MembershipFees(){
    setMessage((e instanceof Error?e.message:"Invio non riuscito.")+" Prima di riprovare controlla lo storico di invio.");
   }finally{setBusy(false);setSendFeeId("");setSendConfirmed(false);}
  }
+ async function resendReceipt(fee:Fee){
+  if(!fee.email||!resendConfirmed||resendEmail.trim().toLowerCase()!==fee.email.trim().toLowerCase()){
+   setMessage("Conferma l'indirizzo email ufficiale e la richiesta del socio.");
+   return;
+  }
+  setBusy(true);setMessage("");
+  let accepted=false;
+  try{
+   await api("/api/associazione/ricevute/reinvio",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+     source:"membership",id:fee.id,confirm_email:resendEmail.trim().toLowerCase(),
+     reason:resendReason.trim(),confirm:true,
+    }),
+   });
+   accepted=true;
+   setResendFeeId("");setResendEmail("");setResendConfirmed(false);
+   await refresh().catch(()=>undefined);
+   setMessage("Ricevuta della quota "+fee.fee_year+" reinviata a "+fee.email+
+    " (accettata da Brevo). Nessun nuovo incasso o nuova ricevuta creata.");
+  }catch(e){
+   if(!accepted)await refresh().catch(()=>undefined);
+   setMessage(accepted
+    ? "Reinvio accettato da Brevo, ma aggiornamento elenco non riuscito. Non riprovare."
+    : (e instanceof Error?e.message:"Reinvio non riuscito.")+
+      " Controlla lo storico prima di un nuovo tentativo.");
+  }finally{setBusy(false);}
+ }
  async function pdf(id:string){
   setBusy(true);setMessage("");
   try{
@@ -142,7 +174,7 @@ export default function MembershipFees(){
  const displayName = uppercasePersonName;
  const dateLabel=(value:string)=>value ? value.slice(0,10).split("-").reverse().join("/") : "—";
  const views=[
-  {key:"overview" as const,label:"Situazione soci",hint:"Elenco e ricevute"},
+  {key:"overview" as const,label:"Situazione soci",hint:"Elenco, ricevute e reinvii"},
   {key:"payment" as const,label:"Registra quota",hint:"Nuovo incasso"},
   {key:"reminder" as const,label:"Promemoria",hint:"Scadenze e invii"},
   {key:"cancelled" as const,label:"Quote annullate",hint:"Storico e motivazioni"},
@@ -172,7 +204,7 @@ export default function MembershipFees(){
    </div>
    <nav className="fees-navigation" aria-label="Strumenti quote associative">
     {views.map(v=><button key={v.key} type="button" aria-pressed={view===v.key} disabled={busy}
-     onClick={()=>{setView(v.key);setSendFeeId("");setMessage("");setPaymentMessage("");}}>
+     onClick={()=>{setView(v.key);setSendFeeId("");setResendFeeId("");setMessage("");setPaymentMessage("");}}>
      <strong>{v.label}{v.key==="cancelled"&&data.cancelled_fees?.length?" ("+data.cancelled_fees.length+")":""}</strong>
      <span>{v.hint}</span>
     </button>)}
@@ -217,6 +249,15 @@ export default function MembershipFees(){
          fee.email?<button type="button" disabled={busy} onClick={()=>{setSendFeeId(sendFeeId===fee.id?"":fee.id);setSendConfirmed(false);}}>
           {sendFeeId===fee.id?"Chiudi invio":"Invia per email"}
          </button>:<small>Email mancante nella rubrica</small>}
+         {fee.mail_status==="sent"&&fee.email&&<button type="button"
+          disabled={busy||fee.resend_last_status==="sending"||fee.resend_last_status==="unknown"||
+           Boolean(fee.resend_last_at && Date.now()-Date.parse(fee.resend_last_at)<15*60*1000)}
+          onClick={()=>{setResendFeeId(resendFeeId===fee.id?"":fee.id);setResendEmail("");setResendReason("Richiesta del socio");setResendConfirmed(false);setSendFeeId("");}}>
+          {resendFeeId===fee.id?"Chiudi reinvio":"Reinvia ricevuta"}
+         </button>}
+         {!!fee.resend_count&&<small>Reinvii: {fee.resend_count} · Ultimo: {fee.resend_last_status==="sent"?"accettato da Brevo":fee.resend_last_status==="failed"?"rifiutato":"da verificare"}
+          {fee.resend_last_at?" · "+new Date(fee.resend_last_at).toLocaleString("it-IT",{timeZone:"Europe/Rome"}):""}
+         </small>}
         </div>:<button type="button" disabled={busy||ended} onClick={()=>{setPersonId(p.id);setView("payment");setConfirmed(false);setPaymentMessage("");}}>
          Registra quota
         </button>}</td>
@@ -231,6 +272,32 @@ export default function MembershipFees(){
           <div className="fees-actions">
            <button type="button" className="primary" disabled={busy||!sendConfirmed} onClick={()=>void sendEmail(fee)}>Conferma invio</button>
            <button type="button" disabled={busy} onClick={()=>{setSendFeeId("");setSendConfirmed(false);}}>Annulla</button>
+          </div>
+         </div>
+        </td></tr>}
+        {!!fee&&resendFeeId===fee.id&&!!fee.email&&fee.mail_status==="sent"&&<tr><td className="fees-confirmation-cell" colSpan={4}>
+         <div className="fees-confirmation">
+          <strong>Reinvio richiesto da {displayName(p.full_name)}</strong>
+          <p>Verrà inviata una copia della ricevuta per la quota {fee.fee_year}, senza modificare il pagamento.
+           Email ufficiale: <strong>{fee.email}</strong>.</p>
+          <label>Riscrivi l'email del socio
+           <input type="email" required value={resendEmail} autoComplete="off"
+            onChange={e=>setResendEmail(e.target.value)}/>
+          </label>
+          <label>Motivo del reinvio
+           <input type="text" required minLength={5} maxLength={240}
+            value={resendReason} onChange={e=>setResendReason(e.target.value)}/>
+          </label>
+          <label className="fees-checkbox"><input type="checkbox" checked={resendConfirmed}
+           onChange={e=>setResendConfirmed(e.target.checked)}/>
+           Confermo che il socio ha richiesto il reinvio e che l'indirizzo è corretto.
+          </label>
+          <p>Il tentativo sarà tracciato; dopo un esito incerto non verranno eseguiti ulteriori invii automatici.</p>
+          <div className="fees-actions">
+           <button type="button" className="primary"
+            disabled={busy||!resendConfirmed||resendReason.trim().length<5||resendEmail.trim().toLowerCase()!==fee.email.trim().toLowerCase()}
+            onClick={()=>void resendReceipt(fee)}>Conferma reinvio</button>
+           <button type="button" disabled={busy} onClick={()=>{setResendFeeId("");setResendConfirmed(false);}}>Annulla</button>
           </div>
          </div>
         </td></tr>}

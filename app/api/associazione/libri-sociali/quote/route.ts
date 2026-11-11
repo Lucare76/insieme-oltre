@@ -41,12 +41,20 @@ async function handle(req:Request){
   }
   const year=Number(url.searchParams.get("year")||new Date().getUTCFullYear());
   if(!Number.isInteger(year)||year<2020||year>2199)throw new AssociationError("Anno non valido.");
-  const [people,fees,contacts,history,cancelled]=await Promise.all([
+  const [people,fees,contacts,history,cancelled,resends]=await Promise.all([
    loadPeople(),loadFees(year),
    service("/rest/v1/association_member_delivery_contacts?select=person_id,email&limit=5000").then(r=>r.json()) as Promise<{person_id:string;email:string}[]>,
    service("/rest/v1/association_membership_receipt_deliveries?select=fee_id,status,recipient_email&limit=5000").then(r=>r.json()) as Promise<{fee_id:string;status:string;recipient_email:string}[]>,
-   service("/rest/v1/association_membership_fees?fee_year=eq."+year+"&cancelled=eq.true&select=id,person_id,amount_cents,paid_on,cancellation_reason,cancelled_at&order=cancelled_at.desc&limit=5000").then(r=>r.json()) as Promise<{id:string;person_id:string;amount_cents:number;paid_on:string;cancellation_reason:string;cancelled_at:string}[]>
+   service("/rest/v1/association_membership_fees?fee_year=eq."+year+"&cancelled=eq.true&select=id,person_id,amount_cents,paid_on,cancellation_reason,cancelled_at&order=cancelled_at.desc&limit=5000").then(r=>r.json()) as Promise<{id:string;person_id:string;amount_cents:number;paid_on:string;cancellation_reason:string;cancelled_at:string}[]>,
+   service("/rest/v1/association_receipt_resend_attempts?source=eq.membership&select=source_id,status,attempted_at&order=attempted_at.desc&limit=5000")
+     .then(r=>r.json()).catch(()=>[]) as Promise<{source_id:string;status:string;attempted_at:string}[]>
   ]);
+  const resendCounts=new Map<string,number>();
+  const resendLast=new Map<string,{status:string;attempted_at:string}>();
+  for(const resend of resends){
+    resendCounts.set(resend.source_id,(resendCounts.get(resend.source_id)||0)+1);
+    if(!resendLast.has(resend.source_id))resendLast.set(resend.source_id,resend);
+  }
   const registered=new Set(fees.map(f=>f.person_id));
   const emails=new Map(contacts.map(c=>[c.person_id,c.email]));
   const receipts=new Map(history.map(h=>[h.fee_id,h]));
@@ -54,7 +62,7 @@ async function handle(req:Request){
   return reply({
    year,
    people:people.filter(p=>p.admitted_on.slice(0,4)<=String(year) && (!p.ended_on || p.ended_on.slice(0,4)>=String(year))).map(p=>({...p,paid:registered.has(p.id),email:emails.get(p.id)||""})),
-   fees:fees.map(f=>({...f,full_name:names.get(f.person_id)||"Socio",email:emails.get(f.person_id)||"",mail_status:receipts.get(f.id)?.status||null,mail_recipient:receipts.get(f.id)?.recipient_email||null})),
+   fees:fees.map(f=>({...f,full_name:names.get(f.person_id)||"Socio",email:emails.get(f.person_id)||"",mail_status:receipts.get(f.id)?.status||null,mail_recipient:receipts.get(f.id)?.recipient_email||null,resend_count:resendCounts.get(f.id)||0,resend_last_status:resendLast.get(f.id)?.status||null,resend_last_at:resendLast.get(f.id)?.attempted_at||null})),
    cancelled_fees:cancelled.map(f=>({...f,full_name:names.get(f.person_id)||"Socio"})),
    count:fees.length,total_cents:fees.reduce((sum,f)=>sum+f.amount_cents,0)
   });

@@ -103,6 +103,28 @@ async function handle(request: Request) {
         `/rest/v1/association_receipts?select=${fields}&order=number.desc&offset=${offset}&limit=50`,
       )
     ).json();
+    // Storico dei reinvii delle ricevute mostrate nella pagina corrente.
+    // Se la migrazione non è ancora attiva (es. preview), gli elenchi esistenti
+    // continuano a funzionare: l'endpoint di reinvio resta protetto.
+    type Resend = {source_id:string;status:string;attempted_at:string};
+    const ids=(items as Receipt[]).map(r=>r.id).filter(uuid);
+    const attempts: Resend[] = ids.length
+      ? await service("/rest/v1/association_receipt_resend_attempts?source=eq.general&source_id=in.("+
+          ids.join(",")+")&select=source_id,status,attempted_at&order=attempted_at.desc&limit=2000")
+          .then(r=>r.json()).catch(()=>[]) as Resend[]
+      : [];
+    const counts=new Map<string,number>();
+    const latest=new Map<string,Resend>();
+    for(const attempt of attempts){
+      counts.set(attempt.source_id,(counts.get(attempt.source_id)||0)+1);
+      if(!latest.has(attempt.source_id))latest.set(attempt.source_id,attempt);
+    }
+    const enriched=(items as Receipt[]).map(receipt=>({
+      ...receipt,
+      resend_count:counts.get(receipt.id)||0,
+      resend_last_status:latest.get(receipt.id)?.status||null,
+      resend_last_at:latest.get(receipt.id)?.attempted_at||null,
+    }));
     let configured = true;
     try {
       issuerConfig();
@@ -110,7 +132,7 @@ async function handle(request: Request) {
       configured = false;
     }
     return reply({
-      items,
+      items: enriched,
       configured,
       mail_ready: Boolean(contactMailConfig()),
     });

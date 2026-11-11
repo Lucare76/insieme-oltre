@@ -4,6 +4,18 @@ import type { Movement } from "../../lib/accounting";
 import { receiptTitle, type Receipt } from "../../lib/receipts";
 import MembershipReceiptForm from "./MembershipReceiptForm";
 type Api = (path: string, init?: RequestInit) => Promise<Response>;
+type ArchivedReceipt = Receipt & {
+  resend_count?:number;
+  resend_last_status?: "sending"|"sent"|"failed"|"unknown"|null;
+  resend_last_at?:string|null;
+};
+const resendBlocked = (receipt:ArchivedReceipt) =>
+  receipt.resend_last_status === "sending" || receipt.resend_last_status === "unknown" ||
+  Boolean(receipt.resend_last_at && Date.now() - Date.parse(receipt.resend_last_at) < 15*60*1000);
+const resendLabel = (status:string|null|undefined) =>
+  status==="sent" ? "Accettato da Brevo"
+  : status==="failed" ? "Rifiutato da Brevo"
+  : "Da verificare";
 const money = (n: number) =>
   (n / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
 const labels = {
@@ -21,7 +33,7 @@ function download(blob: Blob, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 export default function ReceiptsPanel({ api }: { api: Api }) {
-  const [items, setItems] = useState<Receipt[]>([]);
+  const [items, setItems] = useState<ArchivedReceipt[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [configured, setConfigured] = useState(false);
   const [mailReady, setMailReady] = useState(false);
@@ -36,6 +48,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
   const [previewed, setPreviewed] = useState(false);
   const [requestId, setRequestId] = useState("");
   const [sending, setSending] = useState<Receipt | null>(null);
+  const [resending, setResending] = useState<ArchivedReceipt | null>(null);
   const [cancelling, setCancelling] = useState<Receipt | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const fetchData = useCallback(async () => {
@@ -50,7 +63,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
       r,
       m,
     }: {
-      r: { items: Receipt[]; configured: boolean; mail_ready: boolean };
+      r: { items: ArchivedReceipt[]; configured: boolean; mail_ready: boolean };
       m: { items: Movement[] };
     }) => {
       setItems(r.items);
@@ -449,6 +462,47 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
           </button>
         </form>
       )}
+      {resending && (
+        <form className="receipt-form" onSubmit={(event) => {
+          event.preventDefault();
+          const fields=new FormData(event.currentTarget);
+          if(fields.get("confirm")!=="on")return;
+          const confirmEmail=String(fields.get("confirm_email")||"").trim().toLowerCase();
+          const reason=String(fields.get("reason")||"").trim();
+          void run(async()=>{
+            await api("ricevute/reinvio",{
+              method:"POST",headers:{"Content-Type":"application/json"},
+              body:JSON.stringify({
+                source:"general",id:resending.id,confirm_email:confirmEmail,reason,confirm:true,
+              }),
+            });
+            setResending(null);
+            const refreshed=await load().then(()=>true).catch(()=>false);
+            setMessage("Reinvio accettato da Brevo per "+confirmEmail+
+              ". Il documento e l’incasso originali non sono stati modificati."+
+              (refreshed?"":" Aggiorna l'archivio per vedere il tentativo."));
+          });
+        }}>
+          <h3>Reinvia ricevuta n. {resending.number}</h3>
+          <p>Reinvierai <strong>la ricevuta già emessa</strong> a
+            {" "}<strong>{resending.data.email}</strong>, senza creare nuovi movimenti o documenti.</p>
+          <label>Conferma l'email del destinatario
+            <input name="confirm_email" type="email" autoComplete="off" required placeholder="Riscrivi l'email originale"/>
+          </label>
+          <label>Motivo del reinvio
+            <input name="reason" required minLength={5} maxLength={240} defaultValue="Richiesta del destinatario"/>
+          </label>
+          <label className="soci-check">
+            <input name="confirm" type="checkbox" required/>
+            Confermo la richiesta e che il destinatario è quello corretto.
+          </label>
+          <p>Ogni tentativo è tracciato. In caso di esito incerto verifica su Brevo prima di riprovare. Il sistema blocca reinvii troppo ravvicinati.</p>
+          <div className="soci-actions">
+            <button type="submit" className="primary" disabled={busy}>Conferma reinvio</button>
+            <button type="button" disabled={busy} onClick={()=>setResending(null)}>Chiudi</button>
+          </div>
+        </form>
+      )}
       {cancelling && (
         <form
           className="receipt-form"
@@ -522,6 +576,12 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
                         })}
                       </>
                     )}
+                    {!!r.resend_count && (
+                      <small style={{display:"block",marginTop:5}}>
+                        Reinvii: {r.resend_count} · Ultimo: {resendLabel(r.resend_last_status)}
+                        {r.resend_last_at ? " · "+new Date(r.resend_last_at).toLocaleString("it-IT",{timeZone:"Europe/Rome"}) : ""}
+                      </small>
+                    )}
                   </td>
                   <td>
                     <button
@@ -544,6 +604,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
                           disabled={busy || !mailReady}
                           onClick={() => {
                             setSending(r);
+                            setResending(null);
                             setCancelling(null);
                           }}
                         >
@@ -556,9 +617,19 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
                         onClick={() => {
                           setCancelling(r);
                           setSending(null);
+                          setResending(null);
                         }}
                       >
                         Annulla
+                      </button>
+                    )}
+                    {!r.cancelled && r.mail_status === "sent" && r.data.email && (
+                      <button type="button" disabled={busy || !mailReady || resendBlocked(r)}
+                        title={resendBlocked(r)?"Reinvio bloccato: verifica l'esito o attendi 15 minuti":undefined}
+                        onClick={()=>{
+                          setResending(r);setSending(null);setCancelling(null);
+                        }}>
+                        Reinvia ricevuta
                       </button>
                     )}
                     {r.cancelled && <span>{r.cancellation_reason}</span>}

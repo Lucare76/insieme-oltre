@@ -39,7 +39,61 @@ begin
      or p_source_id is null or p_actor is null
      or p_recipient is null or length(trim(p_recipient)) not between 3 and 254
      or p_reason is null or length(trim(p_reason)) not between 5 and 240
-     or p_recipient !~* '^[^[:space:]@]+@[^[:space:]@]+\\.[^[:space:]@]+$'
+     or p_recipient !~* '^[^[:space:]@]+@[^[:space:]@]+[.][^[:space:]@]+
+  then
+    raise exception 'Dati di reinvio non validi.' using errcode='RR400';
+  end if;
+  v_email := lower(trim(p_recipient));
+  if p_source = 'membership' then
+    select * into v_fee from public.association_membership_fees
+      where id = p_source_id and cancelled = false for update;
+    if not found then raise exception 'Quota non trovata o annullata.' using errcode='RR409'; end if;
+    if not exists (
+      select 1 from public.association_membership_receipt_deliveries
+      where fee_id = p_source_id and status = 'sent'
+    ) then
+      raise exception 'È necessario un primo invio confermato prima di reinviare.' using errcode='RR409';
+    end if;
+    if not exists (
+      select 1 from public.association_member_delivery_contacts
+      where person_id = v_fee.person_id and lower(trim(email)) = v_email
+    ) then
+      raise exception 'L’indirizzo email ufficiale è cambiato. Verifica prima la rubrica.' using errcode='RR409';
+    end if;
+  else
+    select * into v_receipt from public.association_receipts
+      where id = p_source_id and cancelled = false for update;
+    if not found then raise exception 'Ricevuta non trovata o annullata.' using errcode='RR409'; end if;
+    if v_receipt.mail_status <> 'sent' then
+      raise exception 'È necessario un primo invio confermato prima di reinviare.' using errcode='RR409';
+    end if;
+    if lower(trim(coalesce(v_receipt.data->>'email',''))) <> v_email then
+      raise exception 'Email diversa da quella della ricevuta. Verifica i dati originali.' using errcode='RR409';
+    end if;
+  end if;
+
+  select * into v_previous from public.association_receipt_resend_attempts
+  where source = p_source and source_id = p_source_id
+  order by attempted_at desc, id desc limit 1;
+  if found then
+    if v_previous.status in ('sending','unknown') then
+      raise exception 'Esiste un reinvio in corso o con esito incerto. Verifica su Brevo prima di procedere.' using errcode='RR409';
+    end if;
+    if v_previous.attempted_at > now() - interval '15 minutes' then
+      raise exception 'Reinvio troppo ravvicinato. Attendi almeno 15 minuti prima di riprovare.' using errcode='RR409';
+    end if;
+  end if;
+  insert into public.association_receipt_resend_attempts
+    (source, source_id, recipient_email, reason, requested_by)
+  values (p_source, p_source_id, v_email, trim(p_reason), p_actor)
+  returning id into v_id;
+  return v_id;
+end $$;
+revoke all on function public.association_reserve_receipt_resend(text,uuid,text,uuid,text)
+  from public, anon, authenticated;
+grant execute on function public.association_reserve_receipt_resend(text,uuid,text,uuid,text)
+  to service_role;
+
   then
     raise exception 'Dati di reinvio non validi.' using errcode='RR400';
   end if;

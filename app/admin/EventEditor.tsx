@@ -38,6 +38,7 @@ export default function EventEditor({ api }: { api: Api }) {
 
   useEffect(() => { void load().catch((error) => setStatus(error instanceof Error ? error.message : "Caricamento non riuscito.")); }, [load]);
 
+  const todayRome = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Rome" }).format(new Date());
   const sorted = useMemo(
     () => [...items].sort((a, b) => (b.eventDate + b.startTime).localeCompare(a.eventDate + a.startTime)),
     [items],
@@ -138,7 +139,7 @@ export default function EventEditor({ api }: { api: Api }) {
         {sorted.length === 0 ? <div className="soci-card"><p>Nessun appuntamento inserito.</p></div> : sorted.map((item) => (
           <article className="events-admin-row" key={item.id}>
             <div className="events-admin-date"><strong>{item.eventDate.split("-").reverse().slice(0,2).join("/")}</strong><span>{item.startTime}</span></div>
-            <div className="events-admin-copy"><div className="events-admin-status"><span className={item.published ? "is-live" : ""}>{item.published ? "Pubblicato" : "Bozza"}</span></div><h3>{item.title}</h3><p>{item.locationName}</p></div>
+            <div className="events-admin-copy"><div className="events-admin-status"><span className={item.published ? "is-live" : ""}>{item.published ? "Pubblicato" : "Bozza"}</span><span>{item.eventDate === todayRome ? "Oggi" : item.eventDate > todayRome ? "Futuro" : "Passato"}</span></div><h3>{item.title}</h3><p>{item.locationName}</p></div>
             <div className="soci-actions"><button type="button" onClick={() => setEditing(item)}>Modifica</button><button type="button" onClick={() => remove(item)}>Elimina</button></div>
           </article>
         ))}

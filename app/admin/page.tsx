@@ -23,6 +23,7 @@ const ContentEditor = dynamic(() => import("./ContentEditor"));
 const ReceiptsPanel = dynamic(() => import("./ReceiptsPanel"));
 const WhatsAppPanel = dynamic(() => import("./WhatsAppPanel"));
 const FundraisingPanel = dynamic(() => import("./FundraisingPanel").then(m => m.FundraisingPanel));
+const EventEditor = dynamic(() => import("./EventEditor"));
 import { AccountingDashboard } from "./AccountingDashboard";
 import { MovementLedger } from "./MovementLedger";
 import { AdminSidebar } from "./AdminSidebar";
@@ -654,7 +655,7 @@ export default function AreaSoci() {
               <span>{({
                 home: "Dashboard", register: "Contabilità", fundraising: "Raccolte fondi",
                 receipts: "Ricevute", whatsapp: "WhatsApp", requests: "Richieste di accesso",
-                contents: "Contenuti del sito", stories: "Storie delle famiglie",
+                contents: "Contenuti del sito", stories: "Storie delle famiglie", events: "Appuntamenti",
                 members: "Utenti e permessi", audit: "Storico operazioni",
               } as Record<string, string>)[tab] || "Area riservata"}</span>
             </div>
@@ -708,6 +709,7 @@ export default function AreaSoci() {
               </section>
             )}
             {contentVisited && user.role === "owner" && <div hidden={tab !== "contents" && tab !== "stories"}><ContentEditor section={tab === "stories" ? "stories" : "contents"} /></div>}
+            {tab === "events" && user.role === "owner" && <EventEditor api={api} />}
             {tab === "whatsapp" && whatsappAllowed && <WhatsAppPanel api={api} owner={user.role === "owner"} />}
             {tab === "receipts" && write && <ReceiptsPanel api={api} />}
             {tab === "fundraising" && <FundraisingPanel items={items} loaded={dataLoaded} onOpenAccounting={() => void openTab("register")} api={api} canWrite={Boolean(write)} onAccountingChange={load} />}

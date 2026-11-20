@@ -8,6 +8,9 @@ import { LegalLinks } from "./components/LegalLinks";
 import { InstitutionalLine } from "./components/InstitutionalLine";
 import { REVEAL_BOOT_SCRIPT, ScrollReveal } from "./components/ScrollReveal";
 import { StoryCard, storyRowStyle } from "./components/StoryCard";
+import { EventCard } from "./components/EventCard";
+import { getAssociationEvents, splitEvents } from "../lib/events";
+import "./events.css";
 import { LazyMusicExperience } from "./components/LazyMusicExperience";
 import { childAccent, isPublished, PHOTO_PATTERN, type ChildStory } from "../lib/children";
 import { photoMoments } from "../lib/musicTimeline";
@@ -52,8 +55,9 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const content = await getHomeContent();
+  const [content, events] = await Promise.all([getHomeContent(), getAssociationEvents()]);
   const children = content.children.filter((child) => child.name.trim());
+  const nextEvent = splitEvents(events).upcoming[0];
 
   return (
     <main>
@@ -75,6 +79,7 @@ export default async function Home() {
         <nav aria-label="Navigazione principale">
           <a href="#manifesto">Chi siamo</a>
           <a href="#cosa-facciamo">Cosa facciamo</a>
+          {nextEvent && <a href="#appuntamenti">Appuntamenti</a>}
           <a href="#storie">Storie</a>
           <a href="#futuro">Il futuro</a>
         </nav>
@@ -167,6 +172,21 @@ export default async function Home() {
           <a className="button button-primary" href="/partecipa">Scopri le proposte e scegli con noi <span aria-hidden="true">→</span></a>
         </p>
       </section>
+
+      {nextEvent && <section className="events-section section" id="appuntamenti" aria-labelledby="events-home-title">
+        <div className="events-section-inner">
+          <div className="events-heading" data-reveal="fade-up">
+            <div>
+              <p className="section-kicker">Ci vediamo presto</p>
+              <h2 id="events-home-title">I nostri appuntamenti</h2>
+            </div>
+            <a href="/appuntamenti">Tutti gli appuntamenti →</a>
+          </div>
+          <div data-reveal="fade-up" style={delay(150)}>
+            <EventCard event={nextEvent} compact />
+          </div>
+        </div>
+      </section>}
 
       <section className="stories section" id="storie" aria-labelledby="stories-title">
         <div className="stories-title-wrap" data-reveal="fade-up">

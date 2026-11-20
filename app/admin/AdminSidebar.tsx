@@ -3,8 +3,8 @@
 import Link from "next/link";
 import type { AssociationRole } from "../../lib/accounting";
 
-type Section = "home" | "register" | "fundraising" | "receipts" | "whatsapp" | "requests" | "contents" | "stories" | "members" | "audit";
-type IconName = "home" | "wallet" | "heart" | "receipt" | "users" | "clipboard" | "chat" | "file" | "book" | "usercheck" | "shield" | "history" | "ideas" | "external";
+type Section = "home" | "register" | "fundraising" | "receipts" | "whatsapp" | "requests" | "contents" | "stories" | "events" | "members" | "audit";
+type IconName = "home" | "wallet" | "heart" | "receipt" | "users" | "clipboard" | "chat" | "file" | "book" | "usercheck" | "shield" | "history" | "ideas" | "calendar" | "external";
 
 function NavIcon({ name }: { name: IconName }) {
  const shared = { stroke: "currentColor", strokeWidth: 1.85, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -22,6 +22,7 @@ function NavIcon({ name }: { name: IconName }) {
   shield: <><path d="m12 2 8 4v6c0 5-4 8-8 10-4-2-8-5-8-10V6Z"/><path d="M9 12h6M12 9v6"/></>,
   history: <><path d="M3 11a9 9 0 1 1 3 7"/><path d="M3 4v7h7M12 7v5l3 2"/></>,
   ideas: <><path d="M9 18h6M10 22h4M8 14c-2-1.5-3-3-3-5a7 7 0 1 1 14 0c0 2-1 3.5-3 5l-1 2H9l-1-2Z"/></>,
+  calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/><path d="M8 14h3M13 14h3M8 18h3"/></>,
   external: <><path d="M14 4h6v6M20 4l-9 9"/><path d="M20 14v6H4V4h6"/></>,
  };
  return <svg width="19" height="19" viewBox="0 0 24 24" fill="none" {...shared} aria-hidden="true">{shapes[name]}</svg>;
@@ -76,6 +77,7 @@ export function AdminSidebar({
      <p className="admin-side-group-label">VITA ASSOCIATIVA</p>
      {canManageBooks && <LinkItem href="/admin/libri-sociali" label="Libri sociali" icon="book"/>}
      {(owner || psychologist) && <LinkItem href="/admin/questionari" label="Questionari" icon="clipboard"/>}
+     {owner && <ButtonItem id="events" label="Appuntamenti" icon="calendar"/>}
      {owner && <LinkItem href="/admin/partecipazioni" label="Idee delle famiglie" icon="ideas"/>}
     </div>
     {(whatsappAllowed || owner) && <div className="admin-side-group">

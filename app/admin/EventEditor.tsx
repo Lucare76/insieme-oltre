@@ -36,7 +36,7 @@ export default function EventEditor({ api }: { api: Api }) {
     setItems(data.items ?? []);
   }, [api]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load().catch((error) => setStatus(error instanceof Error ? error.message : "Caricamento non riuscito.")); }, [load]);
 
   const sorted = useMemo(
     () => [...items].sort((a, b) => (b.eventDate + b.startTime).localeCompare(a.eventDate + a.startTime)),

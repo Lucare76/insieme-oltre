@@ -79,7 +79,7 @@ export default async function Home() {
         <nav aria-label="Navigazione principale">
           <a href="#manifesto">Chi siamo</a>
           <a href="#cosa-facciamo">Cosa facciamo</a>
-          {nextEvent && <a href="#appuntamenti">Appuntamenti</a>}
+          <a href="/appuntamenti">Appuntamenti</a>
           <a href="#storie">Storie</a>
           <a href="#futuro">Il futuro</a>
         </nav>

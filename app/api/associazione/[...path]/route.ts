@@ -146,6 +146,21 @@ async function handle(request: Request, path: string[]) {
     const webp = String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
     if (!(ext === "jpg" && jpeg || ext === "png" && png || ext === "webp" && webp))
       throw new AssociationError("Formato immagine non valido.");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) throw new AssociationError("Archivio non configurato.", 503);
+    const storageHeaders = { apikey: key, Authorization: "Bearer " + key };
+    const bucket = await fetch(url + "/storage/v1/bucket/story-photos", { headers: storageHeaders, cache: "no-store" });
+    if (bucket.status === 404 || bucket.status === 400) {
+      const created = await fetch(url + "/storage/v1/bucket", {
+        method: "POST",
+        headers: { ...storageHeaders, "Content-Type": "application/json" },
+        body: JSON.stringify({ id: "story-photos", name: "story-photos", public: false, file_size_limit: 5 * 1024 * 1024, allowed_mime_types: [...types.keys()] }),
+      });
+      if (!created.ok && created.status !== 409) throw new AssociationError("Archivio locandine non disponibile.", 502);
+    } else if (!bucket.ok) {
+      throw new AssociationError("Impossibile verificare l’archivio locandine.", 502);
+    }
     const filename = randomUUID() + "." + ext;
     await service("/storage/v1/object/story-photos/" + filename, {
       method: "POST",

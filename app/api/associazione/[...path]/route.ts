@@ -15,6 +15,8 @@ import {
 } from "../../../../lib/accessServer";
 import { adminUsername } from "../../../../lib/adminAuth";
 import { parseCents, validDate } from "../../../../lib/accounting";
+import { normalizeEvents, validateEvents } from "../../../../lib/events";
+import { randomUUID } from "node:crypto";
 export const runtime = "nodejs";
 const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: privateHeaders });
@@ -99,10 +101,59 @@ async function handle(request: Request, path: string[]) {
   const user = await authorize(
     request,
     write,
-    route === "members" || route === "audit",
+    route === "members" || route === "audit" || route === "events" || route === "events/image",
     false,
     route === "movements" && request.method === "GET",
   );
+  if (route === "events" && request.method === "GET") {
+    const res = await service("/rest/v1/site_content?key=eq.events&select=value,updated_at&order=updated_at.desc&limit=1");
+    const rows = await res.json() as { value?: unknown }[];
+    return reply({ items: normalizeEvents(rows[0]?.value) });
+  }
+  if (route === "events" && request.method === "POST") {
+    const body = await jsonBody(request, 400000);
+    const error = validateEvents(body.items);
+    if (error) throw new AssociationError(error);
+    const items = normalizeEvents(body.items);
+    const updatedAt = new Date().toISOString();
+    let res = await service("/rest/v1/site_content?key=eq.events", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify({ value: items, updated_at: updatedAt }),
+    });
+    const rows = await res.json() as unknown[];
+    if (!rows.length) {
+      res = await service("/rest/v1/site_content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify({ key: "events", value: items, updated_at: updatedAt }),
+      });
+      await res.json();
+    }
+    return reply({ ok: true, items });
+  }
+  if (route === "events/image" && request.method === "POST") {
+    const form = await request.formData().catch(() => null);
+    const file = form?.get("image");
+    if (!(file instanceof File)) throw new AssociationError("Seleziona una locandina.");
+    const types = new Map([["image/jpeg","jpg"],["image/png","png"],["image/webp","webp"]]);
+    const ext = types.get(file.type);
+    if (!ext || file.size === 0 || file.size > 5 * 1024 * 1024)
+      throw new AssociationError("Usa JPG, PNG o WEBP fino a 5 MB.");
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const jpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    const png = bytes.slice(0,8).join(",") === "137,80,78,71,13,10,26,10";
+    const webp = String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
+    if (!(ext === "jpg" && jpeg || ext === "png" && png || ext === "webp" && webp))
+      throw new AssociationError("Formato immagine non valido.");
+    const filename = randomUUID() + "." + ext;
+    await service("/storage/v1/object/story-photos/" + filename, {
+      method: "POST",
+      headers: { "Content-Type": file.type, "x-upsert": "false" },
+      body: bytes,
+    });
+    return reply({ path: "/api/storie/foto/" + filename });
+  }
   if (route === "movements" && request.method === "GET") {
     const items: Record<string, unknown>[] = [];
     // Paginazione esplicita: nessun totale calcolato su liste troncate da PostgREST.

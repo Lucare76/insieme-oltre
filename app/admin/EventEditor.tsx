@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AssociationEvent } from "../../lib/events";
 
 type Api = (path: string, init?: RequestInit) => Promise<Response>;
@@ -29,13 +30,13 @@ export default function EventEditor({ api }: { api: Api }) {
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     const response = await api("events");
     const data = await response.json();
     setItems(data.items ?? []);
-  }
+  }, [api]);
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(); }, [load]);
 
   const sorted = useMemo(
     () => [...items].sort((a, b) => (b.eventDate + b.startTime).localeCompare(a.eventDate + a.startTime)),
@@ -123,7 +124,7 @@ export default function EventEditor({ api }: { api: Api }) {
                 if (file) void upload(file).catch((error) => setStatus(error.message));
               }}/>
             </label>
-            {editing.imagePath && <div className="events-image-preview wide"><img src={editing.imagePath} alt="Anteprima locandina"/><button type="button" onClick={() => setEditing({ ...editing, imagePath: "" })}>Rimuovi immagine</button></div>}
+            {editing.imagePath && <div className="events-image-preview wide"><Image src={editing.imagePath} alt="Anteprima locandina" width={180} height={240} unoptimized/><button type="button" onClick={() => setEditing({ ...editing, imagePath: "" })}>Rimuovi immagine</button></div>}
             <label className="soci-check wide"><input type="checkbox" checked={editing.published} onChange={(e) => setEditing({ ...editing, published: e.target.checked })}/> Pubblicato sul sito</label>
           </div>
           <div className="soci-actions">

@@ -9,6 +9,7 @@ type Api = (path: string, init?: RequestInit) => Promise<Response>;
 
 const emptyEvent = (): AssociationEvent => ({
   id: crypto.randomUUID(),
+  slug: "",
   title: "",
   eventDate: "",
   startTime: "10:00",

@@ -29,6 +29,8 @@ export function eventJsonLd(event: AssociationEvent) {
     location: { "@type": "Place", name: event.locationName,
       ...(event.address ? { address: event.address } : {}) },
     organizer: { "@type": "Organization", name: "Insieme Oltre ODV", url: siteUrl },
+    ...(event.performerName ? { performer: { "@type": "Person", name: event.performerName } } : {}),
+    ...(event.freeAdmission ? { isAccessibleForFree: true, offers: { "@type": "Offer", price: "0", priceCurrency: "EUR", url: `${siteUrl}${eventPath(event)}` } } : {}),
     ...(event.imagePath ? { image: [new URL(event.imagePath, siteUrl).href] } : {}),
     ...(event.externalUrl ? { sameAs: event.externalUrl } : {}),
     url: `${siteUrl}${eventPath(event)}`,

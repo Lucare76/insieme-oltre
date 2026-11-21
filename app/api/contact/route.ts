@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { validateContact } from "../../../lib/contact";
 import { contactMailConfig, sendContactMail } from "../../../lib/contactMail";
 import { contactNotice } from "../../../lib/legal";
+import { recordVolunteerApplication } from "../../../lib/volunteerApplications";
 
 export const runtime = "nodejs";
 
@@ -51,6 +52,8 @@ export async function POST(request: Request) {
   if (!contactNotice.published || !contactMailConfig()) return reply(503, "Il modulo non è ancora disponibile. Scrivici a info@insiemeoltreischia.it.");
   try {
     await sendContactMail(message);
+    // La mail rimane il canale principale: un errore di archivio non annulla la ricezione.
+    if (message.role === "Un volontario") await recordVolunteerApplication(message).catch(() => undefined);
     return reply(200, "Messaggio inviato. Ti ricontatteremo per conoscerci e capire insieme il prossimo passo.");
   } catch {
     return reply(503, "Non è stato possibile inviare il messaggio. Riprova più tardi oppure scrivici via email.");

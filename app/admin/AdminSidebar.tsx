@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { AssociationRole } from "../../lib/accounting";
 
-type Section = "home" | "register" | "fundraising" | "receipts" | "whatsapp" | "requests" | "contents" | "stories" | "events" | "members" | "audit";
+type Section = "home" | "register" | "fundraising" | "receipts" | "whatsapp" | "requests" | "contents" | "stories" | "events" | "volunteers" | "members" | "audit";
 type IconName = "home" | "wallet" | "heart" | "receipt" | "users" | "clipboard" | "chat" | "file" | "book" | "usercheck" | "shield" | "history" | "ideas" | "calendar" | "external";
 
 function NavIcon({ name }: { name: IconName }) {
@@ -78,6 +78,7 @@ export function AdminSidebar({
      {canManageBooks && <LinkItem href="/admin/libri-sociali" label="Libri sociali" icon="book"/>}
      {(owner || psychologist) && <LinkItem href="/admin/questionari" label="Questionari" icon="clipboard"/>}
      {owner && <ButtonItem id="events" label="Appuntamenti" icon="calendar"/>}
+     {owner && <ButtonItem id="volunteers" label="Candidature volontari" icon="users"/>}
      {owner && <LinkItem href="/admin/partecipazioni" label="Idee delle famiglie" icon="ideas"/>}
     </div>
     {(whatsappAllowed || owner) && <div className="admin-side-group">

@@ -24,6 +24,7 @@ const ReceiptsPanel = dynamic(() => import("./ReceiptsPanel"));
 const WhatsAppPanel = dynamic(() => import("./WhatsAppPanel"));
 const FundraisingPanel = dynamic(() => import("./FundraisingPanel").then(m => m.FundraisingPanel));
 const EventEditor = dynamic(() => import("./EventEditor"));
+const VolunteersPanel = dynamic(() => import("./VolunteersPanel"));
 import { AccountingDashboard } from "./AccountingDashboard";
 import { MovementLedger } from "./MovementLedger";
 import { AdminSidebar } from "./AdminSidebar";
@@ -656,7 +657,7 @@ export default function AreaSoci() {
                 home: "Dashboard", register: "Contabilità", fundraising: "Raccolte fondi",
                 receipts: "Ricevute", whatsapp: "WhatsApp", requests: "Richieste di accesso",
                 contents: "Contenuti del sito", stories: "Storie delle famiglie", events: "Appuntamenti",
-                members: "Utenti e permessi", audit: "Storico operazioni",
+                members: "Utenti e permessi", volunteers: "Candidature volontari", audit: "Storico operazioni",
               } as Record<string, string>)[tab] || "Area riservata"}</span>
             </div>
             <div className="admin-workspace">
@@ -699,6 +700,11 @@ export default function AreaSoci() {
                       <span>Soci, quote associative, volontari e verbali</span>
                     </Link>
                   )}
+                  {user.role === "owner" && (
+                    <button type="button" className="admin-home-action" onClick={() => void openTab("volunteers")}>
+                      <strong>Candidature volontari</strong><span>Persone da contattare, disponibilità e note</span>
+                    </button>
+                  )}
                   {(user.role === "owner" && pending > 0) && (
                     <button type="button" className="admin-home-action" onClick={() => void openTab("requests")}>
                       <strong>{pending} richieste da gestire</strong>
@@ -710,6 +716,7 @@ export default function AreaSoci() {
             )}
             {contentVisited && user.role === "owner" && <div hidden={tab !== "contents" && tab !== "stories"}><ContentEditor section={tab === "stories" ? "stories" : "contents"} /></div>}
             {tab === "events" && user.role === "owner" && <EventEditor api={api} />}
+             {tab === "volunteers" && user.role === "owner" && <VolunteersPanel api={api} />}
             {tab === "whatsapp" && whatsappAllowed && <WhatsAppPanel api={api} owner={user.role === "owner"} />}
             {tab === "receipts" && write && <ReceiptsPanel api={api} />}
             {tab === "fundraising" && <FundraisingPanel items={items} loaded={dataLoaded} onOpenAccounting={() => void openTab("register")} api={api} canWrite={Boolean(write)} onAccountingChange={load} />}

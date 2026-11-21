@@ -1,5 +1,6 @@
 export type AssociationEvent = {
   id: string;
+  slug: string;
   title: string;
   eventDate: string;
   startTime: string;
@@ -15,6 +16,15 @@ export type AssociationEvent = {
   createdAt: string;
   updatedAt: string;
 };
+
+const italianMonths = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+
+export function eventSlug(title: string, date: string): string {
+  const titlePart = title.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 70).replace(/-$/g, "") || "appuntamento";
+  const [year, month, day] = date.split("-").map(Number);
+  return `${titlePart}-${day}-${italianMonths[month - 1] || "evento"}-${year}`;
+}
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -59,6 +69,7 @@ export function normalizeEvents(value: unknown): AssociationEvent[] {
 
     result.push({
       id: clean(raw.id, 80) || crypto.randomUUID(),
+      slug: clean(raw.slug, 150) || eventSlug(title, eventDate),
       title,
       eventDate,
       startTime,
@@ -74,6 +85,15 @@ export function normalizeEvents(value: unknown): AssociationEvent[] {
       createdAt: clean(raw.createdAt, 40) || new Date().toISOString(),
       updatedAt: clean(raw.updatedAt, 40) || new Date().toISOString(),
     });
+  }
+  // In caso di due eventi con lo stesso nome e data, assegna a entrambi
+  // un suffisso stabile. L’UUID completo non viene mai mostrato nell’URL.
+  const counts = new Map<string, number>();
+  for (const event of result) counts.set(event.slug, (counts.get(event.slug) || 0) + 1);
+  for (const event of result) {
+    if ((counts.get(event.slug) || 0) > 1) {
+      event.slug = `${event.slug}-${event.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toLowerCase()}`;
+    }
   }
   return result.sort((a, b) =>
     (a.eventDate + a.startTime).localeCompare(b.eventDate + b.startTime),

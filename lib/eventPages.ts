@@ -1,17 +1,18 @@
 import type { AssociationEvent } from "./events";
 import { siteUrl } from "./siteUrl";
 
-/** Human-readable path, with immutable event ID to keep old shared URLs resolvable. */
+/** Il nuovo URL non espone l'UUID, ma la chiave interna rimane invariata. */
 export function eventPath(event: AssociationEvent): string {
-  const title = event.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 75).replace(/-$/g, "");
-  return `/appuntamenti/${title || "evento"}--${encodeURIComponent(event.id)}`;
+  return `/appuntamenti/${encodeURIComponent(event.slug)}`;
 }
 
-/** Accept an old title slug as long as the original event ID still exists. */
+/** Supporta anche i vecchi link con UUID: la pagina li redirige al canonical. */
 export function findPublicEvent(events: AssociationEvent[], slug: string) {
   return events.find((event) =>
-    event.published && slug.endsWith(`--${encodeURIComponent(event.id)}`)
+    event.published && (
+      event.slug === slug ||
+      slug.endsWith(`--${encodeURIComponent(event.id)}`)
+    )
   );
 }
 

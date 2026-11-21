@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AssociationEvent } from "../../lib/events";
+import { eventPath } from "../../lib/eventPages";
 
 type Api = (path: string, init?: RequestInit) => Promise<Response>;
 
@@ -115,8 +116,8 @@ export default function EventEditor({ api }: { api: Api }) {
             <label>Ora fine <small>facoltativa</small><input type="time" value={editing.endTime} onChange={(e) => setEditing({ ...editing, endTime: e.target.value })}/></label>
             <label>Luogo<input required maxLength={140} value={editing.locationName} onChange={(e) => setEditing({ ...editing, locationName: e.target.value })}/></label>
             <label>Indirizzo <small>facoltativo</small><input maxLength={220} value={editing.address} onChange={(e) => setEditing({ ...editing, address: e.target.value })}/></label>
-            <label className="wide">Breve descrizione<textarea required maxLength={320} value={editing.shortDescription} onChange={(e) => setEditing({ ...editing, shortDescription: e.target.value })}/></label>
-            <label className="wide">Descrizione completa <small>facoltativa</small><textarea maxLength={4000} value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })}/></label>
+            <label className="wide">Breve descrizione <small>anticipazione mostrata nell’elenco</small><textarea required maxLength={320} value={editing.shortDescription} onChange={(e) => setEditing({ ...editing, shortDescription: e.target.value })}/></label>
+            <label className="wide">Racconto completo <small>per la pagina dedicata · separa i paragrafi con una riga vuota</small><textarea maxLength={4000} value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })}/></label>
             <label>Link esterno <small>facoltativo</small><input type="url" maxLength={500} value={editing.externalUrl} onChange={(e) => setEditing({ ...editing, externalUrl: e.target.value })}/></label>
             <label>Testo pulsante <small>facoltativo</small><input maxLength={80} value={editing.linkLabel} onChange={(e) => setEditing({ ...editing, linkLabel: e.target.value })}/></label>
             <label className="wide">Locandina <small>JPG, PNG o WEBP fino a 5 MB</small>
@@ -140,7 +141,7 @@ export default function EventEditor({ api }: { api: Api }) {
           <article className="events-admin-row" key={item.id}>
             <div className="events-admin-date"><strong>{item.eventDate.split("-").reverse().slice(0,2).join("/")}</strong><span>{item.startTime}</span></div>
             <div className="events-admin-copy"><div className="events-admin-status"><span className={item.published ? "is-live" : ""}>{item.published ? "Pubblicato" : "Bozza"}</span><span>{item.eventDate === todayRome ? "Oggi" : item.eventDate > todayRome ? "Futuro" : "Passato"}</span></div><h3>{item.title}</h3><p>{item.locationName}</p></div>
-            <div className="soci-actions"><button type="button" onClick={() => setEditing(item)}>Modifica</button><button type="button" onClick={() => remove(item)}>Elimina</button></div>
+            <div className="soci-actions">{item.published && <a href={eventPath(item)} target="_blank" rel="noopener noreferrer">Apri / condividi</a>}<button type="button" onClick={() => setEditing(item)}>Modifica</button><button type="button" onClick={() => remove(item)}>Elimina</button></div>
           </article>
         ))}
       </div>

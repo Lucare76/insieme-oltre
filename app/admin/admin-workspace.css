@@ -326,6 +326,20 @@
   .admin-area .admin-members-list > li > .soci-actions { justify-content: flex-start; }
 }
 
+/* Candidature volontari: stessi colori e componenti del workspace. */
+.volunteers-admin{display:grid;gap:18px}
+.volunteers-summary{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:13px 18px;border:1px solid #e1e8de;border-radius:12px;background:#fff;color:#3a5b44}
+.volunteers-summary span{color:#637767;font-size:13px}
+.volunteers-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.volunteers-form label,.volunteers-tools label{display:grid;gap:7px;min-width:0}
+.volunteers-form .wide{grid-column:1/-1}
+.volunteers-form input,.volunteers-form select,.volunteers-form textarea,.volunteers-tools input,.volunteers-tools select{max-width:100%;width:100%}
+.volunteers-tools{display:grid;grid-template-columns:minmax(0,1fr) 180px auto;align-items:end;gap:12px;margin-bottom:18px}
+.volunteers-list{display:grid;gap:12px}
+.volunteers-entry{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border:1px solid #e1e8de;background:#fff;padding:16px;border-radius:12px;overflow-wrap:anywhere}
+.volunteers-entry small{display:block;margin-top:5px;color:#71806f}
+.volunteers-entry p{margin:9px 0 0;line-height:1.55}
+@media(max-width:680px){.volunteers-form,.volunteers-tools{grid-template-columns:1fr}.volunteers-entry{flex-direction:column}.volunteers-form .wide{grid-column:auto}}
 @media print {
  .admin-sidebar, .admin-mobile-bar, .admin-side-backdrop { display: none !important; }
  .admin-workspace { display: block; }

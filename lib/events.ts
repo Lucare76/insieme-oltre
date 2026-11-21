@@ -3,6 +3,8 @@ export type AssociationEvent = {
   slug: string;
   title: string;
   topicTitle: string;
+  performerName: string;
+  freeAdmission: boolean;
   eventDate: string;
   startTime: string;
   endTime: string;
@@ -77,6 +79,8 @@ export function normalizeEvents(value: unknown): AssociationEvent[] {
       slug: clean(raw.slug, 150) || eventSlug(topicTitle || title, eventDate),
       title,
       topicTitle,
+      performerName: clean(raw.performerName, 140) || (title === "Uno spazio per ascoltarci" && eventDate === "2026-11-22" ? "Dott.ssa Federica Fornario" : ""),
+      freeAdmission: raw.freeAdmission === true,
       eventDate,
       startTime,
       endTime,

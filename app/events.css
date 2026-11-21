@@ -2,3 +2,11 @@
 .event-card h3 a{color:inherit;text-decoration:none}.event-card h3 a:hover,.event-card h3 a:focus-visible{color:var(--coral-deep)}.event-detail-back{margin:36px 0 0}.event-detail-back a{color:var(--coral-deep);font-weight:750}
 
 .event-detail-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(270px,1fr);gap:34px;align-items:start}.event-detail-content{min-width:0}.event-detail-content h2{font-family:Georgia,serif;font-size:clamp(32px,3vw,48px);font-weight:500;margin:14px 0 18px}.event-detail-image{position:relative;width:100%;aspect-ratio:4/3;background:#f4eee4;border-radius:22px;overflow:hidden;margin-bottom:32px}.event-detail-image img{object-fit:contain}.event-detail-paragraph{font-size:17px;line-height:1.85;color:var(--ink-soft);white-space:pre-line;margin:0 0 20px}.event-detail-info{background:rgba(255,253,249,.86);border:1px solid var(--line);border-radius:24px;padding:30px;position:sticky;top:30px}.event-detail-info h2{font-family:Georgia,serif;font-size:30px;font-weight:500;margin:0 0 22px}.event-detail-info dl{margin:0}.event-detail-info dl>div{padding:14px 0;border-top:1px solid var(--line)}.event-detail-info dt{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--sage-dark);margin-bottom:6px}.event-detail-info dd{margin:0;color:var(--ink);line-height:1.55}.event-detail-info .button{display:inline-flex;margin-top:22px}.event-detail-association{font-size:13px;line-height:1.7;color:var(--ink-soft);margin:24px 0 0}@media(max-width:760px){.event-detail-grid{grid-template-columns:1fr;gap:24px}.event-detail-info{position:static;padding:24px}.event-detail-image{aspect-ratio:3/4}.event-detail-paragraph{font-size:16px}}
+
+/* Appuntamenti: maggiore leggibilita della pagina singola */
+.events-page:has(.event-detail-grid) .events-page-inner{max-width:1260px}
+.events-page:has(.event-detail-grid) .events-page-header{max-width:980px;margin-bottom:48px}
+.event-detail-grid{grid-template-columns:minmax(0,1.9fr) minmax(300px,1fr);gap:44px}
+.event-detail-paragraph{font-size:clamp(17px,1.25vw,19px);line-height:1.9;margin-bottom:24px;max-width:75ch}
+.event-detail-info dd{font-size:15px}
+@media(max-width:760px){.event-detail-grid{grid-template-columns:minmax(0,1fr);gap:26px}.event-detail-paragraph{font-size:17px;line-height:1.8}}

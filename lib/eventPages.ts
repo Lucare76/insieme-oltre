@@ -20,7 +20,7 @@ export function eventJsonLd(event: AssociationEvent) {
   return {
     "@context": "https://schema.org",
     "@type": "Event",
-    name: event.title,
+    name: event.topicTitle ? `${event.topicTitle} — ${event.title}` : event.title,
     description: event.description || event.shortDescription,
     startDate: `${event.eventDate}T${event.startTime}:00`,
     ...(event.endTime ? { endDate: `${event.eventDate}T${event.endTime}:00` } : {}),

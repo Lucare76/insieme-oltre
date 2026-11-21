@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AssociationEvent } from "../../lib/events";
+import { eventPath } from "../../lib/eventPages";
 
 type Api = (path: string, init?: RequestInit) => Promise<Response>;
 
@@ -140,7 +141,7 @@ export default function EventEditor({ api }: { api: Api }) {
           <article className="events-admin-row" key={item.id}>
             <div className="events-admin-date"><strong>{item.eventDate.split("-").reverse().slice(0,2).join("/")}</strong><span>{item.startTime}</span></div>
             <div className="events-admin-copy"><div className="events-admin-status"><span className={item.published ? "is-live" : ""}>{item.published ? "Pubblicato" : "Bozza"}</span><span>{item.eventDate === todayRome ? "Oggi" : item.eventDate > todayRome ? "Futuro" : "Passato"}</span></div><h3>{item.title}</h3><p>{item.locationName}</p></div>
-            <div className="soci-actions"><button type="button" onClick={() => setEditing(item)}>Modifica</button><button type="button" onClick={() => remove(item)}>Elimina</button></div>
+            <div className="soci-actions">{item.published && <a href={eventPath(item)} target="_blank" rel="noopener noreferrer">Apri / condividi</a>}<button type="button" onClick={() => setEditing(item)}>Modifica</button><button type="button" onClick={() => remove(item)}>Elimina</button></div>
           </article>
         ))}
       </div>

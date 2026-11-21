@@ -92,14 +92,21 @@ export function normalizeEvents(value: unknown): AssociationEvent[] {
       updatedAt: clean(raw.updatedAt, 40) || new Date().toISOString(),
     });
   }
-  // In caso di due eventi con lo stesso nome e data, assegna a entrambi
-  // un suffisso stabile. L’UUID completo non viene mai mostrato nell’URL.
-  const counts = new Map<string, number>();
-  for (const event of result) counts.set(event.slug, (counts.get(event.slug) || 0) + 1);
-  for (const event of result) {
-    if ((counts.get(event.slug) || 0) > 1) {
-      event.slug = `${event.slug}-${event.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toLowerCase()}`;
+  // Se due eventi hanno titolo e data identici, il primo mantiene il suo
+  // permalink: soltanto i successivi ricevono un suffisso identificativo.
+  const occupied = new Set<string>();
+  const byCreation = [...result].sort((a, b) =>
+    a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id),
+  );
+  for (const event of byCreation) {
+    const base = event.slug;
+    let candidate = base;
+    if (occupied.has(candidate)) {
+      candidate = `${base}-${event.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toLowerCase()}`;
+      if (occupied.has(candidate)) candidate = `${base}-${event.id.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}`;
     }
+    event.slug = candidate;
+    occupied.add(candidate);
   }
   return result.sort((a, b) =>
     (a.eventDate + a.startTime).localeCompare(b.eventDate + b.startTime),

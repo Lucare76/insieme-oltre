@@ -7,7 +7,7 @@ import { InstitutionalLine } from "../../components/InstitutionalLine";
 import { getAssociationEvents } from "../../../lib/events";
 import { eventJsonLd, eventPath, findPublicEvent } from "../../../lib/eventPages";
 import { socialMetadata } from "../../../lib/seo";
-import ".././../../events.css";
+import "../../events.css";
 
 type Props = { params: Promise<{ slug: string }> };
 

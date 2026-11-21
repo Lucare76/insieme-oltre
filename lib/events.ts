@@ -2,6 +2,7 @@ export type AssociationEvent = {
   id: string;
   slug: string;
   title: string;
+  topicTitle: string;
   eventDate: string;
   startTime: string;
   endTime: string;
@@ -54,6 +55,10 @@ export function normalizeEvents(value: unknown): AssociationEvent[] {
     const endTime = clean(raw.endTime, 5);
     const title = clean(raw.title, 120);
     const locationName = clean(raw.locationName, 140);
+    // Compatibilita con l'evento gia pubblicato prima dell'introduzione del tema.
+    const topicTitle = clean(raw.topicTitle, 120) ||
+      (title === "Uno spazio per ascoltarci" && eventDate === "2026-11-22"
+        ? "Giornata dei nostri bambini" : "");
     const shortDescription = clean(raw.shortDescription, 320);
     const externalUrl = clean(raw.externalUrl, 500);
     if (
@@ -69,8 +74,9 @@ export function normalizeEvents(value: unknown): AssociationEvent[] {
 
     result.push({
       id: clean(raw.id, 80) || crypto.randomUUID(),
-      slug: clean(raw.slug, 150) || eventSlug(title, eventDate),
+      slug: clean(raw.slug, 150) || eventSlug(topicTitle || title, eventDate),
       title,
+      topicTitle,
       eventDate,
       startTime,
       endTime,

@@ -23,7 +23,7 @@ export type AssociationEvent = {
 const italianMonths = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
 
 export function eventSlug(title: string, date: string): string {
-  const titlePart = title.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+  const titlePart = title.normalize("NFD").replace(/\p{M}/gu, "")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 70).replace(/-$/g, "") || "appuntamento";
   const [year, month, day] = date.split("-").map(Number);
   return `${titlePart}-${day}-${italianMonths[month - 1] || "evento"}-${year}`;

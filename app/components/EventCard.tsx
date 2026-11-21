@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { eventPath } from "../../lib/eventPages";
 import { eventDateParts, formatEventDate, formatEventTime, type AssociationEvent } from "../../lib/events";
 
 export function EventCard({ event, compact = false }: { event: AssociationEvent; compact?: boolean }) {
@@ -11,11 +13,12 @@ export function EventCard({ event, compact = false }: { event: AssociationEvent;
       {event.imagePath && <div className="event-poster"><Image src={event.imagePath} alt={event.title + " — locandina"} fill sizes={compact ? "(max-width: 760px) 90vw, 300px" : "(max-width: 760px) 90vw, 360px"} /></div>}
       <div className="event-card-copy">
         <p className="event-meta">{formatEventTime(event)} · {event.locationName}</p>
-        <h3>{event.title}</h3>
+        <h3>{compact ? event.title : <Link href={eventPath(event)}>{event.title}</Link>}</h3>
         <p>{event.shortDescription}</p>
         {!compact && event.description && <p className="event-description">{event.description}</p>}
         {event.address && <p className="event-address">{event.address}</p>}
         <div className="event-actions">
+          {!compact && <Link className="event-more" href={eventPath(event)}>Scopri l’appuntamento →</Link>}
           {event.externalUrl && <a className="button button-primary" href={event.externalUrl} target="_blank" rel="noreferrer">{event.linkLabel || "Scopri di più"} <span aria-hidden="true">↗</span></a>}
           {compact && <a className="event-more" href="/appuntamenti">Tutti gli appuntamenti →</a>}
         </div>

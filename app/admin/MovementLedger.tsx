@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { balances, kindLabels, type Movement } from "../../lib/accounting";
 import {
   activeExtraFilters,
@@ -17,6 +17,15 @@ const accountLabel = (m: Movement) =>
 const amountLabel = (m: Movement) =>
   (m.kind === "expense" ? "− " : m.kind === "income" ? "+ " : "") +
   money(m.amount_cents);
+const monthOptions = Array.from({ length: 12 }, (_, index) => ({
+  value: String(index + 1).padStart(2, "0"),
+  label: new Intl.DateTimeFormat("it-IT", { month: "long", timeZone: "UTC" })
+    .format(new Date(Date.UTC(2026, index, 1))),
+}));
+const monthHeading = (date: string) => {
+  const month = monthOptions[Number(date.slice(5, 7)) - 1]?.label ?? "";
+  return month.charAt(0).toUpperCase() + month.slice(1) + " " + date.slice(0, 4);
+};
 const accountOptions = { cash: "Cassa contanti", bank: "Conto bancario" };
 
 // Chiude con clic o tocco fuori dagli elementi indicati.
@@ -255,6 +264,13 @@ export function MovementLedger<T extends Movement>({
             </select>
           </label>
           <label>
+            Mese
+            <select value={filters.month} onChange={(e) => set({ month: e.target.value })}>
+              <option value="">Tutti i mesi</option>
+              {monthOptions.map(month => <option key={month.value} value={month.value}>{month.label}</option>)}
+            </select>
+          </label>
+          <label>
             Conto
             <select
               value={filters.account}
@@ -473,7 +489,13 @@ export function MovementLedger<T extends Movement>({
                 </tr>
               </thead>
               <tbody>
-                {visible.map((item) => (
+                {visible.map((item, index) => (
+                  <Fragment key={item.id}>
+                    {(index === 0 || item.date.slice(0, 7) !== visible[index - 1].date.slice(0, 7)) && (
+                      <tr className="ledger-month-row">
+                        <th colSpan={write ? 6 : 5} scope="rowgroup">{monthHeading(item.date)}</th>
+                      </tr>
+                    )}
                   <tr key={item.id} className={item.cancelled ? "is-cancelled" : ""}>
                     <td>{dateLabel(item.date)}</td>
                     <td>
@@ -508,12 +530,17 @@ export function MovementLedger<T extends Movement>({
                       </td>
                     )}
                   </tr>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
           </div>
           <ul className="ledger-cards" aria-label={`Registro: ${movementsLabel(filtered.length)}`}>
-            {visible.map((item) => (
+            {visible.map((item, index) => (
+              <Fragment key={item.id}>
+                {(index === 0 || item.date.slice(0, 7) !== visible[index - 1].date.slice(0, 7)) && (
+                  <li className="ledger-month-card-label">{monthHeading(item.date)}</li>
+                )}
               <li key={item.id} className={item.cancelled ? "is-cancelled" : ""}>
                 <div className="ledger-card-top">
                   <div>
@@ -554,6 +581,7 @@ export function MovementLedger<T extends Movement>({
                 </dl>
                 {write && <RowActions item={item} {...actions} />}
               </li>
+              </Fragment>
             ))}
           </ul>
           {filtered.length > 500 && (

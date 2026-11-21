@@ -1,6 +1,7 @@
 import type { Movement } from "./accounting";
 export type MovementFilters = {
   year: string;
+  month: string;
   project: string;
   account: string;
   category: string;
@@ -10,6 +11,7 @@ export type MovementFilters = {
 };
 export const defaultMovementFilters: MovementFilters = {
   year: "",
+  month: "",
   project: "",
   account: "",
   category: "",
@@ -26,6 +28,7 @@ export function filterMovements<T extends Movement>(
   return items.filter(
     (x) =>
       (!f.year || x.date.startsWith(f.year)) &&
+      (!f.month || x.date.slice(5,7) === f.month) &&
       (!f.project || x.project === f.project) &&
       (!f.account || x.account === f.account || x.kind === "transfer") &&
       (!f.category || x.category === f.category) &&

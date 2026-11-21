@@ -116,6 +116,18 @@ export default function AreaSoci() {
     Item,
     "id" | "description"
   > | null>(null);
+  useEffect(() => {
+    if (!documentItem) return;
+    // Il modulo documenti segue l'elenco movimenti, che può essere molto lungo:
+    // raggiungilo automaticamente dopo salvataggio o apertura dalla riga.
+    const frame = requestAnimationFrame(() => {
+      document.getElementById("movement-documents")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [documentItem]);
   const session = useRef<Session | null>(null);
   const renewing = useRef<Promise<void> | null>(null);
   const lastActivity = useRef(0);
@@ -953,7 +965,7 @@ export default function AreaSoci() {
                   onDocuments={(item) => void openDocuments(item)}
                 />
                 {documentItem && write && (
-                  <section className="soci-card">
+                  <section id="movement-documents" className="soci-card">
                     <h3>Documenti · {documentItem.description}</h3>
                     <p>
                       Il movimento è già salvato. I documenti sono visibili solo

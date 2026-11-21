@@ -384,3 +384,30 @@
  .admin-area .soci-header h1 { font-size: 20px; }
  .admin-area .accounting-quick-actions button { flex: 1 1 auto; padding-inline: 8px; font-size: 11.5px; }
 }
+
+
+/* Secondo passaggio: riepilogo contabile più compatto su smartphone.
+   Preserva dimensioni minime dei controlli per l'uso touch. */
+@media (max-width: 560px) {
+ .admin-area .accounting-heading { margin: 6px 0 12px; gap: 8px; }
+ .admin-area .accounting-heading .soci-kicker { font-size: 10px; letter-spacing: .1em; }
+ .admin-area .accounting-heading h2 { font-size: clamp(18px, 5.2vw, 21px); line-height: 1.18; margin: 4px 0 6px; }
+ .admin-area .accounting-heading p:last-child { font-size: 11.5px; line-height: 1.45; }
+ .admin-area .accounting-heading label { font-size: 11.5px; max-width: 145px; }
+ .admin-area .accounting-heading label select { min-height: 40px; padding: 7px 9px; font-size: 12px; }
+ .admin-area .accounting-quick-actions { gap: 7px; margin: -2px 0 12px; }
+ .admin-area .accounting-quick-actions button { padding: 8px 10px; font-size: 11.5px; min-height: 42px; }
+ .admin-area .accounting-balances { gap: 7px; }
+ .admin-area .accounting-balances article { padding: 12px 11px; gap: 5px; border-radius: 12px; }
+ .admin-area .accounting-balances article span { font-size: 11px; line-height: 1.35; }
+ .admin-area .accounting-balances article strong { font-size: clamp(18px, 5vw, 21px); line-height: 1.15; }
+ .admin-area .accounting-balances article small { font-size: 10.5px; line-height: 1.4; }
+ .admin-area .accounting-period { padding: 12px; gap: 10px; margin-top: 12px; }
+ .admin-area .accounting-period > div { gap: 5px; }
+ .admin-area .accounting-period span { font-size: 11.5px; }
+ .admin-area .accounting-period strong { font-size: 18px; }
+ .admin-area .accounting-period p { font-size: 11px; }
+ .admin-area .accounting-dashboard h3 { font-size: 16px; }
+ .admin-area .accounting-panels { gap: 12px; }
+ .admin-area .accounting-panels .soci-card { padding: 15px 12px; }
+}

@@ -12,6 +12,8 @@ const emptyEvent = (): AssociationEvent => ({
   slug: "",
   title: "",
   topicTitle: "",
+  performerName: "",
+  freeAdmission: false,
   eventDate: "",
   startTime: "10:00",
   endTime: "",
@@ -117,6 +119,8 @@ export default function EventEditor({ api }: { api: Api }) {
             <label>Data<input type="date" required value={editing.eventDate} onChange={(e) => setEditing({ ...editing, eventDate: e.target.value })}/></label>
             <label>Ora inizio<input type="time" required value={editing.startTime} onChange={(e) => setEditing({ ...editing, startTime: e.target.value })}/></label>
             <label>Ora fine <small>facoltativa</small><input type="time" value={editing.endTime} onChange={(e) => setEditing({ ...editing, endTime: e.target.value })}/></label>
+            <label>Chi conduce l'incontro <small>facoltativo, es. Dott.ssa Federica Fornario</small><input maxLength={140} value={editing.performerName} onChange={(e) => setEditing({ ...editing, performerName: e.target.value })}/></label>
+            <label className="soci-check wide"><input type="checkbox" checked={editing.freeAdmission} onChange={(e) => setEditing({ ...editing, freeAdmission: e.target.checked })}/> Partecipazione gratuita (confermata)</label>
             <label>Luogo<input required maxLength={140} value={editing.locationName} onChange={(e) => setEditing({ ...editing, locationName: e.target.value })}/></label>
             <label>Indirizzo <small>facoltativo</small><input maxLength={220} value={editing.address} onChange={(e) => setEditing({ ...editing, address: e.target.value })}/></label>
             <label className="wide">Breve descrizione <small>anticipazione mostrata nell’elenco</small><textarea required maxLength={320} value={editing.shortDescription} onChange={(e) => setEditing({ ...editing, shortDescription: e.target.value })}/></label>

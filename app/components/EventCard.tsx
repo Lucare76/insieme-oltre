@@ -15,8 +15,6 @@ export function EventCard({ event, compact = false }: { event: AssociationEvent;
         <p className="event-meta">{formatEventTime(event)} · {event.locationName}</p>
         <h3>{compact ? event.title : <Link href={eventPath(event)}>{event.title}</Link>}</h3>
         <p>{event.shortDescription}</p>
-        {!compact && event.description && <p className="event-description">{event.description}</p>}
-        {event.address && <p className="event-address">{event.address}</p>}
         <div className="event-actions">
           {!compact && <Link className="event-more" href={eventPath(event)}>Scopri l’appuntamento →</Link>}
           {event.externalUrl && <a className="button button-primary" href={event.externalUrl} target="_blank" rel="noreferrer">{event.linkLabel || "Scopri di più"} <span aria-hidden="true">↗</span></a>}

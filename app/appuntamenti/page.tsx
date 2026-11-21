@@ -5,6 +5,7 @@ import { LegalLinks } from "../components/LegalLinks";
 import { InstitutionalLine } from "../components/InstitutionalLine";
 import { getAssociationEvents, splitEvents } from "../../lib/events";
 import { socialMetadata } from "../../lib/seo";
+import { siteUrl } from "../../lib/siteUrl";
 import "../events.css";
 
 export const metadata: Metadata = {
@@ -20,8 +21,43 @@ export const metadata: Metadata = {
 
 export default async function AppuntamentiPage() {
   const { upcoming, past } = splitEvents(await getAssociationEvents());
+  // Solo appuntamenti pubblicati e futuri: Google può interpretarli come eventi
+  // senza confondere il calendario corrente con l'archivio storico.
+  const structuredEvents = upcoming.map((event) => ({
+    "@type": "Event",
+    name: event.title,
+    description: event.description || event.shortDescription,
+    startDate: `${event.eventDate}T${event.startTime}:00`,
+    ...(event.endTime ? { endDate: `${event.eventDate}T${event.endTime}:00` } : {}),
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: {
+      "@type": "Place",
+      name: event.locationName,
+      ...(event.address ? { address: event.address } : {}),
+    },
+    organizer: {
+      "@type": "Organization",
+      name: "Insieme Oltre ODV",
+      url: siteUrl,
+    },
+    ...(event.imagePath ? { image: [new URL(event.imagePath, siteUrl).href] } : {}),
+    ...(event.externalUrl ? { sameAs: event.externalUrl } : {}),
+    url: `${siteUrl}/appuntamenti`,
+  }));
   return (
     <main className="events-page">
+      {structuredEvents.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": structuredEvents,
+            }).replace(/</g, "\\u003c"),
+          }}
+        />
+      )}
       <div className="events-page-inner">
         <header className="events-page-header">
           <Link href="/" className="section-kicker">← Insieme Oltre</Link>
@@ -38,7 +74,7 @@ export default async function AppuntamentiPage() {
         {past.length > 0 && <section className="events-archive" aria-labelledby="past-events-title">
           <p className="section-kicker">Ricordi condivisi</p>
           <h2 id="past-events-title">Gli appuntamenti passati</h2>
-          <div className="events-list">{past.slice(0,6).map((event) => <EventCard key={event.id} event={event}/>)}</div>
+          <div className="events-list">{past.map((event) => <EventCard key={event.id} event={event}/>)}</div>
         </section>}
       </div>
       <footer>

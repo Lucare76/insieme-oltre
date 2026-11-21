@@ -347,3 +347,40 @@
 }
 
 .events-admin{display:grid;gap:20px}.events-admin-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:26px 28px;border:1px solid #dfe7db;border-radius:18px;background:linear-gradient(135deg,#fff 8%,#eff6ed 100%)}.events-admin-head h2{margin:6px 0 8px;font-size:clamp(28px,3vw,38px);letter-spacing:-.04em}.events-admin-head p:last-child{margin:0;max-width:650px;color:#607463}.events-editor-card{margin:0}.events-editor-title{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}.events-editor-title h3{margin:7px 0 0}.events-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.events-form-grid .wide{grid-column:1/-1}.events-image-preview{display:flex;align-items:flex-start;gap:16px;padding:14px;background:#f6f3eb;border:1px solid #e6dfd1;border-radius:12px}.events-image-preview img{width:110px;height:145px;object-fit:contain;background:#fff;border-radius:8px}.events-admin-list{display:grid;gap:10px}.events-admin-row{display:grid;grid-template-columns:92px minmax(0,1fr) auto;align-items:center;gap:18px;padding:18px 20px;background:#fff;border:1px solid #e1e8de;border-radius:14px}.events-admin-date{display:flex;flex-direction:column;gap:4px;padding-right:16px;border-right:1px solid #e4e9df}.events-admin-date strong{font-size:18px;color:#315841}.events-admin-date span{font-size:12px;color:#758377}.events-admin-copy h3{margin:4px 0 4px;font-size:17px}.events-admin-copy p{margin:0;font-size:13px;color:#6a786b}.events-admin-status span{display:inline-flex;padding:4px 7px;border-radius:6px;background:#eeeae0;color:#756b58;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.events-admin-status span.is-live{background:#e7f1e7;color:#356247}@media(max-width:700px){.events-admin-head{align-items:stretch;flex-direction:column;padding:20px}.events-admin-head>button{width:100%}.events-form-grid{grid-template-columns:1fr}.events-form-grid .wide{grid-column:auto}.events-admin-row{grid-template-columns:70px minmax(0,1fr)}.events-admin-row>.soci-actions{grid-column:1/-1}.events-admin-date{padding-right:10px}.events-image-preview{flex-direction:column}}
+
+
+/* Mobile admin: tipografia e spazi calibrati per schermi stretti.
+   Nessun effetto sul sito pubblico o sul layout desktop. */
+@media (max-width: 560px) {
+ .admin-area { padding: 14px 12px 28px; }
+ .admin-area .soci-header { gap: 10px; padding: 0 0 14px; margin-bottom: 12px; }
+ .admin-area .soci-header img { width: 72px; height: auto; }
+ .admin-area .soci-header > div { min-width: 0; }
+ .admin-area .soci-header h1 { font-size: clamp(21px, 6vw, 24px); line-height: 1.15; letter-spacing: -.025em; }
+ .admin-area .soci-header .soci-kicker { font-size: 9px; letter-spacing: .12em; }
+ .admin-area .soci-header p:last-child { font-size: 11px; margin-top: 4px; }
+ .admin-area .soci-header > button { min-height: 39px; padding: 8px 12px; font-size: 12px; flex-shrink: 0; }
+ .admin-area .admin-mobile-bar { padding: 8px 10px; margin-bottom: 14px; }
+ .admin-area .admin-mobile-toggle { font-size: 12px; padding: 8px 10px; }
+ .admin-area .admin-mobile-bar > span { font-size: 12px; }
+ .admin-area .accounting-heading { margin: 12px 0 16px; gap: 10px; }
+ .admin-area .accounting-heading h2 { font-size: clamp(21px, 6vw, 25px); line-height: 1.2; margin: 6px 0 8px; }
+ .admin-area .accounting-heading p:last-child { font-size: 12.5px; line-height: 1.5; margin: 0; }
+ .admin-area .accounting-heading label { font-size: 12px; max-width: 165px; }
+ .admin-area .accounting-heading label select { min-height: 42px; }
+ .admin-area .accounting-quick-actions { gap: 8px; margin-bottom: 16px; }
+ .admin-area .accounting-quick-actions button { padding: 10px 12px; font-size: 12px; min-height: 42px; }
+ .admin-area .accounting-balances { gap: 8px; }
+ .admin-area .accounting-balances article { padding: 15px 12px; gap: 7px; border-radius: 14px; }
+ .admin-area .accounting-balances article span { font-size: 12px; line-height: 1.4; }
+ .admin-area .accounting-balances article strong { font-size: clamp(20px, 5.5vw, 24px); }
+ .admin-area .accounting-balances article small { font-size: 11px; }
+ .admin-area .accounting-period { gap: 14px; padding: 15px 12px; }
+ .admin-area .accounting-period strong { font-size: 20px; }
+ .admin-area .accounting-dashboard h3 { font-size: 17px; }
+}
+@media (max-width: 360px) {
+ .admin-area .soci-header img { width: 62px; }
+ .admin-area .soci-header h1 { font-size: 20px; }
+ .admin-area .accounting-quick-actions button { flex: 1 1 auto; padding-inline: 8px; font-size: 11.5px; }
+}

@@ -11,6 +11,7 @@ const emptyEvent = (): AssociationEvent => ({
   id: crypto.randomUUID(),
   slug: "",
   title: "",
+  topicTitle: "",
   eventDate: "",
   startTime: "10:00",
   endTime: "",
@@ -112,6 +113,7 @@ export default function EventEditor({ api }: { api: Api }) {
           </div>
           <div className="events-form-grid">
             <label>Titolo<input required maxLength={120} value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })}/></label>
+            <label>Titolo specifico incontro <small>facoltativo, es. Giornata dei nostri bambini</small><input maxLength={120} value={editing.topicTitle} onChange={(e) => setEditing({ ...editing, topicTitle: e.target.value })}/></label>
             <label>Data<input type="date" required value={editing.eventDate} onChange={(e) => setEditing({ ...editing, eventDate: e.target.value })}/></label>
             <label>Ora inizio<input type="time" required value={editing.startTime} onChange={(e) => setEditing({ ...editing, startTime: e.target.value })}/></label>
             <label>Ora fine <small>facoltativa</small><input type="time" value={editing.endTime} onChange={(e) => setEditing({ ...editing, endTime: e.target.value })}/></label>
@@ -141,7 +143,7 @@ export default function EventEditor({ api }: { api: Api }) {
         {sorted.length === 0 ? <div className="soci-card"><p>Nessun appuntamento inserito.</p></div> : sorted.map((item) => (
           <article className="events-admin-row" key={item.id}>
             <div className="events-admin-date"><strong>{item.eventDate.split("-").reverse().slice(0,2).join("/")}</strong><span>{item.startTime}</span></div>
-            <div className="events-admin-copy"><div className="events-admin-status"><span className={item.published ? "is-live" : ""}>{item.published ? "Pubblicato" : "Bozza"}</span><span>{item.eventDate === todayRome ? "Oggi" : item.eventDate > todayRome ? "Futuro" : "Passato"}</span></div><h3>{item.title}</h3><p>{item.locationName}</p></div>
+            <div className="events-admin-copy"><div className="events-admin-status"><span className={item.published ? "is-live" : ""}>{item.published ? "Pubblicato" : "Bozza"}</span><span>{item.eventDate === todayRome ? "Oggi" : item.eventDate > todayRome ? "Futuro" : "Passato"}</span></div><h3>{item.topicTitle ? `${item.topicTitle} · ${item.title}` : item.title}</h3><p>{item.locationName}</p></div>
             <div className="soci-actions">{item.published && <a href={eventPath(item)} target="_blank" rel="noopener noreferrer">Apri / condividi</a>}<button type="button" onClick={() => setEditing(item)}>Modifica</button><button type="button" onClick={() => remove(item)}>Elimina</button></div>
           </article>
         ))}

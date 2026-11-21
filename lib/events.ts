@@ -1,6 +1,10 @@
 export type AssociationEvent = {
   id: string;
+  slug: string;
   title: string;
+  topicTitle: string;
+  performerName: string;
+  freeAdmission: boolean;
   eventDate: string;
   startTime: string;
   endTime: string;
@@ -15,6 +19,15 @@ export type AssociationEvent = {
   createdAt: string;
   updatedAt: string;
 };
+
+const italianMonths = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
+
+export function eventSlug(title: string, date: string): string {
+  const titlePart = title.normalize("NFD").replace(/\p{M}/gu, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 70).replace(/-$/g, "") || "appuntamento";
+  const [year, month, day] = date.split("-").map(Number);
+  return `${titlePart}-${day}-${italianMonths[month - 1] || "evento"}-${year}`;
+}
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -44,6 +57,10 @@ export function normalizeEvents(value: unknown): AssociationEvent[] {
     const endTime = clean(raw.endTime, 5);
     const title = clean(raw.title, 120);
     const locationName = clean(raw.locationName, 140);
+    // Compatibilita con l'evento gia pubblicato prima dell'introduzione del tema.
+    const topicTitle = clean(raw.topicTitle, 120) ||
+      (title === "Uno spazio per ascoltarci" && eventDate === "2026-11-22"
+        ? "Giornata dei nostri bambini" : "");
     const shortDescription = clean(raw.shortDescription, 320);
     const externalUrl = clean(raw.externalUrl, 500);
     if (
@@ -59,7 +76,11 @@ export function normalizeEvents(value: unknown): AssociationEvent[] {
 
     result.push({
       id: clean(raw.id, 80) || crypto.randomUUID(),
+      slug: clean(raw.slug, 150) || eventSlug(topicTitle || title, eventDate),
       title,
+      topicTitle,
+      performerName: clean(raw.performerName, 140) || (title === "Uno spazio per ascoltarci" && eventDate === "2026-11-22" ? "Dott.ssa Federica Fornario" : ""),
+      freeAdmission: raw.freeAdmission === true,
       eventDate,
       startTime,
       endTime,
@@ -74,6 +95,22 @@ export function normalizeEvents(value: unknown): AssociationEvent[] {
       createdAt: clean(raw.createdAt, 40) || new Date().toISOString(),
       updatedAt: clean(raw.updatedAt, 40) || new Date().toISOString(),
     });
+  }
+  // Se due eventi hanno titolo e data identici, il primo mantiene il suo
+  // permalink: soltanto i successivi ricevono un suffisso identificativo.
+  const occupied = new Set<string>();
+  const byCreation = [...result].sort((a, b) =>
+    a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id),
+  );
+  for (const event of byCreation) {
+    const base = event.slug;
+    let candidate = base;
+    if (occupied.has(candidate)) {
+      candidate = `${base}-${event.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toLowerCase()}`;
+      if (occupied.has(candidate)) candidate = `${base}-${event.id.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}`;
+    }
+    event.slug = candidate;
+    occupied.add(candidate);
   }
   return result.sort((a, b) =>
     (a.eventDate + a.startTime).localeCompare(b.eventDate + b.startTime),

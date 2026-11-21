@@ -13,7 +13,8 @@ export function EventCard({ event, compact = false }: { event: AssociationEvent;
       {event.imagePath && <div className="event-poster"><Image src={event.imagePath} alt={event.title + " — locandina"} fill sizes={compact ? "(max-width: 760px) 90vw, 300px" : "(max-width: 760px) 90vw, 360px"} /></div>}
       <div className="event-card-copy">
         <p className="event-meta">{formatEventTime(event)} · {event.locationName}</p>
-        <h3>{compact ? event.title : <Link href={eventPath(event)}>{event.title}</Link>}</h3>
+        {event.topicTitle && <p className="event-meta">{event.title}</p>}
+        <h3>{compact ? (event.topicTitle || event.title) : <Link href={eventPath(event)}>{event.topicTitle || event.title}</Link>}</h3>
         <p>{event.shortDescription}</p>
         <div className="event-actions">
           {!compact && <Link className="event-more" href={eventPath(event)}>Scopri l’appuntamento →</Link>}

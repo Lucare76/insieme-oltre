@@ -1,17 +1,18 @@
 import type { AssociationEvent } from "./events";
 import { siteUrl } from "./siteUrl";
 
-/** Human-readable path, with immutable event ID to keep old shared URLs resolvable. */
+/** Il nuovo URL non espone l'UUID, ma la chiave interna rimane invariata. */
 export function eventPath(event: AssociationEvent): string {
-  const title = event.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 75).replace(/-$/g, "");
-  return `/appuntamenti/${title || "evento"}--${encodeURIComponent(event.id)}`;
+  return `/appuntamenti/${encodeURIComponent(event.slug)}`;
 }
 
-/** Accept an old title slug as long as the original event ID still exists. */
+/** Supporta anche i vecchi link con UUID: la pagina li redirige al canonical. */
 export function findPublicEvent(events: AssociationEvent[], slug: string) {
   return events.find((event) =>
-    event.published && slug.endsWith(`--${encodeURIComponent(event.id)}`)
+    event.published && (
+      event.slug === slug ||
+      slug.endsWith(`--${encodeURIComponent(event.id)}`)
+    )
   );
 }
 
@@ -19,7 +20,7 @@ export function eventJsonLd(event: AssociationEvent) {
   return {
     "@context": "https://schema.org",
     "@type": "Event",
-    name: event.title,
+    name: event.topicTitle ? `${event.topicTitle} — ${event.title}` : event.title,
     description: event.description || event.shortDescription,
     startDate: `${event.eventDate}T${event.startTime}:00`,
     ...(event.endTime ? { endDate: `${event.eventDate}T${event.endTime}:00` } : {}),
@@ -28,6 +29,8 @@ export function eventJsonLd(event: AssociationEvent) {
     location: { "@type": "Place", name: event.locationName,
       ...(event.address ? { address: event.address } : {}) },
     organizer: { "@type": "Organization", name: "Insieme Oltre ODV", url: siteUrl },
+    ...(event.performerName ? { performer: { "@type": "Person", name: event.performerName } } : {}),
+    ...(event.freeAdmission ? { isAccessibleForFree: true, offers: { "@type": "Offer", price: "0", priceCurrency: "EUR", url: `${siteUrl}${eventPath(event)}` } } : {}),
     ...(event.imagePath ? { image: [new URL(event.imagePath, siteUrl).href] } : {}),
     ...(event.externalUrl ? { sameAs: event.externalUrl } : {}),
     url: `${siteUrl}${eventPath(event)}`,

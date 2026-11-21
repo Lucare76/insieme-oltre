@@ -21,12 +21,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!event) return { robots: { index: false, follow: false } };
   const path = eventPath(event);
   const description = event.shortDescription;
+  const fullTitle = event.topicTitle ? `${event.topicTitle} | ${event.title}` : event.title;
   return {
-    title: `${event.title} | Appuntamenti Insieme Oltre Ischia`,
+    title: `${fullTitle} | Insieme Oltre Ischia`,
     description,
     alternates: { canonical: path },
     ...socialMetadata({
-      title: `${event.title} | Insieme Oltre`,
+      title: `${fullTitle} | Insieme Oltre`,
       description,
       path,
       ...(event.imagePath ? { image: { url: event.imagePath, alt: event.title } } : {}),
@@ -51,7 +52,8 @@ export default async function EventoPage({ params }: Props) {
       <div className="events-page-inner">
         <header className="events-page-header">
           <Link href="/appuntamenti" className="section-kicker">← Tutti gli appuntamenti</Link>
-          <h1>{event.title}</h1>
+          {event.topicTitle && <p className="section-kicker">{event.title}</p>}
+          <h1>{event.topicTitle || event.title}</h1>
           <p className="events-page-intro">{event.shortDescription}</p>
         </header>
         <div className="event-detail-grid">

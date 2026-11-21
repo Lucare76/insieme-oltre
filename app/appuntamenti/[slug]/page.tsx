@@ -21,7 +21,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!event) return { robots: { index: false, follow: false } };
   const path = eventPath(event);
   const description = event.shortDescription;
-  const displayTitle = event.topicTitle || event.title;
   const fullTitle = event.topicTitle ? `${event.topicTitle} | ${event.title}` : event.title;
   return {
     title: `${fullTitle} | Insieme Oltre Ischia`,

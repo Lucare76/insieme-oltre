@@ -48,7 +48,7 @@ begin
   if exists (
     select 1 from public.association_register_people p
     where p.register_kind = 'soci'
-      and p.ended_on is null
+      and (p.ended_on is null or p.ended_on >= v_today)
       and lower(regexp_replace(trim(p.full_name), '[[:space:]]+', ' ', 'g'))
         = lower(regexp_replace(trim(v_candidate.name), '[[:space:]]+', ' ', 'g'))
   ) then

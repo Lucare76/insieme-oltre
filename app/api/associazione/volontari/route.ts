@@ -43,7 +43,7 @@ async function handle(request: Request) {
       return respond({ ok: true, already_member: true });
     }
     const admittedOn = String(body.admitted_on ?? "");
-    if (body.confirm_admission !== true || !/^\\d{4}-\\d{2}-\\d{2}$/.test(admittedOn))
+    if (body.confirm_admission !== true || !/^\d{4}-\d{2}-\d{2}$/.test(admittedOn))
       throw new AssociationError("Conferma l'ammissione effettiva e la data.");
     const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Rome" }).format(new Date());
     if (admittedOn > today || admittedOn < "2000-01-01")
@@ -51,7 +51,7 @@ async function handle(request: Request) {
     const registered = await service(
       "/rest/v1/association_register_people?register_kind=eq.soci&ended_on=is.null&select=full_name&limit=3000",
     );
-    const normalize = (name: string) => name.trim().replace(/\\s+/g, " ").toLocaleLowerCase("it-IT");
+    const normalize = (name: string) => name.trim().replace(/\s+/g, " ").toLocaleLowerCase("it-IT");
     const members = await registered.json() as { full_name: string }[];
     if (members.some(member => normalize(member.full_name) === normalize(candidate.name)))
       throw new AssociationError("Il nominativo è già nel Libro soci. Verifica prima di creare un duplicato.", 409);

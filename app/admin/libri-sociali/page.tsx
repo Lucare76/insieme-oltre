@@ -18,11 +18,12 @@ type Kind = "soci" | "volontari" | "assemblee" | "direttivo";
 type View = "registro" | "quote" | "tessere" | "contatti" | "documenti" | "invio";
 type Entry = {
  id: string; full_name?: string; title?: string; admitted_on?: string;
- birth_date?: string | null; ended_on?: string | null; meeting_on?: string;
+ birth_date?: string | null; fiscal_code?: string; birth_place?: string; residence?: string; notes?: string; ended_on?: string | null; meeting_on?: string;
  approved?: boolean;
 };
 type NameCorrection = { person_id: string; old_name: string; new_name: string; reason: string; changed_at: string };
 type NameEdit = { id: string; expected_name: string; full_name: string; reason: string; confirmed: boolean };
+type ProfileEdit = { id: string; full_name: string; fiscal_code: string; birth_date: string; birth_place: string; residence: string; notes: string; confirmed: boolean };
 type Feedback = { text: string; tone: "success" | "error" };
 const initial = {
  full_name: "", admitted_on: "", birth_date: "", fiscal_code: "", ended_on: "",
@@ -86,6 +87,7 @@ export default function Page() {
  const [items, setItems] = useState<Entry[]>([]);
  const [corrections, setCorrections] = useState<NameCorrection[]>([]);
  const [nameEdit, setNameEdit] = useState<NameEdit | null>(null);
+ const [profileEdit, setProfileEdit] = useState<ProfileEdit | null>(null);
  const [authorized, setAuthorized] = useState(false);
  const [loading, setLoading] = useState(true);
  const [busy, setBusy] = useState(false);
@@ -147,7 +149,7 @@ export default function Page() {
  function changeKind(next: Kind) {
   if (next === kind) return;
   setLoading(true); setKind(next); setView("registro"); setSearch("");
-  setEditorOpen(false); setNameEdit(null); setData(initial); setFeedback(null);
+  setEditorOpen(false); setNameEdit(null); setProfileEdit(null); setData(initial); setFeedback(null);
  }
  function showCreate() {
   if (editorOpen) { setEditorOpen(false); return; }
@@ -199,6 +201,38 @@ export default function Page() {
     text: persisted ? "Correzione salvata: non ripetere l'operazione. Aggiorna l'elenco."
      : error instanceof Error ? error.message : "Correzione non riuscita." });
   } finally { setBusy(false); }
+ }
+ async function saveProfile(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  if(!profileEdit || busy) return;
+  setBusy(true); setFeedback(null);
+  let persisted=false;
+  try{
+   await api("/api/associazione/libri-sociali",{
+    method:"PATCH",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({action:"update_profile",kind:"soci",person_id:profileEdit.id,
+     fiscal_code:profileEdit.fiscal_code,birth_date:profileEdit.birth_date||null,
+     birth_place:profileEdit.birth_place,residence:profileEdit.residence,
+     notes:profileEdit.notes,confirm:profileEdit.confirmed})
+   });
+   persisted=true;
+   setProfileEdit(null);
+   await refresh();
+   setFeedback({tone:"success",text:"Dati anagrafici aggiornati. Quote, ricevute e tessere restano collegate allo stesso socio."});
+  }catch(error){
+   setFeedback({tone:persisted?"success":"error",text:persisted
+    ?"Salvataggio riuscito: aggiorna l'elenco, senza ripetere l'operazione."
+    :error instanceof Error?error.message:"Aggiornamento non riuscito."});
+  }finally{setBusy(false);}
+ }
+ function openProfile(item: Entry){
+  setNameEdit(null);
+  setProfileEdit(old=>old?.id===item.id?null:{
+   id:item.id,full_name:item.full_name||"",fiscal_code:item.fiscal_code||"",
+   birth_date:item.birth_date||"",birth_place:item.birth_place||"",
+   residence:item.residence||"",notes:item.notes||"",confirmed:false
+  });
+  setFeedback(null);
  }
  async function exportPdf() {
   setBusy(true); setFeedback(null);
@@ -264,7 +298,7 @@ export default function Page() {
       <h2>Strumenti</h2>
       <nav className="books-side-items" aria-label="Strumenti del registro">
        {tabs[kind].map((tab, index) => <button type="button" key={tab.id} aria-pressed={view === tab.id}
-        title={tab.caption} onClick={() => {setView(tab.id); setEditorOpen(false); setNameEdit(null); setFeedback(null);}}>
+        title={tab.caption} onClick={() => {setView(tab.id); setEditorOpen(false); setNameEdit(null); setProfileEdit(null); setFeedback(null);}}>
         <span className="books-side-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
         <span>{tab.title}</span>
        </button>)}
@@ -354,8 +388,12 @@ export default function Page() {
            <td data-label={isPerson ? "Data" : "Riunione"}>{dateLabel(isPerson ? item.admitted_on : item.meeting_on)}</td>
            <td data-label="Stato"><span className={"books-pill" + (muted ? " books-pill-muted" : "")}>{status}</span></td>
            {kind === "soci" && <td data-label="Operazioni">
+            <button type="button" className="books-inline-action" disabled={busy}
+             onClick={() => openProfile(item)}>
+             {profileEdit?.id===item.id ? "Chiudi dati" : "Modifica dati"}
+            </button>{" "}
             {item.full_name && <button type="button" className="books-inline-action" disabled={busy}
-             onClick={() => { setNameEdit(current => current?.id === item.id ? null : {
+             onClick={() => { setProfileEdit(null); setNameEdit(current => current?.id === item.id ? null : {
               id: item.id, expected_name: item.full_name || "", full_name: item.full_name || "",
               reason: "Correzione errore di digitazione", confirmed: false,
              }); setFeedback(null); }}>
@@ -363,6 +401,45 @@ export default function Page() {
             </button>}
            </td>}
            </tr>
+           {profileEdit?.id===item.id && kind==="soci" && <tr className="books-detail-row">
+            <td className="books-edit-cell" colSpan={4} data-label="Anagrafica socio">
+             <form className="books-edit-box" onSubmit={event=>void saveProfile(event)}>
+              <h4>Modifica dati · {uppercasePersonName(profileEdit.full_name)}</h4>
+              <p>Completa i dati di questo socio, senza alterare ammissione, quote, ricevute o tessere. Per l'email usa la sezione «Email e accessi».</p>
+              <div className="books-form-grid">
+               <label>Codice fiscale
+                <input type="text" autoComplete="off" maxLength={16} pattern="[A-Za-z0-9]{16}"
+                 placeholder="16 caratteri" value={profileEdit.fiscal_code}
+                 onChange={e=>setProfileEdit(d=>d?{...d,fiscal_code:e.target.value.toUpperCase(),confirmed:false}:null)}/>
+               </label>
+               <label>Data di nascita
+                <input type="date" max={todayRome()} value={profileEdit.birth_date}
+                 onChange={e=>setProfileEdit(d=>d?{...d,birth_date:e.target.value,confirmed:false}:null)}/>
+               </label>
+               <label>Luogo di nascita
+                <input type="text" maxLength={160} value={profileEdit.birth_place}
+                 onChange={e=>setProfileEdit(d=>d?{...d,birth_place:e.target.value,confirmed:false}:null)}/>
+               </label>
+               <label>Residenza
+                <input type="text" maxLength={250} value={profileEdit.residence}
+                 onChange={e=>setProfileEdit(d=>d?{...d,residence:e.target.value,confirmed:false}:null)}/>
+               </label>
+               <label className="books-wide">Note interne
+                <textarea maxLength={500} value={profileEdit.notes}
+                 onChange={e=>setProfileEdit(d=>d?{...d,notes:e.target.value,confirmed:false}:null)}/>
+               </label>
+              </div>
+              <label className="soci-check"><input type="checkbox" checked={profileEdit.confirmed}
+               onChange={e=>setProfileEdit(d=>d?{...d,confirmed:e.target.checked}:null)}/>
+               Confermo di avere verificato i dati anagrafici del socio.</label>
+              <p className="books-subtle-note">Le modifiche vengono tracciate. Non vengono create nuove iscrizioni o modificati documenti già emessi.</p>
+              <div className="books-edit-actions">
+               <button type="submit" className="primary" disabled={busy||!profileEdit.confirmed}>Salva dati</button>
+               <button type="button" disabled={busy} onClick={()=>setProfileEdit(null)}>Annulla</button>
+              </div>
+             </form>
+            </td>
+           </tr>}
            {nameEdit?.id === item.id && kind === "soci" && <tr className="books-detail-row"><td className="books-edit-cell" colSpan={4} data-label="Correzione">
             <form className="books-edit-box" onSubmit={event => void correctName(event)}>
              <h4>Correggi il nominativo</h4>

@@ -411,3 +411,11 @@
  .admin-area .accounting-panels { gap: 12px; }
  .admin-area .accounting-panels .soci-card { padding: 12px 10px; }
 }
+
+
+/* Cambio ruolo volontari: azioni separate e adattive. */
+.volunteers-entry-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;flex-shrink:0}
+#volunteer-role-editor{scroll-margin-top:22px}
+#volunteer-role-editor .soci-check{display:flex;align-items:flex-start;gap:10px}
+#volunteer-role-editor .soci-check input{width:auto;margin-top:4px}
+@media(max-width:680px){.volunteers-entry-actions{width:100%}.volunteers-entry-actions button{flex:1;min-width:120px}}

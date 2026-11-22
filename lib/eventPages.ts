@@ -31,9 +31,11 @@ export function eventJsonLd(event: AssociationEvent) {
       name: event.locationName,
       // Anche un evento diffuso per le strade di Ischia ha una località reale,
       // senza inventare una via o un numero civico.
-      address: event.address
-        ? { "@type": "PostalAddress", streetAddress: event.address, addressCountry: "IT" }
-        : { "@type": "PostalAddress", addressLocality: event.locationName, addressCountry: "IT" },
+      ...(event.address
+        ? { address: { "@type": "PostalAddress", streetAddress: event.address, addressCountry: "IT" } }
+        : event.locationName.trim().toLowerCase() === "ischia"
+          ? { address: { "@type": "PostalAddress", addressLocality: "Ischia", addressCountry: "IT" } }
+          : {}),
     },
     organizer: { "@type": "Organization", name: "Insieme Oltre ODV", url: siteUrl },
     ...(event.performerName ? { performer: { "@type": "Person", name: event.performerName } } : {}),

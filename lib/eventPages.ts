@@ -26,8 +26,17 @@ export function eventJsonLd(event: AssociationEvent) {
     ...(event.endTime ? { endDate: `${event.eventDate}T${event.endTime}:00` } : {}),
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    location: { "@type": "Place", name: event.locationName,
-      ...(event.address ? { address: event.address } : {}) },
+    location: {
+      "@type": "Place",
+      name: event.locationName,
+      // Anche un evento diffuso per le strade di Ischia ha una località reale,
+      // senza inventare una via o un numero civico.
+      ...(event.address
+        ? { address: { "@type": "PostalAddress", streetAddress: event.address, addressCountry: "IT" } }
+        : event.locationName.trim().toLowerCase() === "ischia"
+          ? { address: { "@type": "PostalAddress", addressLocality: "Ischia", addressCountry: "IT" } }
+          : {}),
+    },
     organizer: { "@type": "Organization", name: "Insieme Oltre ODV", url: siteUrl },
     ...(event.performerName ? { performer: { "@type": "Person", name: event.performerName } } : {}),
     ...(event.freeAdmission ? { isAccessibleForFree: true, offers: { "@type": "Offer", price: "0", priceCurrency: "EUR", url: `${siteUrl}${eventPath(event)}` } } : {}),

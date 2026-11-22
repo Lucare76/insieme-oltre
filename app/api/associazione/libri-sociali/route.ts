@@ -53,8 +53,27 @@ async function handle(request:Request){
   return reply({items});
  }
  if(request.method==="PATCH"){
-  // Non esporre la modifica generica dei registri: consenti solo l'ortografia del nominativo.
   const body=await jsonBody(request);
+  if(body.action==="update_profile"){
+   if(body.kind!=="soci" || !uuid(body.person_id) || body.confirm!==true)
+    throw new AssociationError("Seleziona un socio e conferma la modifica.");
+   const fiscalCode=cleaned(body.fiscal_code??"",16).toUpperCase();
+   if(fiscalCode && !/^[A-Z0-9]{16}$/.test(fiscalCode))
+    throw new AssociationError("Il codice fiscale deve avere 16 caratteri alfanumerici.");
+   const birthDate=body.birth_date ? String(body.birth_date) : null;
+   if(birthDate && !validBirthDate(birthDate))
+    throw new AssociationError("Data di nascita non valida.");
+   const birthPlace=cleaned(body.birth_place??"",160);
+   const residence=cleaned(body.residence??"",250);
+   const notes=cleaned(body.notes??"",500);
+   await service("/rest/v1/rpc/association_update_member_profile",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({p_person:body.person_id,p_actor:actor.id,p_fiscal_code:fiscalCode,
+     p_birth_date:birthDate,p_birth_place:birthPlace,p_residence:residence,p_notes:notes})
+   });
+   return reply({ok:true,person_id:body.person_id});
+  }
+  // Non esporre la modifica generica dei registri: consenti solo le correzioni del nome e dei dati anagrafici.
   if(body.kind!=="soci" || !uuid(body.person_id) || body.confirm!==true)
    throw new AssociationError("Scegli un socio e conferma la correzione.");
   const fullName=uppercasePersonName(cleaned(body.full_name,160,true));

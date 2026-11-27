@@ -1,5 +1,6 @@
 import { SocialLinks } from "./components/SocialLinks";
 import { WhatsAppCta } from "./components/WhatsAppCta";
+import { CopyIbanButton } from "./components/CopyIbanButton";
 import { LazyContactForm } from "./components/LazyContactForm";
 import { contactNotice } from "../lib/legal";
 import { contactMailConfig } from "../lib/contactMail";
@@ -244,6 +245,28 @@ export default async function Home() {
           <span className="promise-accent" data-reveal="accent" style={delay(520)}>{content.promise.accent}</span>
         </h2>
         <p className="promise-note" data-reveal="fade" style={delay(300)}>{content.promise.note}</p>
+      </section>
+
+      <section className="support section" id="sostienici" aria-labelledby="support-title">
+        <div className="support-inner">
+          <div className="support-copy-block" data-reveal="fade-up">
+            <p className="section-kicker">Sostienici</p>
+            <h2 id="support-title">Un gesto concreto.<br/><em>Per andare oltre.</em></h2>
+            <p>Puoi sostenere le attività di Insieme Oltre con un bonifico. Ogni contributo ci aiuta a costruire occasioni, relazioni e progetti sul territorio.</p>
+          </div>
+          <div className="support-card" data-reveal="fade-up" style={delay(150)}>
+            <div className="support-row"><span>Intestatario</span><strong>Insieme Oltre ODV</strong></div>
+            <div className="support-row"><span>Banca</span><strong>UniCredit</strong></div>
+            <div className="support-row support-iban-row">
+              <span>IBAN</span>
+              <strong className="support-iban">IT76N0200839932000107493053</strong>
+            </div>
+            <div className="support-actions">
+              <CopyIbanButton />
+            </div>
+            <p className="support-causale"><span>Causale consigliata</span><strong>Erogazione liberale – Insieme Oltre ODV</strong></p>
+          </div>
+        </div>
       </section>
 
       <section className="join section" id="unisciti" aria-labelledby="contact-title">

@@ -5,13 +5,13 @@ import { FundraisingOperations } from "./FundraisingOperations";
 
 const presets = ["Natale Solidale 2026", "Pasqua Solidale 2027"];
 const euro = (cents: number) => (cents / 100).toLocaleString("it-IT", { style: "currency", currency: "EUR" });
-type Entry = Pick<Movement, "id" | "date" | "kind" | "amount_cents" | "description" | "category" | "project" | "cancelled">;
+type Entry = Pick<Movement, "id" | "date" | "kind" | "amount_cents" | "description" | "category" | "project" | "cancelled" | "financial">;
 
 function sum(items: Entry[]) {
   return items.reduce((n, x) => n + x.amount_cents, 0);
 }
 export function calculateFundraising(items: Entry[], project: string) {
-  const valid = items.filter(x => !x.cancelled && x.project.trim() === project && (x.kind === "income" || x.kind === "expense"));
+  const valid = items.filter(x => !x.cancelled && !x.financial && x.project.trim() === project && (x.kind === "income" || x.kind === "expense"));
   const incomes = valid.filter(x => x.kind === "income").sort((a, b) => a.date.localeCompare(b.date));
   const expenses = valid.filter(x => x.kind === "expense").sort((a, b) => a.date.localeCompare(b.date));
   return { incomes, expenses, income: sum(incomes), expense: sum(expenses), net: sum(incomes) - sum(expenses) };

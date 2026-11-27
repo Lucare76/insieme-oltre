@@ -14,7 +14,7 @@ export function accountingReport(items: Movement[], year: string) {
   });
   const byCategory = new Map<string, number>();
   for (const item of period) {
-    if (item.kind === "expense")
+    if (item.kind === "expense" && !item.financial)
       byCategory.set(
         item.category,
         (byCategory.get(item.category) ?? 0) + item.amount_cents,

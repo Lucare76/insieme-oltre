@@ -11,6 +11,8 @@ export type Movement = {
   version: number;
   cancelled: boolean;
   cancellation_reason: string | null;
+  financial?: boolean;
+  advance_managed?: boolean;
 };
 export const kindLabels = {
   income: "Entrata",
@@ -70,8 +72,8 @@ export function balances(items: Movement[]) {
   const result = { income: 0, expense: 0, cash: 0, bank: 0 };
   for (const item of items) {
     if (item.cancelled) continue;
-    if (item.kind === "income") result.income += item.amount_cents;
-    if (item.kind === "expense") result.expense += item.amount_cents;
+    if (item.kind === "income" && !item.financial) result.income += item.amount_cents;
+    if (item.kind === "expense" && !item.financial) result.expense += item.amount_cents;
     result[item.account] +=
       item.kind === "expense" || item.kind === "transfer"
         ? -item.amount_cents

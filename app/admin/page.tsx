@@ -19,6 +19,7 @@ import {
   storeSessionTimes,
   SESSION_TIMES_KEY,
 } from "./sessionTimeout";
+const AdvancesPanel = dynamic(() => import("./AdvancesPanel"));
 const ContentEditor = dynamic(() => import("./ContentEditor"));
 const ReceiptsPanel = dynamic(() => import("./ReceiptsPanel"));
 const WhatsAppPanel = dynamic(() => import("./WhatsAppPanel"));
@@ -949,6 +950,7 @@ export default function AreaSoci() {
                     </div>
                   </form>
                 )}
+                <AdvancesPanel api={api} canWrite={Boolean(write)} onAccountingChange={load} />
                 <MovementLedger
                   items={items}
                   filtered={filtered}

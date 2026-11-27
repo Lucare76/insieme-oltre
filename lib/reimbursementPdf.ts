@@ -1,0 +1,32 @@
+import { PDFDocument, rgb } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+type Advance = { person:string; kind:"deposit"|"expense"; date:string; description:string };
+type Payment = { id:string; date:string; amount_cents:number; account:"cash"|"bank" };
+export async function reimbursementPdf(a:Advance,p:Payment) {
+ const issuer={name:process.env.RECEIPT_ISSUER_NAME?.trim()??"", tax:process.env.RECEIPT_ISSUER_TAX_CODE?.trim()??"", address:process.env.RECEIPT_ISSUER_ADDRESS?.trim()??""};
+ if(!issuer.name || !/^\d{11}$/.test(issuer.tax) || !issuer.address) throw new Error("Dati associazione non configurati.");
+ const pdf=await PDFDocument.create();pdf.registerFontkit(fontkit);
+ const asset=(name:string)=>readFile(path.join(process.cwd(),"lib/receipt-assets",name));
+ const [regular,boldBytes,logoBytes]=await Promise.all([asset("DejaVuSans.ttf"),asset("DejaVuSans-Bold.ttf"),asset("logo.png")]);
+ const font=await pdf.embedFont(regular,{subset:true}),bold=await pdf.embedFont(boldBytes,{subset:true}),logo=await pdf.embedPng(logoBytes);
+ const page=pdf.addPage([595.28,841.89]), color=rgb(.14,.23,.18);
+ const dims=logo.scale(Math.min(128/logo.width,80/logo.height));page.drawImage(logo,{x:51,y:728,...dims});
+ page.drawText("QUIETANZA DI RIMBORSO",{x:205,y:780,size:15,font:bold,color});
+ page.drawLine({start:{x:51,y:711},end:{x:544,y:711},thickness:1,color:rgb(.74,.82,.76)});
+ let y=685;
+ const line=(text:string,size=11,strong=false,gap=0)=>{const f=strong?bold:font;let row="";const draw=()=>{if(y<125)throw new Error("Quietanza troppo lunga.");page.drawText(row,{x:51,y,size,font:f,color});y-=size*1.5;row=""};for(const c of text.replace(/[\u0000-\u001f]/g," ")){if(f.widthOfTextAtSize(row+c,size)>485&&row)draw();row+=c}if(row)draw();y-=gap};
+ const date=(v:string)=>v.slice(0,10).split("-").reverse().join("/");
+ line(issuer.name,13,true);line("Codice fiscale: "+issuer.tax,10);line(issuer.address,10,false,15);
+ line("Quietanza n. RIM/"+p.id.toUpperCase(),9);line("Data rimborso: "+date(p.date),10,false,18);
+ line("Il/La sottoscritto/a",10);line(a.person,13,true,10);
+ line("dichiara di aver ricevuto da "+issuer.name+" la somma di",11);
+ line((p.amount_cents/100).toLocaleString("it-IT",{style:"currency",currency:"EUR"}),15,true,8);
+ line(a.kind==="deposit"?"a restituzione del deposito anticipato all’associazione.":"a rimborso di spese sostenute per conto dell’associazione.",11);
+ line("Anticipazione del "+date(a.date)+": "+a.description,10,false,10);
+ line("Modalità: "+(p.account==="cash"?"contanti":"bonifico bancario"),11,false,24);
+ line("Firma per quietanza",10,true);page.drawLine({start:{x:51,y:y-28},end:{x:300,y:y-28},thickness:.6,color});
+ page.drawText("Insieme Oltre ODV · Quietanza di rimborso",{x:51,y:66,size:9,font,color});
+ pdf.setTitle("Quietanza di rimborso");return Buffer.from(await pdf.save());
+}

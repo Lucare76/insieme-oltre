@@ -24,6 +24,7 @@ try {
   }
   browser = await chromium.launch({
     headless: true,
+    ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
     args: ["--no-sandbox", "--disable-dev-shm-usage"],
   });
   for (const width of [1440, 820, 390, 360]) {
@@ -101,6 +102,7 @@ try {
           },
         };
       else if (path.endsWith("/requests")) data = { items: [] };
+      else if (path.endsWith("/anticipazioni")) data = { advances: [], payments: [] };
       else if (path.endsWith("/movements")) {
         if (route.request().method() === "GET") data = { items };
         else {
@@ -141,6 +143,7 @@ try {
       });
     });
     const login = async () => {
+      await page.setViewportSize({width: 1440, height: 900});
       await page.goto("http://127.0.0.1:3105/admin");
       await page.getByLabel("Nome utente", { exact: true }).fill("luca");
       await page
@@ -150,6 +153,7 @@ try {
       await page
         .getByRole("button", { name: "Contabilità", exact: true })
         .click();
+      await page.setViewportSize({width, height: 900});
       await page.getByLabel("Anno del riepilogo").selectOption("2026");
       await page.getByText("138,00", { exact: false }).first().waitFor();
     };
@@ -280,7 +284,7 @@ try {
     await actionsButton.click();
     await menu.getByRole("menuitem", { name: "Correggi" }).click();
     await page.getByRole("heading", { name: "Correggi movimento" }).waitFor();
-    assert.equal(await page.locator("input[name=description]").inputValue(), "Donazione");
+    assert.equal(await page.locator("#movement-editor input[name=description]").inputValue(), "Donazione");
     await page.locator("#movement-editor").getByRole("button", { name: "Chiudi" }).click();
     page.once("dialog", (d) => d.dismiss());
     await actionsButton.click();
@@ -312,20 +316,20 @@ try {
       .getByRole("button", { name: "− Registra uscita", exact: true })
       .click();
     assert.equal(
-      await page.locator("select[name=kind]").inputValue(),
+      await page.locator("#movement-editor select[name=kind]").inputValue(),
       "expense",
     );
-    await page.locator("select[name=kind]").selectOption("transfer");
-    await page.locator("select[name=account]").selectOption("cash");
+    await page.locator("#movement-editor select[name=kind]").selectOption("transfer");
+    await page.locator("#movement-editor select[name=account]").selectOption("cash");
     await page.getByText("Al conto:").waitFor();
     assert.match(
       await page.locator(".accounting-transfer").innerText(),
       /Conto bancario/,
     );
-    await page.locator("input[name=amount]").fill("10,00");
+    await page.locator("#movement-editor input[name=amount]").fill("10,00");
     await page.locator("input[name=category]").fill("Trasferimento interno");
     await page
-      .locator("input[name=description]")
+      .locator("#movement-editor input[name=description]")
       .fill("Versamento dalla cassa");
     await page
       .getByRole("button", { name: "Salva e allega documento" })

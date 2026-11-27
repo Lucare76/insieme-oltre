@@ -115,6 +115,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
   const incomes = movements.filter(
     (m) =>
       m.kind === "income" &&
+      !m.financial &&
       !m.cancelled &&
       m.category !== "Quote associative" &&
       m.date <= today &&
@@ -171,7 +172,7 @@ export default function ReceiptsPanel({ api }: { api: Api }) {
         </p>
       )}
       {loaded &&
-        movements.filter((m) => m.kind === "income" && !m.cancelled).length ===
+        movements.filter((m) => m.kind === "income" && !m.financial && !m.cancelled).length ===
           0 && (
           <p className="accounting-empty">
             Non ci sono ancora incassi. Puoi preparare la prima ricevuta:

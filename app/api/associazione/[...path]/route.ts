@@ -21,7 +21,7 @@ export const runtime = "nodejs";
 const reply = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: privateHeaders });
 const fields =
-  "id,date,kind,amount_cents,account,category,project,description,version,cancelled,cancellation_reason";
+  "id,date,kind,amount_cents,account,category,project,description,version,cancelled,cancellation_reason,financial,advance_managed";
 function text(value: unknown, max: number, required = false) {
   if (
     typeof value !== "string" ||

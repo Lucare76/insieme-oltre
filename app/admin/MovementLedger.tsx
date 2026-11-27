@@ -188,7 +188,7 @@ function RowActions<T extends Movement>({
       >
         Documenti
       </button>
-      {!item.cancelled && (
+      {!item.cancelled && !item.advance_managed && (
         <ActionMenu
           label={`Azioni: ${item.description}, ${dateLabel(item.date)}`}
           disabled={busy}

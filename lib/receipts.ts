@@ -70,7 +70,7 @@ export const receiptTitle = (type: ReceiptData["type"]) =>
     : "Ricevuta di partecipazione alla raccolta fondi";
 export function receiptData(
   body: Record<string, unknown>,
-  movement: Pick<Movement, "kind" | "cancelled" | "date" | "account">,
+  movement: Pick<Movement, "kind" | "cancelled" | "date" | "account" | "financial">,
 ): ReceiptData {
   const field = (key: string, max: number, required = true) => {
     const value = body[key];
@@ -85,6 +85,7 @@ export function receiptData(
   };
   if (
     movement.kind !== "income" ||
+    movement.financial ||
     movement.cancelled ||
     !validDate(movement.date)
   )

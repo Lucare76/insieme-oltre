@@ -27,3 +27,11 @@ PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs node tests/accounting-ui.mjs
 ```
 
 Il test UI avvia la build locale sulla porta 3105 e simula le API, senza creare utenti o dati in produzione. Controlla desktop/mobile, riepiloghi, filtri, trasferimenti, allegati con errore e ripetizione, vista soci e overflow.
+
+## Anticipazioni e rimborsi
+
+In Contabilità, «Anticipazioni e rimborsi» distingue il deposito finanziario (ad esempio il versamento personale per aprire il conto) dalla spesa sostenuta per conto dell'associazione. Il deposito incrementa il conto indicato; la restituzione decrementa il conto dal quale è effettivamente pagata. Entrambi sono movimenti finanziari, esclusi dai totali di gestione e dalle raccolte fondi. I movimenti restano visibili nel registro e nei saldi. Per trasferire denaro fra banca e cassa si continua a usare il giroconto esistente.
+
+Una spesa anticipata non muove subito cassa o banca: le quote effettivamente rimborsate sono registrate come uscite di gestione nella categoria e iniziativa indicate, alla data di pagamento. Non registrare una seconda volta spese già presenti nel registro: questa funzione non riconcilia automaticamente le registrazioni precedenti. Il residuo è aggiornato dopo ogni rimborso; il database impedisce rimborsi superiori al totale, anche in caso di richieste simultanee. I movimenti collegati non sono modificabili o annullabili dal registro: eventuali rettifiche richiedono intervento amministrativo.
+
+La quietanza usa i dati intestatario configurati per le ricevute, il logo esistente e il riferimento univoco del rimborso. Deve essere firmata dal destinatario per attestare l'effettivo pagamento. In caso di risposta incerta usare «Verifica o riprova», senza ripetere una nuova registrazione.

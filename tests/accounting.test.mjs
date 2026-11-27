@@ -93,3 +93,28 @@ test("riepilogo annuale: saldi complessivi, mesi e categorie senza trasferimenti
   );
   assert.equal(accountingReport([], "2026").monthly.length, 12);
 });
+
+
+test("deposito e rimborso finanziario aggiornano banca e cassa senza gonfiare la gestione", () => {
+  const base = {cancelled: false};
+  const movements = [
+    {...base, kind:"income", account:"bank", amount_cents:2000, financial:true},
+    {...base, kind:"expense", account:"cash", amount_cents:2000, financial:true},
+    {...base, kind:"expense", account:"bank", amount_cents:500, financial:false},
+  ];
+  assert.deepEqual(balances(movements), {income:0, expense:500, bank:1500, cash:-2000});
+});
+
+test("il rendiconto esclude il finanziamento ma conserva la spesa rimborsata", () => {
+  const { accountingReport } = createRequire(import.meta.url)(process.env.ACCOUNTING_REPORT_BUILD + "/accountingReports.js");
+  const base={id:"1",date:"2026-11-27",account:"bank",category:"Deposito",cancelled:false,description:"Test"};
+  const entries=[
+    {...base,kind:"income",amount_cents:2000,financial:true},
+    {...base,id:"2",kind:"expense",account:"cash",amount_cents:2000,financial:true},
+    {...base,id:"3",kind:"expense",category:"Materiali",amount_cents:500,financial:false},
+  ];
+  const report=accountingReport(entries,"2026");
+  assert.equal(report.period.income,0); assert.equal(report.period.expense,500);
+  assert.deepEqual(report.expenses,[{name:"Materiali",amount:500}]);
+  assert.equal(report.totals.bank,1500); assert.equal(report.totals.cash,-2000);
+});

@@ -1,0 +1,14 @@
+import {test,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const {GET,POST}=require(process.env.ADVANCES_TEST_BUILD+'/app/api/associazione/anticipazioni/route.js');
+process.env.NEXT_PUBLIC_SUPABASE_URL='https://example.supabase.co';process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY='anon';process.env.SUPABASE_SERVICE_ROLE_KEY='service';process.env.ADMIN_ALLOWED_EMAIL='owner@example.org';
+const actor='11111111-1111-4111-8111-111111111111',requestId='22222222-2222-4222-8222-222222222222';
+const original=global.fetch;let role='member',calls=[];
+global.fetch=async(url,init)=>{calls.push({url,init});if(url.endsWith('/auth/v1/user'))return Response.json({id:actor,email:'member@example.org'});if(url.includes('/association_members?'))return Response.json([{name:'Socio',role,active:true,activated_at:'2026-01-01'}]);if(url.includes('/association_advances?')||url.includes('/association_reimbursements?'))return Response.json([]);if(url.includes('/rpc/association_create_advance'))return Response.json(requestId);throw Error('unexpected '+url)};
+after(()=>global.fetch=original);
+const req=(body,auth=true)=>new Request('https://site.example/api/associazione/anticipazioni',{method:body?'POST':'GET',headers:{...(auth?{Authorization:'Bearer test'}:{}),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+const payload={id:requestId,action:'create',kind:'deposit',person:'Presidente',date:'2026-01-01',amount:'20',account:'bank',description:'Apertura conto'};
+test('accesso solo autorizzato e soci in sola lettura',async()=>{assert.equal((await GET(req(null,false))).status,401);role='member';assert.equal((await GET(req())).status,200);assert.equal((await POST(req(payload))).status,403);role='none';assert.equal((await GET(req())).status,403)});
+test('contabile registra e passa importo esatto al database',async()=>{role='accountant';calls=[];assert.equal((await POST(req(payload))).status,201);const rpc=calls.find(x=>x.url.includes('/rpc/'));assert.equal(JSON.parse(rpc.init.body).p_amount,2000);assert.equal((await POST(req({...payload,amount:'-1'}))).status,400)});

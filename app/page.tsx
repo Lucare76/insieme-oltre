@@ -83,6 +83,7 @@ export default async function Home() {
           <a href="/appuntamenti">Appuntamenti</a>
           <a href="#storie">Storie</a>
           <a href="#futuro">Il futuro</a>
+          <a href="#sostienici">Sostienici</a>
         </nav>
         <a className="header-cta" href="#unisciti">{content.nav.cta}</a>
       </header>

@@ -10,11 +10,11 @@ const date=(s:string)=>s.split("-").reverse().join("/");
 const pendingKey="insieme_oltre_pending_advance_request";
 export default function AdvancesPanel({api,canWrite,onAccountingChange}:{api:Api;canWrite:boolean;onAccountingChange:()=>Promise<void>}){
  const [advances,setAdvances]=useState<Advance[]>([]),[payments,setPayments]=useState<Payment[]>([]);
- const [kind,setKind]=useState("deposit"),[selected,setSelected]=useState(""),[loading,setLoading]=useState(false),[working,setWorking]=useState(false),[message,setMessage]=useState("");
+ const [kind,setKind]=useState("deposit"),[selected,setSelected]=useState(""),[loading,setLoading]=useState(true),[working,setWorking]=useState(false),[message,setMessage]=useState("");
  const [pending,setPending]=useState(false);
  const submitLock=useRef(false);
  const load=useCallback(async()=>{const data=await(await api("anticipazioni")).json();setAdvances(data.advances);setPayments(data.payments);return data as {advances:Advance[];payments:Payment[]}},[api]);
- useEffect(()=>{let active=true;setLoading(true);load().catch(()=>{if(active)setMessage("Impossibile caricare le anticipazioni.")}).finally(()=>{if(active)setLoading(false)});setPending(!!sessionStorage.getItem(pendingKey));return()=>{active=false}},[load]);
+ useEffect(()=>{let active=true;Promise.resolve().then(()=>load()).catch(()=>{if(active)setMessage("Impossibile caricare le anticipazioni.")}).finally(()=>{if(active)setLoading(false)});queueMicrotask(()=>{if(active)setPending(!!sessionStorage.getItem(pendingKey))});return()=>{active=false}},[load]);
  const send=async(body:Record<string,unknown>)=>{
   setWorking(true);setMessage("");
   try{

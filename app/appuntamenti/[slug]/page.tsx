@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const event = await loadEvent((await params).slug);
   if (!event) return { robots: { index: false, follow: false } };
   const path = eventPath(event);
-  const description = event.shortDescription;
-  const fullTitle = event.topicTitle ? `${event.topicTitle} | ${event.title}` : event.title;
+  const description = `${formatEventDate(event.eventDate)}, ${formatEventTime(event)} · ${event.locationName}${event.address ? `, ${event.address}` : ""}. ${event.shortDescription}`;
+  const fullTitle = `${event.topicTitle || event.title} – ${formatEventDate(event.eventDate)}`;
   return {
     title: `${fullTitle} | Insieme Oltre Ischia`,
     description,

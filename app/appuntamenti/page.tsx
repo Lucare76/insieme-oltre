@@ -9,11 +9,11 @@ import { eventJsonLd } from "../../lib/eventPages";
 import "../events.css";
 
 export const metadata: Metadata = {
-  title: "Appuntamenti | Insieme Oltre ODV Ischia",
+  title: "Eventi e appuntamenti a Ischia | Insieme Oltre",
   description: "Scopri i prossimi appuntamenti di Insieme Oltre ODV a Ischia: incontri, attività e momenti per famiglie, ragazzi, volontari e comunità.",
   alternates: { canonical: "/appuntamenti" },
   ...socialMetadata({
-    title: "Appuntamenti | Insieme Oltre ODV Ischia",
+    title: "Eventi e appuntamenti a Ischia | Insieme Oltre",
     description: "Scopri i prossimi appuntamenti di Insieme Oltre ODV a Ischia: incontri, attività e momenti per famiglie, ragazzi, volontari e comunità.",
     path: "/appuntamenti",
   }),
@@ -38,8 +38,8 @@ export default async function AppuntamentiPage() {
       <div className="events-page-inner">
         <header className="events-page-header">
           <Link href="/" className="section-kicker">← Insieme Oltre</Link>
-          <h1>I nostri appuntamenti</h1>
-          <p className="events-page-intro">Momenti per incontrarci, conoscerci e costruire insieme qualcosa di bello. Qui trovi i prossimi appuntamenti di Insieme Oltre.</p>
+          <h1>Eventi e appuntamenti a Ischia</h1>
+          <p className="events-page-intro">Momenti per incontrarci, conoscerci e costruire insieme qualcosa di bello. Qui trovi gli incontri, le attività e i prossimi appuntamenti di Insieme Oltre sull’isola d’Ischia.</p>
         </header>
 
         <section aria-labelledby="future-events-title">
